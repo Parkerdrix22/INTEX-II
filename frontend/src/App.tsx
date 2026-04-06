@@ -3,9 +3,11 @@ import { useAuth } from './auth/useAuth';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { CaseloadInventoryPage } from './pages/CaseloadInventoryPage';
+import { DonorChurnPage } from './pages/DonorChurnPage';
 import { DonorDashboardPage } from './pages/DonorDashboardPage';
 import { DonorsContributionsPage } from './pages/DonorsContributionsPage';
 import { HomePage } from './pages/HomePage';
+import { ImpactDashboardPage } from './pages/ImpactDashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { ResidentDashboardPage } from './pages/ResidentDashboardPage';
 import { PostPlannerPage } from './pages/PostPlannerPage';
@@ -30,9 +32,17 @@ function App() {
           </div>
 
           <div className="nav-right">
+            <Link className="nav-link" to="/impact">
+              Impact
+            </Link>
             {isStaffLike && (
               <Link className="nav-link" to="/post-planner">
                 Post Planner
+              </Link>
+            )}
+            {isStaffLike && (
+              <Link className="nav-link" to="/donor-churn">
+                Donor Retention
               </Link>
             )}
             {isAuthenticated && (
@@ -99,6 +109,15 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
                 <PostPlannerPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/impact" element={<ImpactDashboardPage />} />
+          <Route
+            path="/donor-churn"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <DonorChurnPage />
               </ProtectedRoute>
             }
           />
