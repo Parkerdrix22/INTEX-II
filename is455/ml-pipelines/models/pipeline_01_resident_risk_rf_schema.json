@@ -1,0 +1,81 @@
+{
+  "model_name": "pipeline_01_resident_risk_rf",
+  "version": "1.0",
+  "input_tensor_name": "float_input",
+  "n_features": 46,
+  "feature_order": [
+    "age_at_intake",
+    "length_of_stay_days",
+    "initial_risk_ordinal",
+    "reintegration_ordinal",
+    "sub_cat_orphaned",
+    "sub_cat_trafficked",
+    "sub_cat_child_labor",
+    "sub_cat_physical_abuse",
+    "sub_cat_sexual_abuse",
+    "sub_cat_osaec",
+    "sub_cat_cicl",
+    "sub_cat_at_risk",
+    "sub_cat_street_child",
+    "sub_cat_child_with_hiv",
+    "mean_health_score",
+    "latest_health_score",
+    "health_trend",
+    "mean_nutrition_score",
+    "mean_sleep_quality_score",
+    "health_record_count",
+    "mean_attendance_rate",
+    "mean_progress_percent",
+    "latest_progress_percent",
+    "ed_record_count",
+    "session_count",
+    "concerns_flagged_rate",
+    "progress_noted_rate",
+    "referral_made_rate",
+    "negative_endstate_rate",
+    "visitation_count",
+    "safety_concerns_rate",
+    "uncooperative_family_rate",
+    "favorable_outcome_rate",
+    "incident_count",
+    "high_severity_count",
+    "self_harm_count",
+    "runaway_count",
+    "unresolved_count",
+    "plan_count",
+    "achieved_rate",
+    "on_hold_rate",
+    "has_safety_plan",
+    "case_cat_Abandoned",
+    "case_cat_Foundling",
+    "case_cat_Neglected",
+    "case_cat_Surrendered"
+  ],
+  "output_tensors": [
+    {
+      "name": "label",
+      "dtype": "int64",
+      "shape": [
+        "N"
+      ],
+      "description": "Predicted high_risk_flag (0=low_medium_risk, 1=high_critical_risk)",
+      "classes": [
+        0,
+        1
+      ],
+      "class_meanings": [
+        "low_medium_risk",
+        "high_critical_risk"
+      ]
+    },
+    {
+      "name": "probabilities",
+      "dtype": "float32",
+      "shape": [
+        "N",
+        2
+      ],
+      "description": "Class probabilities [P(low_medium), P(high_critical)]"
+    }
+  ]
+}

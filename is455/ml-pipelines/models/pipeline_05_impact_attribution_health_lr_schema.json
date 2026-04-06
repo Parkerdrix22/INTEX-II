@@ -1,0 +1,27 @@
+{
+  "model_name": "pipeline_05_impact_attribution_health_lr",
+  "version": "1.0",
+  "input_tensor_name": "float_input",
+  "n_features": 8,
+  "feature_order": [
+    "donation_to_health_lag1",
+    "donation_to_education_lag1",
+    "donation_to_counseling_lag1",
+    "donation_to_operations_lag1",
+    "donation_total_lag1",
+    "active_residents_lag1",
+    "capacity_utilization_lag1",
+    "month_of_year"
+  ],
+  "output_tensors": [
+    {
+      "name": "predicted_health_score",
+      "dtype": "float32",
+      "shape": [
+        "N",
+        1
+      ],
+      "description": "Predicted avg_health_score for residents at a safehouse given donation amounts by program area in the prior month. Powers the Donor Impact Estimator dashboard feature."
+    }
+  ]
+}

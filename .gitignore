@@ -1,8 +1,30 @@
+# .NET
 bin/
 obj/
+
+# Node
 node_modules/
 dist/
-.DS_Store
+
+# Virtual environments
+.venv
+venv
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Environment variables
 .env
 .env.*
 !.env.example
@@ -10,3 +32,20 @@ backend/Lighthouse.API/appsettings.Local.json
 frontend/.env.local
 frontend/.env.development.local
 frontend/.env.production.local
+
+# CSV data (DB is source of truth)
+lighthouse_csv_v7/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Byte-compiled
+*.pyc
+*.pyo

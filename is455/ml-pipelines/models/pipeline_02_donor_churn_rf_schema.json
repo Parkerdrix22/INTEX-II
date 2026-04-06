@@ -1,0 +1,81 @@
+{
+  "model_name": "pipeline_02_donor_churn_ra",
+  "version": "1.0",
+  "input_tensor_name": "float_input",
+  "n_features": 38,
+  "feature_order": [
+    "frequency",
+    "monetary_total",
+    "monetary_avg",
+    "monetary_max",
+    "has_recurring",
+    "donation_types_count",
+    "recency_days",
+    "days_since_first",
+    "donation_velocity",
+    "recurring_rate",
+    "has_campaign_donation",
+    "unique_safehouses_funded",
+    "pct_education",
+    "pct_health",
+    "pct_counseling",
+    "tenure_days",
+    "supporter_type_InKindDonor",
+    "supporter_type_MonetaryDonor",
+    "supporter_type_PartnerOrganization",
+    "supporter_type_SkillsContributor",
+    "supporter_type_SocialMediaAdvocate",
+    "supporter_type_Volunteer",
+    "acquisition_channel_Church",
+    "acquisition_channel_Event",
+    "acquisition_channel_PartnerReferral",
+    "acquisition_channel_SocialMedia",
+    "acquisition_channel_Website",
+    "acquisition_channel_WordOfMouth",
+    "relationship_type_International",
+    "relationship_type_Local",
+    "relationship_type_PartnerOrganization",
+    "region_Luzon",
+    "region_Mindanao",
+    "region_Visayas",
+    "country_Canada",
+    "country_Philippines",
+    "country_Singapore",
+    "country_USA"
+  ],
+  "output_tensors": [
+    {
+      "name": "churn_label",
+      "dtype": "int64",
+      "shape": [
+        "N"
+      ],
+      "description": "Predicted churn class: 0=retained, 1=churned",
+      "classes": [
+        0,
+        1
+      ],
+      "class_meanings": [
+        "retained",
+        "churned"
+      ]
+    },
+    {
+      "name": "churn_probabilities",
+      "dtype": "float32",
+      "shape": [
+        "N",
+        2
+      ],
+      "description": "Predicted probabilities [P(retained), P(churned)]",
+      "classes": [
+        0,
+        1
+      ],
+      "class_meanings": [
+        "retained",
+        "churned"
+      ]
+    }
+  ]
+}

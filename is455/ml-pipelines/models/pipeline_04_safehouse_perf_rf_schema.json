@@ -1,0 +1,48 @@
+{
+  "model_name": "pipeline_04_safehouse_perf_rf",
+  "version": "1.0",
+  "input_tensor_name": "float_input",
+  "n_features": 29,
+  "feature_order": [
+    "incident_count_lag1",
+    "incident_count_lag2",
+    "incident_count_rolling3_mean",
+    "home_visitation_count_lag1",
+    "process_recording_count_lag1",
+    "active_residents_lag1",
+    "avg_health_score_lag1",
+    "avg_education_progress_lag1",
+    "capacity_girls",
+    "capacity_utilization_lag1",
+    "safehouse_age_months",
+    "monthly_donation_total_lag1",
+    "monthly_donation_rolling3",
+    "months_since_first",
+    "region_Luzon",
+    "region_Mindanao",
+    "region_Visayas",
+    "month_of_year_1",
+    "month_of_year_10",
+    "month_of_year_11",
+    "month_of_year_12",
+    "month_of_year_2",
+    "month_of_year_3",
+    "month_of_year_4",
+    "month_of_year_5",
+    "month_of_year_6",
+    "month_of_year_7",
+    "month_of_year_8",
+    "month_of_year_9"
+  ],
+  "output_tensors": [
+    {
+      "name": "predicted_incident_count",
+      "dtype": "float32",
+      "shape": [
+        "N",
+        1
+      ],
+      "description": "Predicted next-month incident count for a safehouse"
+    }
+  ]
+}

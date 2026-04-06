@@ -1,0 +1,89 @@
+# =============================================================================
+# ml_retrain.yml — Nightly ML Model Retraining Workflow
+#
+# Purpose:
+#   Pulls fresh data from the AWS RDS PostgreSQL database, retrains all 5
+#   ML pipelines, and commits the updated .onnx model files back to the repo.
+#   The committed models are then picked up by the C# Azure deployment.
+#
+# Required GitHub Secrets (Settings → Secrets and variables → Actions):
+#   PGHOST       — AWS RDS endpoint
+#   PGDATABASE   — Database name
+#   PGUSER       — Database username
+#   PGPASSWORD   — Database password
+#   PGPORT       — Database port (typically 5432)
+#
+# PGSSLMODE is hardcoded to 'require' — no secret needed.
+# =============================================================================
+
+name: Nightly ML Retrain
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 2:00 AM UTC every night
+  workflow_dispatch:        # Manual trigger from GitHub Actions UI
+
+concurrency:
+  group: ml-retrain
+  cancel-in-progress: false
+
+jobs:
+  retrain:
+    name: Retrain All ML Pipelines
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('is455/requirements.txt') }}
+          restore-keys: |
+            pip-
+
+      - name: Install dependencies
+        run: pip install -r is455/requirements.txt
+
+      - name: Retrain all ML pipelines
+        env:
+          PGHOST:     ${{ secrets.PGHOST }}
+          PGDATABASE: ${{ secrets.PGDATABASE }}
+          PGUSER:     ${{ secrets.PGUSER }}
+          PGPASSWORD: ${{ secrets.PGPASSWORD }}
+          PGPORT:     ${{ secrets.PGPORT }}
+          PGSSLMODE:  require
+        run: python is455/ml-pipelines/scripts/train_all.py
+
+      - name: Commit updated models
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add is455/ml-pipelines/models/
+          git diff --staged --quiet \
+            && echo "No model changes detected — skipping commit." \
+            || (
+              git commit -m "chore: nightly model retrain $(date -u +%Y-%m-%d)" \
+              && git push
+            )
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "========================================================"
+          echo "  RETRAIN FAILED — $(date -u)"
+          echo "========================================================"
+          echo "  One or more ML pipelines failed to retrain."
+          echo "  Previously committed model files are unchanged."
+          echo "  Check the failed step logs above."
+          echo "========================================================"

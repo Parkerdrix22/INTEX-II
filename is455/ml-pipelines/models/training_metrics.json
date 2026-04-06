@@ -1,0 +1,150 @@
+{
+  "pipeline_01_resident_risk": {
+    "status": "success",
+    "trained_at": "2026-04-06T20:11:40.052379+00:00",
+    "metrics": {
+      "cv_roc_auc_mean": 0.9073,
+      "cv_roc_auc_std": 0.0576,
+      "cv_f1_mean": 0.0,
+      "cv_f1_std": 0.0,
+      "cv_precision_mean": 0.0,
+      "cv_recall_mean": 0.0,
+      "n_samples": 60,
+      "n_positives": 6,
+      "best_rf_params": {
+        "model__max_depth": 2,
+        "model__min_samples_leaf": 3,
+        "model__n_estimators": 100
+      },
+      "cv_f1_weighted_mean": 0.4922,
+      "cv_f1_weighted_std": 0.145,
+      "best_lr_C": 0.01,
+      "onnx_verified": true
+    }
+  },
+  "pipeline_02_donor_churn": {
+    "status": "success",
+    "trained_at": "2026-04-06T20:11:52.303005+00:00",
+    "metrics": {
+      "roc_auc_mean": 1.0,
+      "roc_auc_std": 0.0,
+      "f1_mean": 0.6,
+      "precision_mean": 0.8,
+      "recall_mean": 0.5,
+      "winning_model": "RandomForest",
+      "best_params": "{'model__max_depth': 3, 'model__min_samples_leaf': 2, 'model__n_estimators': 100}",
+      "n_supporters": 59,
+      "churn_rate": 0.1356,
+      "lr_cv_auc": 0.95,
+      "rf_cv_auc": 1.0,
+      "onnx_verified": true
+    }
+  },
+  "pipeline_03_social_media": {
+    "status": "success",
+    "trained_at": "2026-04-06T19:22:40.478017+00:00",
+    "metrics": {
+      "r2": 0.7576,
+      "rmse": 0.028496,
+      "mae": 0.020605,
+      "baseline_rmse": 0.057873,
+      "rmse_vs_baseline_pct": 49.2,
+      "n_test": 163,
+      "onnx_verified": true
+    }
+  },
+  "pipeline_04_safehouse_perf": {
+    "status": "success",
+    "trained_at": "2026-04-06T19:22:42.503298+00:00",
+    "metrics": {
+      "rf": {
+        "rmse": 0.1628,
+        "mae": 0.1625,
+        "r2": 0.0,
+        "baseline_rmse": 0.1072,
+        "baseline_mae": 0.0115,
+        "beats_naive_baseline": false,
+        "rmse_pct_of_baseline": 151.9,
+        "n_test": 87,
+        "model_type": "RandomForestRegressor",
+        "onnx_verified": true
+      },
+      "lr": {
+        "rmse": 0.1152,
+        "mae": 0.0966,
+        "r2": 0.0,
+        "baseline_rmse": 0.1072,
+        "baseline_mae": 0.0115,
+        "beats_naive_baseline": false,
+        "rmse_pct_of_baseline": 107.4,
+        "n_test": 87,
+        "model_type": "LinearRegression"
+      },
+      "n_train": 345,
+      "n_test": 87,
+      "n_features": 29
+    }
+  },
+  "pipeline_05_impact_attribution": {
+    "status": "success",
+    "trained_at": "2026-04-06T20:12:25.833019+00:00",
+    "metrics": {
+      "ols_health_r2": 0.5082,
+      "ols_health_adj_r2": 0.4814,
+      "ols_health_f_stat": 18.9212,
+      "ols_health_f_pvalue": 0.0,
+      "ols_health_aic": -164.05,
+      "ols_health_bic": -114.64,
+      "ols_health_n_obs": 252,
+      "ols_edu_r2": 0.151,
+      "ols_edu_adj_r2": 0.1046,
+      "ols_edu_f_stat": 3.2564,
+      "ols_edu_f_pvalue": 0.000146,
+      "ols_edu_aic": 2174.52,
+      "ols_edu_bic": 2223.94,
+      "ols_edu_n_obs": 252,
+      "lr_train_r2": 0.0978,
+      "lr_test_r2": -0.4727,
+      "lr_test_rmse": 0.3627,
+      "lr_test_mae": 0.2743,
+      "lr_n_train": 201,
+      "lr_n_test": 51,
+      "onnx_verified": true,
+      "panel_rows": 441,
+      "n_health_rows": 252,
+      "n_edu_rows": 252
+    }
+  },
+  "pipeline_04_safehouse_performance": {
+    "status": "success",
+    "trained_at": "2026-04-06T20:13:45.690159+00:00",
+    "metrics": {
+      "rf": {
+        "rmse": 0.1628,
+        "mae": 0.1625,
+        "r2": 0.0,
+        "baseline_rmse": 0.1072,
+        "baseline_mae": 0.0115,
+        "beats_naive_baseline": false,
+        "rmse_pct_of_baseline": 151.9,
+        "n_test": 87,
+        "model_type": "RandomForestRegressor",
+        "onnx_verified": true
+      },
+      "lr": {
+        "rmse": 0.1152,
+        "mae": 0.0966,
+        "r2": 0.0,
+        "baseline_rmse": 0.1072,
+        "baseline_mae": 0.0115,
+        "beats_naive_baseline": false,
+        "rmse_pct_of_baseline": 107.4,
+        "n_test": 87,
+        "model_type": "LinearRegression"
+      },
+      "n_train": 345,
+      "n_test": 87,
+      "n_features": 29
+    }
+  }
+}
