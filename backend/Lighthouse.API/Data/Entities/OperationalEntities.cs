@@ -1,5 +1,43 @@
 namespace Lighthouse.API.Data.Entities;
 
+public static class UserRoles
+{
+    public const string Admin = "Admin";
+    public const string Staff = "Staff";
+    public const string Donor = "Donor";
+    public const string Resident = "Resident";
+}
+
+public class AppUser
+{
+    public int Id { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty;
+    public string Role { get; set; } = UserRoles.Staff;
+    public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public int? ResidentId { get; set; }
+    public Resident? Resident { get; set; }
+
+    public int? SupporterId { get; set; }
+    public Supporter? Supporter { get; set; }
+
+    public int? StaffMemberId { get; set; }
+    public StaffMember? StaffMember { get; set; }
+}
+
+public class StaffMember
+{
+    public int Id { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Title { get; set; } = "Social Worker";
+    public int? SafehouseId { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
 public class Resident
 {
     public int Id { get; set; }
