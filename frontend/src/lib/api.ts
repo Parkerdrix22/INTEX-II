@@ -2,8 +2,12 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 type MeResponse = {
   isAuthenticated: boolean;
+  username?: string | null;
   email: string | null;
   roles: string[];
+  residentId?: string | null;
+  supporterId?: string | null;
+  staffMemberId?: string | null;
 };
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -38,10 +42,20 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const authApi = {
-  login: (email: string, password: string, rememberMe: boolean) =>
+  login: (login: string, password: string, rememberMe: boolean) =>
     apiFetch<{ message: string }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password, rememberMe }),
+      body: JSON.stringify({ login, password, rememberMe }),
+    }),
+  register: (username: string, email: string, password: string, role: 'Resident' | 'Donor') =>
+    apiFetch<{ message: string }>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ username, email, password, role }),
+    }),
+  registerStaff: (username: string, email: string, password: string, role: 'Admin' | 'Staff') =>
+    apiFetch<{ message: string }>('/api/auth/register-staff', {
+      method: 'POST',
+      body: JSON.stringify({ username, email, password, role }),
     }),
   logout: () =>
     apiFetch<{ message: string }>('/api/auth/logout', {
