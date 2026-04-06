@@ -7,6 +7,7 @@ import { DonorsContributionsPage } from './pages/DonorsContributionsPage';
 import { HomePage } from './pages/HomePage';
 import { ImpactDashboardPage } from './pages/ImpactDashboardPage';
 import { LoginPage } from './pages/LoginPage';
+import { PostPlannerPage } from './pages/PostPlannerPage';
 import { ReportsAnalyticsPage } from './pages/ReportsAnalyticsPage';
 
 function App() {
@@ -25,6 +26,9 @@ function App() {
             </Link>
             <Link className="nav-link" to="/impact">
               Impact
+            </Link>
+            <Link className="nav-link" to="/post-planner">
+              Post Planner
             </Link>
             {isAuthenticated && (
               <>
@@ -59,6 +63,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/impact" element={<ImpactDashboardPage />} />
+          <Route path="/post-planner" element={<PostPlannerPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route
             path="/admin-dashboard"
