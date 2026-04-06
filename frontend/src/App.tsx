@@ -6,7 +6,6 @@ import { CaseloadInventoryPage } from './pages/CaseloadInventoryPage';
 import { DonorDashboardPage } from './pages/DonorDashboardPage';
 import { DonorsContributionsPage } from './pages/DonorsContributionsPage';
 import { HomePage } from './pages/HomePage';
-import { ImpactDashboardPage } from './pages/ImpactDashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { ResidentDashboardPage } from './pages/ResidentDashboardPage';
 import { PostPlannerPage } from './pages/PostPlannerPage';
@@ -28,12 +27,14 @@ function App() {
             <Link className="brand-mark" to="/">
               Kateri
             </Link>
-            <Link className="nav-link" to="/impact">
-              Impact
-            </Link>
-            <Link className="nav-link" to="/post-planner">
-              Post Planner
-            </Link>
+          </div>
+
+          <div className="nav-right">
+            {isStaffLike && (
+              <Link className="nav-link" to="/post-planner">
+                Post Planner
+              </Link>
+            )}
             {isAuthenticated && (
               <>
                 {roles.includes('Admin') && (
@@ -71,9 +72,6 @@ function App() {
                 )}
               </>
             )}
-          </div>
-
-          <div className="nav-right">
             {!isAuthenticated && (
               <>
                 <Link className="nav-link signup-link" to="/signup">
@@ -84,7 +82,11 @@ function App() {
                 </Link>
               </>
             )}
-            {isAuthenticated && <button onClick={logout}>Logout</button>}
+            {isAuthenticated && (
+              <button className="logout-button" onClick={logout}>
+                Logout
+              </button>
+            )}
           </div>
         </nav>
       </header>
@@ -92,8 +94,14 @@ function App() {
       <main className="page-container">
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/impact" element={<ImpactDashboardPage />} />
-          <Route path="/post-planner" element={<PostPlannerPage />} />
+          <Route
+            path="/post-planner"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <PostPlannerPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />

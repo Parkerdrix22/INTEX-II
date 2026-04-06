@@ -77,6 +77,8 @@ a {
 .nav-right {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 0.65rem;
 }
 
@@ -130,6 +132,10 @@ a {
   cursor: pointer;
 }
 
+.logout-button {
+  margin-left: 0.55rem;
+}
+
 .page-container {
   width: min(960px, 100%);
   margin: 0 auto;
@@ -138,6 +144,61 @@ a {
 
 .blank-page {
   min-height: 300px;
+}
+
+.donor-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.donor-stats .stat-card {
+  min-height: 116px;
+}
+
+.donor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.donor-page .feature-slab,
+.donor-page .auth-card {
+  background: rgba(253, 250, 244, 0.82);
+}
+
+.donor-page .auth-card {
+  border-left: 5px solid rgba(56, 95, 130, 0.45);
+}
+
+.donor-page .hero-panel h1 {
+  margin: 0 0 0.45rem;
+  color: #27496a;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+}
+
+.donor-focus-fieldset {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem;
+}
+
+.donor-focus-fieldset legend {
+  color: var(--text-muted);
+  padding: 0 0.35rem;
+}
+
+.donor-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem 0.65rem;
+}
+
+.donor-focus-option {
+  display: flex !important;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text);
 }
 
 .auth-page {
@@ -532,7 +593,9 @@ a {
 @media (max-width: 800px) {
   .stats-grid,
   .serve-grid,
-  .name-grid {
+  .name-grid,
+  .donor-grid,
+  .donor-focus-grid {
     grid-template-columns: 1fr;
   }
 

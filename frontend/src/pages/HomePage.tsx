@@ -25,12 +25,9 @@ export function HomePage() {
           focused commitment to Native American communities.
         </p>
         <div className="hero-actions">
-          <Link className="btn-primary" to="/impact">
-            View Impact
-          </Link>
-          <a className="btn-secondary" href="mailto:support@kateri.org">
+          <Link className="btn-primary" to="/donor-dashboard">
             Support Kateri
-          </a>
+          </Link>
         </div>
       </div>
 
