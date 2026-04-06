@@ -3,6 +3,7 @@ import { useAuth } from './auth/useAuth';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { CaseloadInventoryPage } from './pages/CaseloadInventoryPage';
+import { DonorChurnPage } from './pages/DonorChurnPage';
 import { DonorDashboardPage } from './pages/DonorDashboardPage';
 import { DonorsContributionsPage } from './pages/DonorsContributionsPage';
 import { HomePage } from './pages/HomePage';
@@ -33,6 +34,9 @@ function App() {
             </Link>
             <Link className="nav-link" to="/post-planner">
               Post Planner
+            </Link>
+            <Link className="nav-link" to="/donor-churn">
+              Donor Retention
             </Link>
             {isAuthenticated && (
               <>
@@ -94,6 +98,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/impact" element={<ImpactDashboardPage />} />
           <Route path="/post-planner" element={<PostPlannerPage />} />
+          <Route path="/donor-churn" element={<DonorChurnPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
