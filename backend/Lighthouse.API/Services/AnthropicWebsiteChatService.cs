@@ -7,7 +7,12 @@ namespace Lighthouse.API.Services;
 
 public sealed class AnthropicWebsiteChatService(IHttpClientFactory httpClientFactory, IConfiguration configuration) : IWebsiteChatService
 {
-    public async Task<string> AskAsync(string userMessage, CancellationToken cancellationToken)
+    public async Task<string> AskAsync(
+        string userMessage,
+        string userDisplayName,
+        string userRole,
+        ChatDonorContext? donorContext,
+        CancellationToken cancellationToken)
     {
         var apiKey =
             configuration["Anthropic:ApiKey"]
@@ -21,29 +26,12 @@ public sealed class AnthropicWebsiteChatService(IHttpClientFactory httpClientFac
         }
 
         var configuredModel = configuration["Anthropic:Model"] ?? configuration["Anthropic__Model"];
-        var model = string.IsNullOrWhiteSpace(configuredModel) ? "claude-3-5-sonnet-latest" : configuredModel!;
+        // Default to Haiku — fastest + cheapest, plenty for FAQ-style chat.
+        var model = string.IsNullOrWhiteSpace(configuredModel) ? "claude-haiku-4-5" : configuredModel!;
 
         var client = httpClientFactory.CreateClient(nameof(AnthropicWebsiteChatService));
 
-        var systemPrompt = """
-You are the helpful assistant for the "Kateri" Lighthouse website.
-
-Your job is to answer questions about what the website does and how to use it.
-If the user asks something unrelated to the website, politely say you can only help with questions about this site.
-
-What the site contains (high level):
-- Public pages: Home (/), Login (/login), Sign up (/signup), Our Impact (/impact)
-- Donor portal: /donor-dashboard (Donor/Admin/Staff)
-- Resident dashboard: /resident-dashboard (Resident)
-- Staff/Admin tools (Admin/Staff): Admin dashboard (/admin-dashboard), Donors & Contributions (/donors-contributions),
-  Caseload Inventory (/caseload-inventory), Process Recording (/process-recording), Home Visitation (/home-visitation),
-  Reports & Analytics (/reports-analytics), Post Planner (/post-planner)
-
-Behavior rules:
-- Be concise and actionable.
-- When relevant, mention the correct route name (URL path) and what role can access it.
-- Do not invent features that are not listed above.
-""";
+        var systemPrompt = BuildSystemPrompt(userDisplayName, userRole, donorContext);
 
         var payload = new
         {
@@ -108,6 +96,86 @@ Behavior rules:
         }
 
         return ExtractTextFromAnthropicMessagesJson(raw) ?? "Sorry — I couldn’t generate a response.";
+    }
+
+    private static string BuildSystemPrompt(string userDisplayName, string userRole, ChatDonorContext? donor)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("You are a warm, concise help assistant for the Kateri website — a nonprofit");
+        sb.AppendLine("inspired by Lighthouse Sanctuary that protects Native American women and girls");
+        sb.AppendLine("from sexual abuse and trafficking. The site has these main pages:");
+        sb.AppendLine();
+        sb.AppendLine("Public pages:");
+        sb.AppendLine("- Home (/) — mission and overview");
+        sb.AppendLine("- Our Impact (/impact) — public stats and stories");
+        sb.AppendLine("- Login (/login) and Sign up (/signup)");
+        sb.AppendLine();
+        sb.AppendLine("For donors (Donor/Admin/Staff):");
+        sb.AppendLine("- Donor Portal (/donor-dashboard) — gift history, donation form, volunteer signup");
+        sb.AppendLine("- Donor Impact (/donor-impact) — personalized 'where your dollars went' breakdown");
+        sb.AppendLine();
+        sb.AppendLine("For staff (Admin/Staff only):");
+        sb.AppendLine("- Admin Dashboard (/admin-dashboard)");
+        sb.AppendLine("- Donors & Contributions (/donors-contributions)");
+        sb.AppendLine("- Caseload Inventory (/caseload-inventory)");
+        sb.AppendLine("- Resident Risk Triage (/resident-risk-triage) — ML model flagging at-risk residents");
+        sb.AppendLine("- Case Resolution (/case-resolution) — predicts who's ready for case closure");
+        sb.AppendLine("- Donor Retention (/donor-churn) — churn-risk dashboard");
+        sb.AppendLine("- Donor Archetypes (/donor-archetypes) — K-means donor segmentation");
+        sb.AppendLine("- Post Planner (/post-planner) — predicts engagement for social media posts");
+        sb.AppendLine("- Process Recording (/process-recording) and Home Visitation (/home-visitation)");
+        sb.AppendLine("- Reports & Analytics (/reports-analytics)");
+        sb.AppendLine();
+        sb.AppendLine($"CURRENT USER: {userDisplayName} (role: {userRole})");
+        sb.AppendLine();
+
+        if (donor != null)
+        {
+            sb.AppendLine("DONOR DATA — this is the CURRENT USER's personal giving history. Use these");
+            sb.AppendLine("numbers exactly when answering personal questions; never invent figures.");
+            sb.AppendLine($"- Display name:    {donor.DisplayName}");
+            if (!string.IsNullOrEmpty(donor.SupporterType))
+                sb.AppendLine($"- Supporter type:  {donor.SupporterType}");
+            if (!string.IsNullOrEmpty(donor.Country))
+                sb.AppendLine($"- Country:         {donor.Country}");
+            sb.AppendLine($"- Total donated:   ${donor.TotalDonated:N2}");
+            sb.AppendLine($"- # of donations:  {donor.DonationCount}");
+            if (!string.IsNullOrEmpty(donor.FirstDonation))
+                sb.AppendLine($"- First donation:  {donor.FirstDonation}");
+            if (!string.IsNullOrEmpty(donor.LastDonation))
+                sb.AppendLine($"- Last donation:   {donor.LastDonation}");
+
+            if (donor.ProgramAreas.Count > 0)
+            {
+                sb.AppendLine("- Program areas funded:");
+                foreach (var (area, amount) in donor.ProgramAreas)
+                    sb.AppendLine($"    • {area}: ${amount:N2}");
+            }
+            if (donor.Safehouses.Count > 0)
+            {
+                sb.AppendLine("- Safehouses supported:");
+                foreach (var sh in donor.Safehouses)
+                    sb.AppendLine($"    • {sh}");
+            }
+        }
+        else
+        {
+            sb.AppendLine("This user is NOT linked to a donor record, so you don't have personal");
+            sb.AppendLine("giving data for them. If they ask about 'their' donations, kindly explain");
+            sb.AppendLine("you only have personal giving data for accounts linked to a supporter");
+            sb.AppendLine("profile, and they should contact staff if their account isn't connected.");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("GUIDELINES:");
+        sb.AppendLine("- Be warm, encouraging, and human. You're talking to people who care.");
+        sb.AppendLine("- For donor-specific questions, use ONLY the data above. Never invent numbers.");
+        sb.AppendLine("- Never share information about other donors. Each user only sees their own.");
+        sb.AppendLine("- For navigation questions, mention the route by name (e.g. /donor-impact).");
+        sb.AppendLine("- Keep responses to 2-4 sentences unless the user asks for more detail.");
+        sb.AppendLine("- If you don't know something, say so honestly. Don't guess.");
+
+        return sb.ToString();
     }
 
     private static bool LooksLikeModelNotFound(string rawJson)
