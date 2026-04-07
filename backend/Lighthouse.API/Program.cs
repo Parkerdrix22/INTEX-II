@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+LocalEnvLoader.Apply(builder.Configuration, builder.Environment.ContentRootPath);
+
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
