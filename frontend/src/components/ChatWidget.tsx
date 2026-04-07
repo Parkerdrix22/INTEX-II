@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { chatApi } from '../lib/api';
 
 type ChatMessage = {
@@ -9,6 +9,20 @@ type ChatMessage = {
 
 function makeId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+/** Converts /route-style paths in text into clickable <a> links. */
+function renderWithLinks(text: string): React.ReactNode[] {
+  const parts = text.split(/(\/[\w-]+(?:\/[\w-]*)*)/g);
+  return parts.map((part, i) =>
+    /^\/([\w-]+(?:\/[\w-]*)*)$/.test(part) ? (
+      <a key={i} href={part} className="chat-widget__link">
+        {part}
+      </a>
+    ) : (
+      part
+    ),
+  );
 }
 
 export function ChatWidget() {
@@ -106,7 +120,7 @@ export function ChatWidget() {
                   m.role === 'user' ? 'chat-widget__bubble--user' : 'chat-widget__bubble--assistant'
                 }`}
               >
-                {m.text}
+                {renderWithLinks(m.text)}
               </div>
             ))}
           </div>
