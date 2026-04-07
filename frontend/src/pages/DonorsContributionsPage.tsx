@@ -25,6 +25,12 @@ export function DonorsContributionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dashboard, setDashboard] = useState<DonorsContributionsDashboard | null>(null);
+  const [animatedSummary, setAnimatedSummary] = useState({
+    activeSupporters: 0,
+    newThisMonth: 0,
+    contributionsMtd: 0,
+    totalContributions: 0,
+  });
 
   useEffect(() => {
     const load = async () => {
@@ -46,15 +52,40 @@ export function DonorsContributionsPage() {
   const contributions = dashboard?.contributions ?? [];
   const allocations = dashboard?.allocations ?? [];
   const activityLog = dashboard?.activity ?? [];
-  const summaryCards = useMemo(
-    () => [
-      { label: 'Active supporters', value: `${dashboard?.summary.activeSupporters ?? 0}` },
-      { label: 'New this month', value: `${dashboard?.summary.newThisMonth ?? 0}` },
-      { label: 'Contributions (MTD)', value: formatPhp(dashboard?.summary.contributionsMtd ?? 0) },
-      { label: 'Total contributions', value: formatPhp(dashboard?.summary.totalContributions ?? 0) },
-    ],
+  const summary = useMemo(
+    () => ({
+      activeSupporters: dashboard?.summary.activeSupporters ?? 0,
+      newThisMonth: dashboard?.summary.newThisMonth ?? 0,
+      contributionsMtd: dashboard?.summary.contributionsMtd ?? 0,
+      totalContributions: dashboard?.summary.totalContributions ?? 0,
+    }),
     [dashboard],
   );
+
+  useEffect(() => {
+    const durationMs = 900;
+    const start = performance.now();
+    const initial = { ...animatedSummary };
+    let rafId = 0;
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / durationMs);
+      setAnimatedSummary({
+        activeSupporters: Math.round(
+          initial.activeSupporters + (summary.activeSupporters - initial.activeSupporters) * progress,
+        ),
+        newThisMonth: Math.round(initial.newThisMonth + (summary.newThisMonth - initial.newThisMonth) * progress),
+        contributionsMtd:
+          initial.contributionsMtd + (summary.contributionsMtd - initial.contributionsMtd) * progress,
+        totalContributions:
+          initial.totalContributions + (summary.totalContributions - initial.totalContributions) * progress,
+      });
+      if (progress < 1) rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [summary]);
 
   const supporterTypes = Array.from(new Set(supporters.map((row) => row.supporterType))).sort();
   const supporterStatuses = Array.from(new Set(supporters.map((row) => row.status))).sort();
@@ -77,12 +108,22 @@ export function DonorsContributionsPage() {
       </header>
 
       <section className="donor-summary-grid" aria-label="Summary metrics">
-        {summaryCards.map((card) => (
-          <article key={card.label} className="stat-card">
-            <p className="metric-label">{card.label}</p>
-            <p className="metric-value">{card.value}</p>
-          </article>
-        ))}
+        <article className="stat-card">
+          <p className="metric-label">Active supporters</p>
+          <p className="metric-value">{animatedSummary.activeSupporters}+</p>
+        </article>
+        <article className="stat-card">
+          <p className="metric-label">New this month</p>
+          <p className="metric-value">{animatedSummary.newThisMonth}+</p>
+        </article>
+        <article className="stat-card">
+          <p className="metric-label">Contributions (MTD)</p>
+          <p className="metric-value">{formatPhp(animatedSummary.contributionsMtd)}</p>
+        </article>
+        <article className="stat-card">
+          <p className="metric-label">Total contributions</p>
+          <p className="metric-value">{formatPhp(animatedSummary.totalContributions)}</p>
+        </article>
       </section>
       {loading && <p className="donor-inline-message">Loading donor dashboard...</p>}
       {error && <p className="error-text donor-inline-message">{error}</p>}

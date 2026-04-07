@@ -1,0 +1,74 @@
+{
+  "trained_at_utc": "2026-04-07T17:33:33.854212+00:00",
+  "model": "LogisticRegression on standardized features",
+  "interpretation": "Positive coefficients push the model toward 'case will be resolved'. Negative coefficients push it toward 'case still open'. Coefficients are in standardized feature space (each feature mean-centered and scaled to unit variance), so magnitudes are comparable across features.",
+  "n_features": 8,
+  "feature_order": [
+    "case_cat_Surrendered",
+    "case_cat_Abandoned",
+    "case_cat_Foundling",
+    "case_cat_Neglected",
+    "length_of_stay_days",
+    "has_safety_plan",
+    "achieved_rate",
+    "session_count"
+  ],
+  "coefficients": [
+    {
+      "feature": "length_of_stay_days",
+      "coef": -0.8272,
+      "abs_coef": 0.8272,
+      "direction": "negative",
+      "interpretation": "decreases case-resolution probability"
+    },
+    {
+      "feature": "session_count",
+      "coef": -0.7,
+      "abs_coef": 0.7,
+      "direction": "negative",
+      "interpretation": "decreases case-resolution probability"
+    },
+    {
+      "feature": "achieved_rate",
+      "coef": -0.4456,
+      "abs_coef": 0.4456,
+      "direction": "negative",
+      "interpretation": "decreases case-resolution probability"
+    },
+    {
+      "feature": "case_cat_Surrendered",
+      "coef": 0.0923,
+      "abs_coef": 0.0923,
+      "direction": "positive",
+      "interpretation": "increases case-resolution probability"
+    },
+    {
+      "feature": "case_cat_Foundling",
+      "coef": -0.0855,
+      "abs_coef": 0.0855,
+      "direction": "negative",
+      "interpretation": "decreases case-resolution probability"
+    },
+    {
+      "feature": "case_cat_Abandoned",
+      "coef": -0.0638,
+      "abs_coef": 0.0638,
+      "direction": "negative",
+      "interpretation": "decreases case-resolution probability"
+    },
+    {
+      "feature": "case_cat_Neglected",
+      "coef": 0.0492,
+      "abs_coef": 0.0492,
+      "direction": "positive",
+      "interpretation": "increases case-resolution probability"
+    },
+    {
+      "feature": "has_safety_plan",
+      "coef": 0.0,
+      "abs_coef": 0.0,
+      "direction": "negative",
+      "interpretation": "decreases case-resolution probability"
+    }
+  ]
+}

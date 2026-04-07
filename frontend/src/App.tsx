@@ -5,6 +5,7 @@ import { useAuth } from './auth/useAuth';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { CaseloadInventoryPage } from './pages/CaseloadInventoryPage';
+import { CaseResolutionPage } from './pages/CaseResolutionPage';
 import { DonorChurnPage } from './pages/DonorChurnPage';
 import { DonorDashboardPage } from './pages/DonorDashboardPage';
 import { DonorImpactPage } from './pages/DonorImpactPage';
@@ -17,12 +18,16 @@ import { SignupPage } from './pages/SignupPage';
 import { ProcessRecordingPage } from './pages/ProcessRecordingPage';
 import { ResidentDashboardPage } from './pages/ResidentDashboardPage';
 import { ResidentCasePage } from './pages/ResidentCasePage';
+import { ResidentRiskPage } from './pages/ResidentRiskPage';
 import { PostPlannerPage } from './pages/PostPlannerPage';
 import { ReportsAnalyticsPage } from './pages/ReportsAnalyticsPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { CookiePolicyPage } from './pages/CookiePolicyPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { StaffSidebar } from './components/StaffSidebar';
 import { ChatWidget } from './components/ChatWidget';
+import { CookieConsentBanner } from './components/CookieConsentBanner';
 
 function ProfileNavIcon({ className }: { className?: string }) {
   return (
@@ -173,6 +178,22 @@ function App() {
             }
           />
           <Route
+            path="/resident-risk-triage"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <ResidentRiskPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/case-resolution"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <CaseResolutionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/donor-impact"
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Donor']}>
@@ -182,6 +203,8 @@ function App() {
           />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route
             path="/profile"
             element={
@@ -269,6 +292,7 @@ function App() {
         </main>
         <ChatWidget />
       </div>
+      <CookieConsentBanner />
     </div>
   );
 }

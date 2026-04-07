@@ -1,6 +1,8 @@
 using Lighthouse.API.Data;
+using Lighthouse.API.Data.Entities;
 using Lighthouse.API.Infrastructure;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,14 +25,21 @@ builder.Services.AddCors(options =>
                 .AllowCredentials());
 });
 
-builder.Services
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+var authBuilder = builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.Cookie.Name = "lighthouse.auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        // Always require HTTPS in production; allow HTTP cookies in dev so local
+        // auth works against http://localhost without HTTPS.
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
         options.SlidingExpiration = true;
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.Events.OnRedirectToLogin = context =>
@@ -45,8 +54,35 @@ builder.Services
         };
     });
 
+if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    authBuilder.AddGoogle(options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.CallbackPath = "/signin-google";
+    });
+}
+
+builder.Services
+    .AddIdentityCore<AppUser>(options =>
+    {
+        options.Password.RequiredLength = 14;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequireDigit = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequiredUniqueChars = 1;
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddRoles<IdentityRole<int>>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddSignInManager();
+
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    .AddPolicy("AdminOnly", policy => policy.RequireRole(UserRoles.Admin))
+    .AddPolicy("AdminOrStaff", policy => policy.RequireRole(UserRoles.Admin, UserRoles.Staff));
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? builder.Configuration["DATABASE_URL"]
@@ -62,6 +98,10 @@ await AuthSeeder.SeedAsync(app.Services);
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+}
+else
+{
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();

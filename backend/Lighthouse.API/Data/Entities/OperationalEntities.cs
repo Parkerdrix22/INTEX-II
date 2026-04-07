@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Lighthouse.API.Data.Entities;
 
 public static class UserRoles
@@ -8,15 +11,17 @@ public static class UserRoles
     public const string Resident = "Resident";
 }
 
-public class AppUser
+public class AppUser : IdentityUser<int>
 {
-    public int Id { get; set; }
-    public string Username { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
     public string Role { get; set; } = UserRoles.Staff;
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    [NotMapped]
+    public string Username
+    {
+        get => UserName ?? string.Empty;
+        set => UserName = value;
+    }
 
     public int? ResidentId { get; set; }
     public Resident? Resident { get; set; }

@@ -1,11 +1,14 @@
 using Lighthouse.API.Data.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Lighthouse.API.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options)
+    : IdentityDbContext<AppUser, IdentityRole<int>, int>(options)
 {
-    public DbSet<AppUser> Users => Set<AppUser>();
+    public new DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<StaffMember> StaffMembers => Set<StaffMember>();
     public DbSet<Resident> Residents => Set<Resident>();
     public DbSet<Supporter> Supporters => Set<Supporter>();
@@ -18,6 +21,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<AppUser>().ToTable("users");
         modelBuilder.Entity<StaffMember>().ToTable("staff_members");
         modelBuilder.Entity<Resident>().ToTable("residents");
@@ -30,9 +35,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<PublicImpactSnapshot>().ToTable("public_impact_snapshots");
 
         modelBuilder.Entity<AppUser>().Property(user => user.Id).HasColumnName("user_id");
-        modelBuilder.Entity<AppUser>().Property(user => user.Username).HasColumnName("full_name");
         modelBuilder.Entity<AppUser>().Property(user => user.Email).HasColumnName("email");
         modelBuilder.Entity<AppUser>().Property(user => user.PasswordHash).HasColumnName("password_hash");
+        modelBuilder.Entity<AppUser>().Property(user => user.UserName).HasColumnName("full_name");
+        modelBuilder.Entity<AppUser>().Property(user => user.NormalizedUserName).HasColumnName("normalized_user_name");
+        modelBuilder.Entity<AppUser>().Property(user => user.NormalizedEmail).HasColumnName("normalized_email");
+        modelBuilder.Entity<AppUser>().Property(user => user.SecurityStamp).HasColumnName("security_stamp");
+        modelBuilder.Entity<AppUser>().Property(user => user.ConcurrencyStamp).HasColumnName("concurrency_stamp");
+        modelBuilder.Entity<AppUser>().Property(user => user.PhoneNumber).HasColumnName("phone_number");
+        modelBuilder.Entity<AppUser>().Property(user => user.PhoneNumberConfirmed).HasColumnName("phone_number_confirmed");
+        modelBuilder.Entity<AppUser>().Property(user => user.TwoFactorEnabled).HasColumnName("two_factor_enabled");
+        modelBuilder.Entity<AppUser>().Property(user => user.LockoutEnd).HasColumnName("lockout_end");
+        modelBuilder.Entity<AppUser>().Property(user => user.LockoutEnabled).HasColumnName("lockout_enabled");
+        modelBuilder.Entity<AppUser>().Property(user => user.AccessFailedCount).HasColumnName("access_failed_count");
+        modelBuilder.Entity<AppUser>().Property(user => user.EmailConfirmed).HasColumnName("email_confirmed");
         modelBuilder.Entity<AppUser>().Property(user => user.Role).HasColumnName("role");
         modelBuilder.Entity<AppUser>().Property(user => user.IsActive).HasColumnName("is_active");
         modelBuilder.Entity<AppUser>().Property(user => user.CreatedAt).HasColumnName("created_at");

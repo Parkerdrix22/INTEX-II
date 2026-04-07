@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
+import { authApi } from '../lib/api';
 import backgroundImage from '../background.jpg?format=webp&quality=82&w=1920';
 
 export function LoginPage() {
@@ -10,6 +11,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [providers, setProviders] = useState<Array<{ name: string; displayName: string }>>([]);
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -20,6 +22,27 @@ export function LoginPage() {
     return () => {
       document.body.classList.remove('home-background');
       document.documentElement.style.removeProperty('--home-bg-image');
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadProviders = async () => {
+      try {
+        const options = await authApi.providers();
+        if (!cancelled) {
+          setProviders(options);
+        }
+      } catch {
+        if (!cancelled) {
+          setProviders([]);
+        }
+      }
+    };
+
+    void loadProviders();
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -92,6 +115,20 @@ export function LoginPage() {
             {submitting ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
+        {providers.length > 0 && (
+          <div className="external-login-group">
+            <p>Or continue with</p>
+            {providers.map((provider) => (
+              <a
+                key={provider.name}
+                className="auth-external-link"
+                href={authApi.externalLoginUrl(provider.name, '/')}
+              >
+                {provider.displayName}
+              </a>
+            ))}
+          </div>
+        )}
       </article>
     </section>
   );
