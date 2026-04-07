@@ -17,6 +17,7 @@ import { SignupPage } from './pages/SignupPage';
 import { ProcessRecordingPage } from './pages/ProcessRecordingPage';
 import { ResidentDashboardPage } from './pages/ResidentDashboardPage';
 import { ResidentCasePage } from './pages/ResidentCasePage';
+import { ResidentRiskPage } from './pages/ResidentRiskPage';
 import { PostPlannerPage } from './pages/PostPlannerPage';
 import { ReportsAnalyticsPage } from './pages/ReportsAnalyticsPage';
 import { ProfilePage } from './pages/ProfilePage';
@@ -168,6 +169,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
                 <DonorChurnPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resident-risk-triage"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <ResidentRiskPage />
               </ProtectedRoute>
             }
           />
