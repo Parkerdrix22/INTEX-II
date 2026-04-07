@@ -186,5 +186,27 @@
       "onnx_verified": true,
       "target": "case_status == 'Closed'"
     }
+  },
+  "pipeline_07_donor_archetypes": {
+    "status": "success",
+    "trained_at": "2026-04-07T18:20:30.272378+00:00",
+    "metrics": {
+      "n_donors": 61,
+      "n_clusters": 4,
+      "silhouette": 0.3268,
+      "inertia": 137.83,
+      "cluster_sizes": [
+        12,
+        15,
+        31,
+        3
+      ],
+      "archetype_labels": [
+        "The Lapsed Faithful",
+        "The Loyal Sustainers",
+        "The Active Engaged",
+        "The New Sparks"
+      ]
+    }
   }
 }
