@@ -1,0 +1,169 @@
+{
+  "trained_at_utc": "2026-04-07T15:32:22.139555+00:00",
+  "model": "OLS (statsmodels) with safehouse fixed effects",
+  "interpretation": "Each coefficient is the estimated change in the outcome (avg health score or avg education progress) per unit increase in the predictor, holding other predictors constant. Donation amounts are in USD lagged by one month.",
+  "health": {
+    "target": "avg_health_score",
+    "n_obs": 252,
+    "r_squared": 0.5082,
+    "adj_r_squared": 0.4814,
+    "f_statistic": 18.9212,
+    "f_pvalue": 0.0,
+    "coefficients": [
+      {
+        "variable": "donation_to_health_lag1",
+        "coef": -1.5e-05,
+        "std_err": 3.1e-05,
+        "t_stat": -0.4648,
+        "p_value": 0.6425,
+        "ci_lower": -7.6e-05,
+        "ci_upper": 4.7e-05
+      },
+      {
+        "variable": "donation_to_education_lag1",
+        "coef": 1.7e-05,
+        "std_err": 3e-05,
+        "t_stat": 0.544,
+        "p_value": 0.587,
+        "ci_lower": -4.3e-05,
+        "ci_upper": 7.6e-05
+      },
+      {
+        "variable": "donation_to_counseling_lag1",
+        "coef": 0.0,
+        "std_err": 0.0,
+        "t_stat": 21.7988,
+        "p_value": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0
+      },
+      {
+        "variable": "donation_to_operations_lag1",
+        "coef": 9e-06,
+        "std_err": 2.8e-05,
+        "t_stat": 0.3321,
+        "p_value": 0.7401,
+        "ci_lower": -4.6e-05,
+        "ci_upper": 6.5e-05
+      },
+      {
+        "variable": "donation_total_lag1",
+        "coef": -4e-06,
+        "std_err": 1.7e-05,
+        "t_stat": -0.2562,
+        "p_value": 0.798,
+        "ci_lower": -3.9e-05,
+        "ci_upper": 3e-05
+      },
+      {
+        "variable": "active_residents_lag1",
+        "coef": 0.142029,
+        "std_err": 0.004866,
+        "t_stat": 29.1889,
+        "p_value": 0.0,
+        "ci_lower": 0.132443,
+        "ci_upper": 0.151614
+      },
+      {
+        "variable": "capacity_utilization_lag1",
+        "coef": 0.178229,
+        "std_err": 0.009439,
+        "t_stat": 18.8829,
+        "p_value": 0.0,
+        "ci_lower": 0.159635,
+        "ci_upper": 0.196823
+      },
+      {
+        "variable": "month_of_year",
+        "coef": 0.003194,
+        "std_err": 0.00327,
+        "t_stat": 0.9768,
+        "p_value": 0.3297,
+        "ci_lower": -0.003248,
+        "ci_upper": 0.009637
+      }
+    ]
+  },
+  "education": {
+    "target": "avg_education_progress",
+    "n_obs": 252,
+    "r_squared": 0.151,
+    "adj_r_squared": 0.1046,
+    "f_statistic": 3.2564,
+    "f_pvalue": 0.000146,
+    "coefficients": [
+      {
+        "variable": "donation_to_health_lag1",
+        "coef": 0.00389,
+        "std_err": 0.003234,
+        "t_stat": 1.2029,
+        "p_value": 0.2302,
+        "ci_lower": -0.002481,
+        "ci_upper": 0.010262
+      },
+      {
+        "variable": "donation_to_education_lag1",
+        "coef": -0.005896,
+        "std_err": 0.003144,
+        "t_stat": -1.875,
+        "p_value": 0.062,
+        "ci_lower": -0.01209,
+        "ci_upper": 0.000299
+      },
+      {
+        "variable": "donation_to_counseling_lag1",
+        "coef": 0.0,
+        "std_err": 0.0,
+        "t_stat": 5.1556,
+        "p_value": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0
+      },
+      {
+        "variable": "donation_to_operations_lag1",
+        "coef": -0.001476,
+        "std_err": 0.002905,
+        "t_stat": -0.5081,
+        "p_value": 0.6118,
+        "ci_lower": -0.007198,
+        "ci_upper": 0.004246
+      },
+      {
+        "variable": "donation_total_lag1",
+        "coef": 0.000243,
+        "std_err": 0.001803,
+        "t_stat": 0.1348,
+        "p_value": 0.8929,
+        "ci_lower": -0.003308,
+        "ci_upper": 0.003794
+      },
+      {
+        "variable": "active_residents_lag1",
+        "coef": 2.61857,
+        "std_err": 0.503846,
+        "t_stat": 5.1972,
+        "p_value": 0.0,
+        "ci_lower": 1.626003,
+        "ci_upper": 3.611137
+      },
+      {
+        "variable": "capacity_utilization_lag1",
+        "coef": 5.919526,
+        "std_err": 0.977347,
+        "t_stat": 6.0567,
+        "p_value": 0.0,
+        "ci_lower": 3.994171,
+        "ci_upper": 7.844881
+      },
+      {
+        "variable": "month_of_year",
+        "coef": 0.595249,
+        "std_err": 0.338633,
+        "t_stat": 1.7578,
+        "p_value": 0.0801,
+        "ci_lower": -0.071851,
+        "ci_upper": 1.26235
+      }
+    ]
+  }
+}

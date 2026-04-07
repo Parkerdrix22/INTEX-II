@@ -64,6 +64,17 @@ jobs:
           mkdir -p publish/wwwroot
           cp -r frontend/dist/* publish/wwwroot/
 
+      # ── Ship ML model files alongside the .NET app ───────────
+      # The controllers search for ../is455/ml-pipelines/models — placing the
+      # files at publish/is455/ml-pipelines/models keeps the relative paths happy
+      # on Azure (/home/site/wwwroot is the deploy root, so ../is455 = /home/site/is455).
+      - name: Copy ML models into publish output
+        run: |
+          mkdir -p publish/is455/ml-pipelines/models
+          cp is455/ml-pipelines/models/*.onnx publish/is455/ml-pipelines/models/ 2>/dev/null || true
+          cp is455/ml-pipelines/models/*.json publish/is455/ml-pipelines/models/ 2>/dev/null || true
+          ls -la publish/is455/ml-pipelines/models/
+
       # ── Deploy ────────────────────────────────────────────────
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
