@@ -186,11 +186,14 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
         message?: string;
         title?: string;
         detail?: string;
+        error?: string;
         errors?: Record<string, string[]>;
       };
 
       if (data.message) {
         message = data.message;
+      } else if (data.error) {
+        message = data.error;
       } else if (data.detail) {
         message = data.detail;
       } else if (data.errors && Object.keys(data.errors).length > 0) {
