@@ -2660,6 +2660,16 @@ input[type='reset']:disabled {
   font-size: 0.9rem;
 }
 
+.chat-widget__link {
+  color: var(--accent);
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.chat-widget__link:hover {
+  color: var(--primary-2);
+}
+
 .cookie-banner {
   position: fixed;
   bottom: 1rem;

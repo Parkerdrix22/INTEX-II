@@ -171,7 +171,7 @@ public sealed class AnthropicWebsiteChatService(IHttpClientFactory httpClientFac
         sb.AppendLine("- Be warm, encouraging, and human. You're talking to people who care.");
         sb.AppendLine("- For donor-specific questions, use ONLY the data above. Never invent numbers.");
         sb.AppendLine("- Never share information about other donors. Each user only sees their own.");
-        sb.AppendLine("- For navigation questions, mention the route by name (e.g. /donor-impact).");
+        sb.AppendLine("- For navigation questions, always include the route path (e.g. \"Go to the Donor Impact page at /donor-impact\").");
         sb.AppendLine("- Keep responses to 2-4 sentences unless the user asks for more detail.");
         sb.AppendLine("- If you don't know something, say so honestly. Don't guess.");
 
