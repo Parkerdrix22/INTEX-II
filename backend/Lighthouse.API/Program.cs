@@ -30,7 +30,11 @@ builder.Services
         options.Cookie.Name = "lighthouse.auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        // Always require HTTPS in production; allow HTTP cookies in dev so local
+        // auth works against http://localhost without HTTPS.
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
         options.SlidingExpiration = true;
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.Events.OnRedirectToLogin = context =>
