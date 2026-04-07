@@ -34,6 +34,32 @@ export function CaseloadInventoryPage() {
   const [activeCaseId, setActiveCaseId] = useState<number>(0);
   const [pageSize, setPageSize] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
+  const [animatedSummary, setAnimatedSummary] = useState({
+    activeCount: 0,
+    transferredCount: 0,
+    withWorkerCount: 0,
+    closedCount: 0,
+  });
+  const [showCreateResident, setShowCreateResident] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [creatingResident, setCreatingResident] = useState(false);
+  const [createResidentForm, setCreateResidentForm] = useState({
+    caseControlNo: '',
+    internalCode: '',
+    caseStatus: 'Active',
+    safehouseId: '',
+    sex: '',
+    dateOfBirth: '',
+    placeOfBirth: '',
+    religion: '',
+    caseCategory: '',
+    assignedSocialWorker: '',
+    referralSource: '',
+    dateAdmitted: '',
+    dateClosed: '',
+    reintegrationType: '',
+    reintegrationStatus: '',
+  });
 
   useEffect(() => {
     const load = async () => {
@@ -74,7 +100,7 @@ export function CaseloadInventoryPage() {
   const statuses = Array.from(new Set(rows.map((row) => row.caseStatus))).sort();
   const safehouses = Array.from(new Set(rows.map((row) => safehouseLabel(row)))).sort();
   const activeCount = rows.filter((row) => !row.dateClosed).length;
-  const openCount = rows.filter((row) => row.caseStatus.toLowerCase().includes('open')).length;
+  const transferredCount = rows.filter((row) => row.caseStatus.toLowerCase().includes('transfer')).length;
   const withWorkerCount = rows.filter((row) => (row.assignedSocialWorker ?? '').trim().length > 0).length;
   const closedCount = rows.filter((row) => !!row.dateClosed).length;
   const totalPages = Math.max(1, Math.ceil(filteredCases.length / pageSize));
@@ -98,31 +124,57 @@ export function CaseloadInventoryPage() {
     }
   }, [pagedCases, filteredCases, activeCaseId]);
 
+  useEffect(() => {
+    const durationMs = 900;
+    const start = performance.now();
+    const initial = { ...animatedSummary };
+    let rafId = 0;
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / durationMs);
+      setAnimatedSummary({
+        activeCount: Math.round(initial.activeCount + (activeCount - initial.activeCount) * progress),
+        transferredCount: Math.round(initial.transferredCount + (transferredCount - initial.transferredCount) * progress),
+        withWorkerCount: Math.round(initial.withWorkerCount + (withWorkerCount - initial.withWorkerCount) * progress),
+        closedCount: Math.round(initial.closedCount + (closedCount - initial.closedCount) * progress),
+      });
+      if (progress < 1) rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [activeCount, transferredCount, withWorkerCount, closedCount]);
+
   return (
     <section className="caseload-page">
       <header className="caseload-page__header">
-        <h1>Caseload Inventory</h1>
-        <p className="auth-lead">
-          Live resident records from the database, with filter/search tools for daily case management workflows.
-        </p>
+        <div>
+          <h1>Resident Services</h1>
+          <p className="auth-lead">
+            Live resident records from the database, with filter/search tools for daily case management workflows.
+          </p>
+        </div>
+        <button type="button" className="btn-primary" onClick={() => setShowCreateResident(true)}>
+          + New resident case
+        </button>
       </header>
 
-      <section className="caseload-summary-grid" aria-label="Caseload key metrics">
+      <section className="caseload-summary-grid" aria-label="Resident services key metrics">
         <article className="stat-card">
           <p className="metric-label">Active residents</p>
-          <p className="metric-value">{activeCount}</p>
+          <p className="metric-value">{animatedSummary.activeCount}+</p>
         </article>
         <article className="stat-card">
-          <p className="metric-label">Open cases</p>
-          <p className="metric-value">{openCount}</p>
+          <p className="metric-label">Transferred cases</p>
+          <p className="metric-value">{animatedSummary.transferredCount}+</p>
         </article>
         <article className="stat-card">
           <p className="metric-label">Cases with assigned social worker</p>
-          <p className="metric-value">{withWorkerCount}</p>
+          <p className="metric-value">{animatedSummary.withWorkerCount}+</p>
         </article>
         <article className="stat-card">
           <p className="metric-label">Closed cases</p>
-          <p className="metric-value">{closedCount}</p>
+          <p className="metric-value">{animatedSummary.closedCount}+</p>
         </article>
       </section>
 
@@ -151,12 +203,10 @@ export function CaseloadInventoryPage() {
               </option>
             ))}
           </select>
-          <button type="button">+ New resident case</button>
         </div>
 
-        <div className="caseload-workspace-grid">
-          <div className="caseload-table-wrap">
-            <table className="caseload-table">
+        <div className="caseload-table-wrap">
+          <table className="caseload-table">
               <thead>
                 <tr>
                   <th>Girl</th>
@@ -198,83 +248,163 @@ export function CaseloadInventoryPage() {
             {!loading && !loadError && filteredCases.length === 0 && (
               <p className="caseload-inline-message">No records match the current filters.</p>
             )}
-            {!loading && !loadError && filteredCases.length > 0 && (
-              <div className="caseload-pagination">
-                <div className="caseload-pagination__meta">
-                  <span>
-                    Showing {pageStart + 1}-{Math.min(pageStart + pageSize, filteredCases.length)} of {filteredCases.length}
-                  </span>
-                  <label>
-                    Rows per page
-                    <select
-                      value={pageSize}
-                      onChange={(event) => setPageSize(Number(event.target.value))}
-                      aria-label="Rows per page"
-                    >
-                      <option value={5}>5</option>
-                      <option value={10}>10</option>
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                      <option value={100}>100</option>
-                    </select>
-                  </label>
-                </div>
-                <div className="caseload-pagination__controls">
-                  <button type="button" className="btn-secondary" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
-                    « First
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                    disabled={currentPage === 1}
+          {!loading && !loadError && filteredCases.length > 0 && (
+            <div className="caseload-pagination">
+              <div className="caseload-pagination__meta">
+                <span>
+                  Showing {pageStart + 1}-{Math.min(pageStart + pageSize, filteredCases.length)} of {filteredCases.length}
+                </span>
+                <label>
+                  Rows per page
+                  <select
+                    value={pageSize}
+                    onChange={(event) => setPageSize(Number(event.target.value))}
+                    aria-label="Rows per page"
                   >
-                    ‹ Prev
-                  </button>
-                  <span className="caseload-pagination__page-indicator">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next ›
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => setCurrentPage(totalPages)}
-                    disabled={currentPage === totalPages}
-                  >
-                    Last »
-                  </button>
-                </div>
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </label>
               </div>
-            )}
-          </div>
-
-          <section className="caseload-detail-card" aria-live="polite">
-            {selectedCase ? (
-              <>
-                <h2>{selectedCase.displayName}</h2>
-                <p className="auth-lead">
-                  Open this resident&apos;s case file to manage personal information, process recordings, and
-                  home visitations.
-                </p>
-                <div className="caseload-detail-form__actions">
-                  <button type="button" onClick={() => navigate(`/caseload-inventory/${selectedCase.id}`)}>
-                    Open case file
-                  </button>
-                </div>
-              </>
-            ) : (
-              <p className="auth-lead">No records match the current filters.</p>
-            )}
-          </section>
+              <div className="caseload-pagination__controls">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                  aria-label="Previous page"
+                >
+                  ‹
+                </button>
+                <span className="caseload-pagination__page-indicator">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                  aria-label="Next page"
+                >
+                  ›
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+
+        <section className="caseload-detail-card" aria-live="polite">
+          {selectedCase ? (
+            <>
+              <h2>{selectedCase.displayName}</h2>
+              <p className="auth-lead">
+                Open this resident&apos;s case file to manage personal information, process recordings, and
+                home visitations.
+              </p>
+              <div className="caseload-detail-form__actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => navigate(`/caseload-inventory/${selectedCase.id}`)}
+                >
+                  Open case file
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className="auth-lead">No records match the current filters.</p>
+          )}
+        </section>
       </article>
+
+      {showCreateResident && (
+        <div className="resident-modal-backdrop" role="presentation" onClick={() => setShowCreateResident(false)}>
+          <article className="resident-modal-card" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+            <h2>Create new resident case</h2>
+            <form
+              className="donor-entry-form"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                setCreateError(null);
+                setCreatingResident(true);
+                try {
+                  const created = await caseloadApi.createResident({
+                    caseControlNo: createResidentForm.caseControlNo,
+                    internalCode: createResidentForm.internalCode,
+                    caseStatus: createResidentForm.caseStatus,
+                    safehouseId:
+                      createResidentForm.safehouseId.trim() === '' || Number.isNaN(Number(createResidentForm.safehouseId))
+                        ? null
+                        : Number(createResidentForm.safehouseId),
+                    sex: createResidentForm.sex || undefined,
+                    dateOfBirth: createResidentForm.dateOfBirth || undefined,
+                    placeOfBirth: createResidentForm.placeOfBirth || undefined,
+                    religion: createResidentForm.religion || undefined,
+                    caseCategory: createResidentForm.caseCategory || undefined,
+                    assignedSocialWorker: createResidentForm.assignedSocialWorker || undefined,
+                    referralSource: createResidentForm.referralSource || undefined,
+                    dateAdmitted: createResidentForm.dateAdmitted || undefined,
+                    dateClosed: createResidentForm.dateClosed || undefined,
+                    reintegrationType: createResidentForm.reintegrationType || undefined,
+                    reintegrationStatus: createResidentForm.reintegrationStatus || undefined,
+                  });
+                  const data = await caseloadApi.residents();
+                  setRows(data);
+                  setActiveCaseId(created.residentId);
+                  setShowCreateResident(false);
+                  setCreateResidentForm({
+                    caseControlNo: '',
+                    internalCode: '',
+                    caseStatus: 'Active',
+                    safehouseId: '',
+                    sex: '',
+                    dateOfBirth: '',
+                    placeOfBirth: '',
+                    religion: '',
+                    caseCategory: '',
+                    assignedSocialWorker: '',
+                    referralSource: '',
+                    dateAdmitted: '',
+                    dateClosed: '',
+                    reintegrationType: '',
+                    reintegrationStatus: '',
+                  });
+                } catch (err) {
+                  setCreateError(err instanceof Error ? err.message : 'Failed to create resident.');
+                } finally {
+                  setCreatingResident(false);
+                }
+              }}
+            >
+              <label>Resident code (e.g., LS-0010)<input required value={createResidentForm.internalCode} onChange={(event) => setCreateResidentForm((current) => ({ ...current, internalCode: event.target.value }))} /></label>
+              <label>Case control no<input required value={createResidentForm.caseControlNo} onChange={(event) => setCreateResidentForm((current) => ({ ...current, caseControlNo: event.target.value }))} /></label>
+              <label>Case status<input required value={createResidentForm.caseStatus} onChange={(event) => setCreateResidentForm((current) => ({ ...current, caseStatus: event.target.value }))} /></label>
+              <label>Safehouse ID<input value={createResidentForm.safehouseId} onChange={(event) => setCreateResidentForm((current) => ({ ...current, safehouseId: event.target.value }))} /></label>
+              <label>Assigned social worker<input value={createResidentForm.assignedSocialWorker} onChange={(event) => setCreateResidentForm((current) => ({ ...current, assignedSocialWorker: event.target.value }))} /></label>
+              <label>Sex<input value={createResidentForm.sex} onChange={(event) => setCreateResidentForm((current) => ({ ...current, sex: event.target.value }))} /></label>
+              <label>Date of birth<input type="date" value={createResidentForm.dateOfBirth} onChange={(event) => setCreateResidentForm((current) => ({ ...current, dateOfBirth: event.target.value }))} /></label>
+              <label>Place of birth<input value={createResidentForm.placeOfBirth} onChange={(event) => setCreateResidentForm((current) => ({ ...current, placeOfBirth: event.target.value }))} /></label>
+              <label>Religion<input value={createResidentForm.religion} onChange={(event) => setCreateResidentForm((current) => ({ ...current, religion: event.target.value }))} /></label>
+              <label>Case category<input value={createResidentForm.caseCategory} onChange={(event) => setCreateResidentForm((current) => ({ ...current, caseCategory: event.target.value }))} /></label>
+              <label>Referral source<input value={createResidentForm.referralSource} onChange={(event) => setCreateResidentForm((current) => ({ ...current, referralSource: event.target.value }))} /></label>
+              <label>Date admitted<input type="date" value={createResidentForm.dateAdmitted} onChange={(event) => setCreateResidentForm((current) => ({ ...current, dateAdmitted: event.target.value }))} /></label>
+              <label>Date closed<input type="date" value={createResidentForm.dateClosed} onChange={(event) => setCreateResidentForm((current) => ({ ...current, dateClosed: event.target.value }))} /></label>
+              <label>Reintegration type<input value={createResidentForm.reintegrationType} onChange={(event) => setCreateResidentForm((current) => ({ ...current, reintegrationType: event.target.value }))} /></label>
+              <label>Reintegration status<input value={createResidentForm.reintegrationStatus} onChange={(event) => setCreateResidentForm((current) => ({ ...current, reintegrationStatus: event.target.value }))} /></label>
+              {createError && <p className="error-text">{createError}</p>}
+              <div className="resident-modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowCreateResident(false)}>Cancel</button>
+                <button type="submit" className="btn-primary" disabled={creatingResident}>
+                  {creatingResident ? 'Creating...' : 'Create resident'}
+                </button>
+              </div>
+            </form>
+          </article>
+        </div>
+      )}
     </section>
   );
 }

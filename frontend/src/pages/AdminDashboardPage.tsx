@@ -47,6 +47,11 @@ export function AdminDashboardPage() {
   const [donors, setDonors] = useState<DonorsContributionsDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [animatedSummary, setAnimatedSummary] = useState({
+    activeResidents: 0,
+    assignedWorkers: 0,
+    totalContributions: 0,
+  });
 
   useEffect(() => {
     const load = async () => {
@@ -79,6 +84,32 @@ export function AdminDashboardPage() {
       totalContributions: donors?.summary.totalContributions ?? 0,
     };
   }, [residents, donors]);
+
+  useEffect(() => {
+    const durationMs = 900;
+    const start = performance.now();
+    const initial = { ...animatedSummary };
+    let rafId = 0;
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / durationMs);
+      setAnimatedSummary({
+        activeResidents: Math.round(
+          initial.activeResidents + (summary.activeResidents - initial.activeResidents) * progress,
+        ),
+        assignedWorkers: Math.round(
+          initial.assignedWorkers + (summary.assignedWorkers - initial.assignedWorkers) * progress,
+        ),
+        totalContributions:
+          initial.totalContributions +
+          (summary.totalContributions - initial.totalContributions) * progress,
+      });
+      if (progress < 1) rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [summary]);
 
   const residentsBySafehouse = useMemo(() => {
     const counts = new Map<string, number>();
@@ -133,15 +164,15 @@ export function AdminDashboardPage() {
       <section className="admin-dashboard-summary-grid" aria-label="Admin summary metrics">
         <article className="stat-card">
           <p className="metric-label">Active residents</p>
-          <p className="metric-value">{summary.activeResidents}</p>
+          <p className="metric-value">{animatedSummary.activeResidents}+</p>
         </article>
         <article className="stat-card">
           <p className="metric-label">Assigned social workers</p>
-          <p className="metric-value">{summary.assignedWorkers}</p>
+          <p className="metric-value">{animatedSummary.assignedWorkers}+</p>
         </article>
         <article className="stat-card">
           <p className="metric-label">Total contributions</p>
-          <p className="metric-value">{formatCurrency(summary.totalContributions)}</p>
+          <p className="metric-value">{formatCurrency(animatedSummary.totalContributions)}</p>
         </article>
       </section>
 

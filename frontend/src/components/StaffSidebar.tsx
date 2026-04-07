@@ -26,7 +26,13 @@ export function StaffSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             Donors & Contributions
           </NavLink>
           <NavLink to="/caseload-inventory" className={navLinkClass} onClick={onClose}>
-            Caseload Inventory
+            Resident Services
+          </NavLink>
+          <NavLink to="/resident-risk-triage" className={navLinkClass} onClick={onClose}>
+            Risk Triage
+          </NavLink>
+          <NavLink to="/case-resolution" className={navLinkClass} onClick={onClose}>
+            Case Resolution
           </NavLink>
           <NavLink to="/reports-analytics" className={navLinkClass} onClick={onClose}>
             Reports & Analytics

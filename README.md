@@ -30,6 +30,8 @@ Important keys:
 - `FrontendUrl`
 - `Auth__SeedAdminEmail`
 - `Auth__SeedAdminPassword`
+- `Authentication__Google__ClientId` (optional, for external sign-in)
+- `Authentication__Google__ClientSecret` (optional, for external sign-in)
 - `VITE_API_BASE_URL` (optional; defaults to same-origin/proxy)
 
 ## Run Locally
@@ -60,13 +62,21 @@ Default dev URL:
 
 - `http://localhost:5173`
 
-## Authentication Placeholder
+## Authentication
 
 - Login endpoint: `POST /api/auth/login`
 - Logout endpoint: `POST /api/auth/logout`
 - Session endpoint: `GET /api/auth/me`
+- Providers endpoint: `GET /api/auth/providers`
+- External login endpoint: `GET /api/auth/external-login?provider=Google`
 
 Use your configured `Auth__SeedAdminEmail` and `Auth__SeedAdminPassword`.
+
+Password policy is enforced by ASP.NET Identity options:
+
+- minimum length `14`
+- uppercase required
+- special character required
 
 ## Current Routes
 
@@ -90,10 +100,26 @@ Protected blank placeholder routes:
 ## Security Baseline Included
 
 - HTTPS redirection in backend
+- HSTS in non-development environments
 - CSP header middleware on responses
 - Cookie auth settings (HttpOnly, Secure, SameSite Lax, sliding expiration)
 - CORS configured for frontend origin with credentials enabled
 - Secrets managed by env vars (no credentials should be committed)
+- Cookie consent banner with browser cookie persistence
+
+## Authorization Coverage
+
+- Public auth/session endpoints: `POST /api/auth/login`, `POST /api/auth/register`, `GET /api/auth/me`
+- Staff/admin restricted analytics: donor churn, donor impact model context, social media planner
+- Donor impact detail endpoint enforces ownership checks for donor users
+
+## Security Verification Checklist
+
+- HTTP to HTTPS redirect is enabled and Azure `HTTPS Only` is turned on.
+- Browser network inspector shows `Content-Security-Policy` header on app responses.
+- Unauthenticated users can access public pages and cannot access protected API routes.
+- Admin/staff can access analytics endpoints; donors only access authorized donor data.
+- Cookie banner appears for new visitors and stores consent in browser cookie.
 
 ## Database Notes
 

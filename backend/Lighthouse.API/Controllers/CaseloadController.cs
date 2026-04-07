@@ -127,6 +127,226 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         }
     }
 
+    [HttpPost("residents")]
+    public async Task<IActionResult> CreateResident([FromBody] CreateResidentRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.CaseControlNo))
+            return BadRequest(new { message = "Case control number is required." });
+        if (string.IsNullOrWhiteSpace(request.InternalCode))
+            return BadRequest(new { message = "Resident code is required." });
+        if (string.IsNullOrWhiteSpace(request.CaseStatus))
+            return BadRequest(new { message = "Case status is required." });
+
+        try
+        {
+            var newId = await NextLighthouseIdAsync("residents", "resident_id");
+            await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                INSERT INTO lighthouse.residents (
+                    resident_id,
+                    case_control_no,
+                    internal_code,
+                    safehouse_id,
+                    case_status,
+                    sex,
+                    date_of_birth,
+                    place_of_birth,
+                    religion,
+                    case_category,
+                    assigned_social_worker,
+                    referral_source,
+                    date_of_admission,
+                    date_closed,
+                    reintegration_type,
+                    reintegration_status,
+                    created_at
+                ) VALUES (
+                    {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}
+                )
+                """,
+                newId,
+                request.CaseControlNo.Trim(),
+                request.InternalCode.Trim(),
+                request.SafehouseId,
+                request.CaseStatus.Trim(),
+                request.Sex,
+                request.DateOfBirth,
+                request.PlaceOfBirth,
+                request.Religion,
+                request.CaseCategory,
+                request.AssignedSocialWorker,
+                request.ReferralSource,
+                request.DateAdmitted,
+                request.DateClosed,
+                request.ReintegrationType,
+                request.ReintegrationStatus,
+                DateTime.UtcNow);
+
+            return Ok(new { message = "Resident created.", residentId = newId });
+        }
+        catch
+        {
+            var resident = new Data.Entities.Resident
+            {
+                CaseControlNo = request.CaseControlNo.Trim(),
+                CaseStatus = request.CaseStatus.Trim(),
+                SafehouseId = request.SafehouseId,
+                AssignedSocialWorker = request.AssignedSocialWorker,
+                DateAdmitted = request.DateAdmitted,
+                DateClosed = request.DateClosed,
+            };
+            dbContext.Residents.Add(resident);
+            await dbContext.SaveChangesAsync();
+            return Ok(new { message = "Resident created.", residentId = resident.Id });
+        }
+    }
+
+    [HttpPut("residents/{residentId:int}")]
+    public async Task<IActionResult> UpdateResidentDetail(int residentId, [FromBody] UpdateResidentDetailRequest request)
+    {
+        try
+        {
+            var affected = await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                UPDATE lighthouse.residents
+                SET case_status = {0},
+                    safehouse_id = {1},
+                    sex = {2},
+                    date_of_birth = {3},
+                    place_of_birth = {4},
+                    religion = {5},
+                    case_category = {6},
+                    assigned_social_worker = {7},
+                    referral_source = {8},
+                    date_of_admission = {9},
+                    date_closed = {10},
+                    reintegration_type = {11},
+                    reintegration_status = {12}
+                WHERE resident_id = {13}
+                """,
+                request.CaseStatus,
+                request.SafehouseId,
+                request.Sex,
+                request.DateOfBirth,
+                request.PlaceOfBirth,
+                request.Religion,
+                request.CaseCategory,
+                request.AssignedSocialWorker,
+                request.ReferralSource,
+                request.DateAdmitted,
+                request.DateClosed,
+                request.ReintegrationType,
+                request.ReintegrationStatus,
+                residentId);
+
+            if (affected == 0) return NotFound(new { message = "Resident not found." });
+            return Ok(new { message = "Resident profile updated." });
+        }
+        catch
+        {
+            var resident = await dbContext.Residents.FirstOrDefaultAsync(r => r.Id == residentId);
+            if (resident is null) return NotFound(new { message = "Resident not found." });
+            resident.CaseStatus = request.CaseStatus ?? resident.CaseStatus;
+            resident.SafehouseId = request.SafehouseId;
+            resident.AssignedSocialWorker = request.AssignedSocialWorker;
+            resident.DateAdmitted = request.DateAdmitted;
+            resident.DateClosed = request.DateClosed;
+            await dbContext.SaveChangesAsync();
+            return Ok(new { message = "Resident profile updated." });
+        }
+    }
+
+    [HttpGet("residents/{residentId:int}/health-wellbeing")]
+    public async Task<IActionResult> GetHealthWellbeingDashboard(int residentId)
+    {
+        try
+        {
+            var rows = await dbContext.Database.SqlQueryRaw<HealthWellbeingRow>(
+                """
+                SELECT
+                    h.record_date AS "RecordDate",
+                    h.general_health_score AS "GeneralHealthScore",
+                    h.nutrition_score AS "NutritionScore",
+                    h.sleep_quality_score AS "SleepQualityScore",
+                    h.energy_level_score AS "EnergyLevelScore",
+                    h.height_cm AS "HeightCm",
+                    h.weight_kg AS "WeightKg",
+                    h.bmi AS "Bmi",
+                    h.medical_checkup_done AS "MedicalCheckupDone",
+                    h.dental_checkup_done AS "DentalCheckupDone",
+                    h.psychological_checkup_done AS "PsychologicalCheckupDone",
+                    h.notes AS "Notes"
+                FROM lighthouse.health_wellbeing_records h
+                WHERE h.resident_id = {0}
+                ORDER BY h.record_date DESC
+                """,
+                residentId)
+                .ToListAsync();
+
+            var latest = rows.FirstOrDefault();
+            return Ok(new HealthWellbeingDashboardResponse
+            {
+                Latest = latest is null ? null : new HealthWellbeingSummaryRow
+                {
+                    RecordDate = latest.RecordDate,
+                    GeneralHealthScore = latest.GeneralHealthScore,
+                    NutritionScore = latest.NutritionScore,
+                    SleepQualityScore = latest.SleepQualityScore,
+                    EnergyLevelScore = latest.EnergyLevelScore,
+                    HeightCm = latest.HeightCm,
+                    WeightKg = latest.WeightKg,
+                    Bmi = latest.Bmi,
+                    MedicalCheckupDone = latest.MedicalCheckupDone,
+                    DentalCheckupDone = latest.DentalCheckupDone,
+                    PsychologicalCheckupDone = latest.PsychologicalCheckupDone,
+                    Notes = latest.Notes,
+                },
+                TotalRecords = rows.Count,
+                MedicalDoneCount = rows.Count(r => r.MedicalCheckupDone == true),
+                DentalDoneCount = rows.Count(r => r.DentalCheckupDone == true),
+                PsychologicalDoneCount = rows.Count(r => r.PsychologicalCheckupDone == true),
+                Recent = rows.Take(6).ToList(),
+            });
+        }
+        catch
+        {
+            return Ok(new HealthWellbeingDashboardResponse
+            {
+                Latest = null,
+                TotalRecords = 0,
+                MedicalDoneCount = 0,
+                DentalDoneCount = 0,
+                PsychologicalDoneCount = 0,
+                Recent = [],
+            });
+        }
+    }
+
+    [HttpDelete("residents/{residentId:int}")]
+    public async Task<IActionResult> DeleteResident(int residentId)
+    {
+        try
+        {
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM lighthouse.process_recordings WHERE resident_id = {0}", residentId);
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM lighthouse.home_visitations WHERE resident_id = {0}", residentId);
+            var affected = await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM lighthouse.residents WHERE resident_id = {0}", residentId);
+            if (affected == 0) return NotFound(new { message = "Resident not found." });
+            return Ok(new { message = "Resident deleted." });
+        }
+        catch
+        {
+            var resident = await dbContext.Residents.FirstOrDefaultAsync(r => r.Id == residentId);
+            if (resident is null) return NotFound(new { message = "Resident not found." });
+            var processRows = dbContext.ProcessRecordings.Where(r => r.ResidentId == residentId);
+            var homeRows = dbContext.HomeVisitations.Where(r => r.ResidentId == residentId);
+            dbContext.ProcessRecordings.RemoveRange(processRows);
+            dbContext.HomeVisitations.RemoveRange(homeRows);
+            dbContext.Residents.Remove(resident);
+            await dbContext.SaveChangesAsync();
+            return Ok(new { message = "Resident deleted." });
+        }
+    }
+
     [HttpGet("residents/{residentId:int}/process-recordings")]
     public async Task<IActionResult> GetProcessRecordings(int residentId)
     {
@@ -135,15 +355,25 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
             var rows = await dbContext.Database.SqlQueryRaw<ProcessRecordingRow>(
                 """
                 SELECT
-                    pr.id AS "Id",
+                    ROW_NUMBER() OVER (ORDER BY pr.session_date DESC) AS "Id",
+                    pr.ctid::text AS "RecordKey",
                     pr.resident_id AS "ResidentId",
                     pr.session_date AS "SessionDate",
+                    pr.social_worker AS "SocialWorker",
                     pr.session_type AS "SessionType",
-                    pr.emotional_state AS "EmotionalState",
-                    pr.narrative_summary AS "NarrativeSummary"
+                    pr.session_duration_minutes AS "SessionDurationMinutes",
+                    pr.emotional_state_observed AS "EmotionalStateObserved",
+                    pr.emotional_state_end AS "EmotionalStateEnd",
+                    pr.session_narrative AS "SessionNarrative",
+                    pr.interventions_applied AS "InterventionsApplied",
+                    pr.follow_up_actions AS "FollowUpActions",
+                    pr.progress_noted AS "ProgressNoted",
+                    pr.concerns_flagged AS "ConcernsFlagged",
+                    pr.referral_made AS "ReferralMade",
+                    pr.notes_restricted AS "NotesRestricted"
                 FROM lighthouse.process_recordings pr
                 WHERE pr.resident_id = {0}
-                ORDER BY pr.session_date DESC, pr.id DESC
+                ORDER BY pr.session_date DESC
                 """, residentId)
                 .ToListAsync();
             return Ok(rows);
@@ -161,8 +391,17 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
                     ResidentId = processRecording.ResidentId,
                     SessionDate = processRecording.SessionDate,
                     SessionType = processRecording.SessionType,
-                    EmotionalState = processRecording.EmotionalState,
-                    NarrativeSummary = processRecording.NarrativeSummary,
+                    SocialWorker = null,
+                    SessionDurationMinutes = null,
+                    EmotionalStateObserved = processRecording.EmotionalState,
+                    EmotionalStateEnd = null,
+                    SessionNarrative = processRecording.NarrativeSummary,
+                    InterventionsApplied = null,
+                    FollowUpActions = null,
+                    ProgressNoted = null,
+                    ConcernsFlagged = null,
+                    ReferralMade = null,
+                    NotesRestricted = null,
                 })
                 .ToListAsync();
             return Ok(rows);
@@ -177,25 +416,59 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         if (string.IsNullOrWhiteSpace(request.SessionType))
             return BadRequest(new { message = "SessionType is required." });
 
-        var narrative = BuildNarrative(
-            request.NarrativeSummary,
-            request.SocialWorker,
-            request.InterventionsApplied,
-            request.FollowUpActions);
+        var sessionDateUtc = NormalizeToUtc(request.SessionDate);
 
         try
         {
-            await dbContext.Database.ExecuteSqlRawAsync(
-                """
-                INSERT INTO lighthouse.process_recordings
-                    (resident_id, session_date, session_type, emotional_state, narrative_summary)
-                VALUES ({0}, {1}, {2}, {3}, {4})
-                """,
-                residentId,
-                request.SessionDate,
-                request.SessionType.Trim(),
-                request.EmotionalState,
-                narrative);
+            var (idColumn, idIsGenerated) = await GetLighthousePrimaryKeyInfoAsync("process_recordings");
+            if (!string.IsNullOrWhiteSpace(idColumn) && !idIsGenerated)
+            {
+                var newId = await NextLighthouseIdAsync("process_recordings", idColumn);
+                var insertSql =
+                    "INSERT INTO lighthouse.process_recordings " +
+                    $"({idColumn}, resident_id, session_date, social_worker, session_type, session_duration_minutes, emotional_state_observed, emotional_state_end, session_narrative, interventions_applied, follow_up_actions, progress_noted, concerns_flagged, referral_made, notes_restricted) " +
+                    "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14})";
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    insertSql,
+                    newId,
+                    residentId,
+                    sessionDateUtc,
+                    request.SocialWorker,
+                    request.SessionType.Trim(),
+                    request.SessionDurationMinutes,
+                    request.EmotionalStateObserved,
+                    request.EmotionalStateEnd,
+                    request.SessionNarrative,
+                    request.InterventionsApplied,
+                    request.FollowUpActions,
+                    request.ProgressNoted,
+                    request.ConcernsFlagged,
+                    request.ReferralMade,
+                    request.NotesRestricted);
+            }
+            else
+            {
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    """
+                    INSERT INTO lighthouse.process_recordings
+                        (resident_id, session_date, social_worker, session_type, session_duration_minutes, emotional_state_observed, emotional_state_end, session_narrative, interventions_applied, follow_up_actions, progress_noted, concerns_flagged, referral_made, notes_restricted)
+                    VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13})
+                    """,
+                    residentId,
+                    sessionDateUtc,
+                    request.SocialWorker,
+                    request.SessionType.Trim(),
+                    request.SessionDurationMinutes,
+                    request.EmotionalStateObserved,
+                    request.EmotionalStateEnd,
+                    request.SessionNarrative,
+                    request.InterventionsApplied,
+                    request.FollowUpActions,
+                    request.ProgressNoted,
+                    request.ConcernsFlagged,
+                    request.ReferralMade,
+                    request.NotesRestricted);
+            }
             return Ok(new { message = "Process recording saved." });
         }
         catch
@@ -203,14 +476,108 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
             var row = new Data.Entities.ProcessRecording
             {
                 ResidentId = residentId,
-                SessionDate = request.SessionDate,
+                SessionDate = sessionDateUtc,
                 SessionType = request.SessionType.Trim(),
-                EmotionalState = request.EmotionalState,
-                NarrativeSummary = narrative,
+                EmotionalState = request.EmotionalStateObserved,
+                NarrativeSummary = request.SessionNarrative,
             };
             dbContext.ProcessRecordings.Add(row);
             await dbContext.SaveChangesAsync();
             return Ok(new { message = "Process recording saved." });
+        }
+    }
+
+    [HttpPut("residents/{residentId:int}/process-recordings/{recordKey}")]
+    public async Task<IActionResult> UpdateProcessRecording(int residentId, string recordKey, [FromBody] UpdateProcessRecordingRequest request)
+    {
+        if (request.SessionDate == default)
+            return BadRequest(new { message = "SessionDate is required." });
+        if (string.IsNullOrWhiteSpace(request.SessionType))
+            return BadRequest(new { message = "SessionType is required." });
+
+        var sessionDateUtc = NormalizeToUtc(request.SessionDate);
+
+        try
+        {
+            var affected = await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                UPDATE lighthouse.process_recordings
+                SET session_date = {0},
+                    social_worker = {1},
+                    session_type = {2},
+                    session_duration_minutes = {3},
+                    emotional_state_observed = {4},
+                    emotional_state_end = {5},
+                    session_narrative = {6},
+                    interventions_applied = {7},
+                    follow_up_actions = {8},
+                    progress_noted = {9},
+                    concerns_flagged = {10},
+                    referral_made = {11},
+                    notes_restricted = {12}
+                WHERE resident_id = {13}
+                  AND ctid = CAST({14} AS tid)
+                """,
+                sessionDateUtc,
+                request.SocialWorker,
+                request.SessionType.Trim(),
+                request.SessionDurationMinutes,
+                request.EmotionalStateObserved,
+                request.EmotionalStateEnd,
+                request.SessionNarrative,
+                request.InterventionsApplied,
+                request.FollowUpActions,
+                request.ProgressNoted,
+                request.ConcernsFlagged,
+                request.ReferralMade,
+                request.NotesRestricted,
+                residentId,
+                recordKey);
+            if (affected == 0)
+                return NotFound(new { message = "Process recording not found." });
+            return Ok(new { message = "Process recording updated." });
+        }
+        catch
+        {
+            if (!int.TryParse(recordKey, out var id))
+                throw;
+
+            var row = await dbContext.ProcessRecordings.FirstOrDefaultAsync(r => r.Id == id && r.ResidentId == residentId);
+            if (row is null) return NotFound(new { message = "Process recording not found." });
+            row.SessionDate = sessionDateUtc;
+            row.SessionType = request.SessionType.Trim();
+            row.EmotionalState = request.EmotionalStateObserved;
+            row.NarrativeSummary = request.SessionNarrative;
+            await dbContext.SaveChangesAsync();
+            return Ok(new { message = "Process recording updated." });
+        }
+    }
+
+    [HttpDelete("residents/{residentId:int}/process-recordings/{recordKey}")]
+    public async Task<IActionResult> DeleteProcessRecording(int residentId, string recordKey)
+    {
+        try
+        {
+            var affected = await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                DELETE FROM lighthouse.process_recordings
+                WHERE resident_id = {0}
+                  AND ctid = CAST({1} AS tid)
+                """,
+                residentId,
+                recordKey);
+            if (affected == 0) return NotFound(new { message = "Process recording not found." });
+            return Ok(new { message = "Process recording deleted." });
+        }
+        catch
+        {
+            if (!int.TryParse(recordKey, out var id))
+                throw;
+            var row = await dbContext.ProcessRecordings.FirstOrDefaultAsync(r => r.Id == id && r.ResidentId == residentId);
+            if (row is null) return NotFound(new { message = "Process recording not found." });
+            dbContext.ProcessRecordings.Remove(row);
+            await dbContext.SaveChangesAsync();
+            return Ok(new { message = "Process recording deleted." });
         }
     }
 
@@ -222,14 +589,24 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
             var rows = await dbContext.Database.SqlQueryRaw<HomeVisitationRow>(
                 """
                 SELECT
-                    hv.id AS "Id",
+                    ROW_NUMBER() OVER (ORDER BY hv.visit_date DESC) AS "Id",
+                    hv.ctid::text AS "RecordKey",
                     hv.resident_id AS "ResidentId",
                     hv.visit_date AS "VisitDate",
+                    hv.social_worker AS "SocialWorker",
                     hv.visit_type AS "VisitType",
-                    hv.observations AS "Observations"
+                    hv.location_visited AS "LocationVisited",
+                    hv.family_members_present AS "FamilyMembersPresent",
+                    hv.purpose AS "Purpose",
+                    hv.observations AS "Observations",
+                    hv.family_cooperation_level AS "FamilyCooperationLevel",
+                    hv.safety_concerns_noted AS "SafetyConcernsNoted",
+                    hv.follow_up_needed AS "FollowUpNeeded",
+                    hv.follow_up_notes AS "FollowUpNotes",
+                    hv.visit_outcome AS "VisitOutcome"
                 FROM lighthouse.home_visitations hv
                 WHERE hv.resident_id = {0}
-                ORDER BY hv.visit_date DESC, hv.id DESC
+                ORDER BY hv.visit_date DESC
                 """, residentId)
                 .ToListAsync();
             return Ok(rows);
@@ -248,6 +625,15 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
                     VisitDate = homeVisitation.VisitDate,
                     VisitType = homeVisitation.VisitType,
                     Observations = homeVisitation.Observations,
+                    SocialWorker = null,
+                    LocationVisited = null,
+                    FamilyMembersPresent = null,
+                    Purpose = null,
+                    FamilyCooperationLevel = null,
+                    SafetyConcernsNoted = null,
+                    FollowUpNeeded = null,
+                    FollowUpNotes = null,
+                    VisitOutcome = null,
                 })
                 .ToListAsync();
             return Ok(rows);
@@ -262,24 +648,58 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         if (string.IsNullOrWhiteSpace(request.VisitType))
             return BadRequest(new { message = "VisitType is required." });
 
-        var observations = BuildNarrative(
-            request.Observations,
-            request.FamilyCooperationLevel is null ? null : $"Family cooperation: {request.FamilyCooperationLevel}",
-            request.SafetyConcerns,
-            request.FollowUpActions);
+        var observations = string.IsNullOrWhiteSpace(request.Observations) ? null : request.Observations.Trim();
+        var visitDateUtc = NormalizeToUtc(request.VisitDate);
 
         try
         {
-            await dbContext.Database.ExecuteSqlRawAsync(
-                """
-                INSERT INTO lighthouse.home_visitations
-                    (resident_id, visit_date, visit_type, observations)
-                VALUES ({0}, {1}, {2}, {3})
-                """,
-                residentId,
-                request.VisitDate,
-                request.VisitType.Trim(),
-                observations);
+            var (idColumn, idIsGenerated) = await GetLighthousePrimaryKeyInfoAsync("home_visitations");
+            if (!string.IsNullOrWhiteSpace(idColumn) && !idIsGenerated)
+            {
+                var newId = await NextLighthouseIdAsync("home_visitations", idColumn);
+                var insertSql =
+                    "INSERT INTO lighthouse.home_visitations " +
+                    $"({idColumn}, resident_id, visit_date, social_worker, visit_type, location_visited, family_members_present, purpose, observations, family_cooperation_level, safety_concerns_noted, follow_up_needed, follow_up_notes, visit_outcome) " +
+                    "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13})";
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    insertSql,
+                    newId,
+                    residentId,
+                    visitDateUtc,
+                    request.SocialWorker,
+                    request.VisitType.Trim(),
+                    request.LocationVisited,
+                    request.FamilyMembersPresent,
+                    request.Purpose,
+                    observations,
+                    request.FamilyCooperationLevel,
+                    request.SafetyConcernsNoted,
+                    request.FollowUpNeeded,
+                    request.FollowUpNotes,
+                    request.VisitOutcome);
+            }
+            else
+            {
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    """
+                    INSERT INTO lighthouse.home_visitations
+                        (resident_id, visit_date, social_worker, visit_type, location_visited, family_members_present, purpose, observations, family_cooperation_level, safety_concerns_noted, follow_up_needed, follow_up_notes, visit_outcome)
+                    VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12})
+                    """,
+                    residentId,
+                    visitDateUtc,
+                    request.SocialWorker,
+                    request.VisitType.Trim(),
+                    request.LocationVisited,
+                    request.FamilyMembersPresent,
+                    request.Purpose,
+                    observations,
+                    request.FamilyCooperationLevel,
+                    request.SafetyConcernsNoted,
+                    request.FollowUpNeeded,
+                    request.FollowUpNotes,
+                    request.VisitOutcome);
+            }
             return Ok(new { message = "Home visitation saved." });
         }
         catch
@@ -287,7 +707,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
             var row = new Data.Entities.HomeVisitation
             {
                 ResidentId = residentId,
-                VisitDate = request.VisitDate,
+                VisitDate = visitDateUtc,
                 VisitType = request.VisitType.Trim(),
                 Observations = observations,
             };
@@ -297,9 +717,172 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         }
     }
 
+    [HttpPut("residents/{residentId:int}/home-visitations/{recordKey}")]
+    public async Task<IActionResult> UpdateHomeVisitation(int residentId, string recordKey, [FromBody] UpdateHomeVisitationRequest request)
+    {
+        if (request.VisitDate == default)
+            return BadRequest(new { message = "VisitDate is required." });
+        if (string.IsNullOrWhiteSpace(request.VisitType))
+            return BadRequest(new { message = "VisitType is required." });
+
+        var visitDateUtc = NormalizeToUtc(request.VisitDate);
+        var observations = string.IsNullOrWhiteSpace(request.Observations) ? null : request.Observations.Trim();
+
+        try
+        {
+            var affected = await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                UPDATE lighthouse.home_visitations
+                SET visit_date = {0},
+                    social_worker = {1},
+                    visit_type = {2},
+                    location_visited = {3},
+                    family_members_present = {4},
+                    purpose = {5},
+                    observations = {6},
+                    family_cooperation_level = {7},
+                    safety_concerns_noted = {8},
+                    follow_up_needed = {9},
+                    follow_up_notes = {10},
+                    visit_outcome = {11}
+                WHERE resident_id = {12}
+                  AND ctid = CAST({13} AS tid)
+                """,
+                visitDateUtc,
+                request.SocialWorker,
+                request.VisitType.Trim(),
+                request.LocationVisited,
+                request.FamilyMembersPresent,
+                request.Purpose,
+                observations,
+                request.FamilyCooperationLevel,
+                request.SafetyConcernsNoted,
+                request.FollowUpNeeded,
+                request.FollowUpNotes,
+                request.VisitOutcome,
+                residentId,
+                recordKey);
+            if (affected == 0)
+                return NotFound(new { message = "Home visitation not found." });
+            return Ok(new { message = "Home visitation updated." });
+        }
+        catch
+        {
+            if (!int.TryParse(recordKey, out var id))
+                throw;
+
+            var row = await dbContext.HomeVisitations.FirstOrDefaultAsync(r => r.Id == id && r.ResidentId == residentId);
+            if (row is null) return NotFound(new { message = "Home visitation not found." });
+            row.VisitDate = visitDateUtc;
+            row.VisitType = request.VisitType.Trim();
+            row.Observations = observations;
+            await dbContext.SaveChangesAsync();
+            return Ok(new { message = "Home visitation updated." });
+        }
+    }
+
+    [HttpDelete("residents/{residentId:int}/home-visitations/{recordKey}")]
+    public async Task<IActionResult> DeleteHomeVisitation(int residentId, string recordKey)
+    {
+        try
+        {
+            var affected = await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                DELETE FROM lighthouse.home_visitations
+                WHERE resident_id = {0}
+                  AND ctid = CAST({1} AS tid)
+                """,
+                residentId,
+                recordKey);
+            if (affected == 0) return NotFound(new { message = "Home visitation not found." });
+            return Ok(new { message = "Home visitation deleted." });
+        }
+        catch
+        {
+            if (!int.TryParse(recordKey, out var id))
+                throw;
+            var row = await dbContext.HomeVisitations.FirstOrDefaultAsync(r => r.Id == id && r.ResidentId == residentId);
+            if (row is null) return NotFound(new { message = "Home visitation not found." });
+            dbContext.HomeVisitations.Remove(row);
+            await dbContext.SaveChangesAsync();
+            return Ok(new { message = "Home visitation deleted." });
+        }
+    }
+
     private static string BuildNarrative(params string?[] blocks)
     {
         return string.Join(Environment.NewLine, blocks.Where(b => !string.IsNullOrWhiteSpace(b)).Select(b => b!.Trim()));
+    }
+
+    private static string? ExtractTaggedSection(string text, string tag)
+    {
+        var index = text.IndexOf(tag, StringComparison.OrdinalIgnoreCase);
+        if (index < 0) return null;
+        var after = text[(index + tag.Length)..].Trim();
+        var nextIntervention = after.IndexOf("Interventions applied:", StringComparison.OrdinalIgnoreCase);
+        var nextFollowUp = after.IndexOf("Follow-up actions:", StringComparison.OrdinalIgnoreCase);
+        var cut = new[] { nextIntervention, nextFollowUp }.Where(i => i >= 0).DefaultIfEmpty(-1).Min();
+        var value = cut >= 0 ? after[..cut].Trim() : after;
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
+
+    private async Task<(string? IdColumn, bool IsGenerated)> GetLighthousePrimaryKeyInfoAsync(string tableName)
+    {
+        var pk = await dbContext.Database.SqlQueryRaw<PrimaryKeyInfoRow>(
+            """
+            SELECT a.attname AS "IdColumn"
+            FROM pg_index i
+            JOIN pg_class t ON t.oid = i.indrelid
+            JOIN pg_namespace n ON n.oid = t.relnamespace
+            JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(i.indkey)
+            WHERE i.indisprimary
+              AND n.nspname = 'lighthouse'
+              AND t.relname = {0}
+            LIMIT 1
+            """,
+            tableName)
+            .FirstOrDefaultAsync();
+        if (pk?.IdColumn is null) return (null, false);
+
+        var meta = await dbContext.Database.SqlQueryRaw<ColumnMetaRow>(
+            """
+            SELECT
+                COALESCE(c.is_identity, 'NO') AS "IsIdentity",
+                c.column_default AS "ColumnDefault"
+            FROM information_schema.columns c
+            WHERE c.table_schema = 'lighthouse'
+              AND c.table_name = {0}
+              AND c.column_name = {1}
+            LIMIT 1
+            """,
+            tableName,
+            pk.IdColumn)
+            .FirstOrDefaultAsync();
+
+        var isGenerated = string.Equals(meta?.IsIdentity, "YES", StringComparison.OrdinalIgnoreCase)
+            || (meta?.ColumnDefault?.Contains("nextval", StringComparison.OrdinalIgnoreCase) ?? false);
+        return (pk.IdColumn, isGenerated);
+    }
+
+    private async Task<int> NextLighthouseIdAsync(string tableName, string idColumn)
+    {
+        var rows = await dbContext.Database.SqlQueryRaw<NumericRow>(
+            $"""
+            SELECT COALESCE(MAX({idColumn}), 0) + 1 AS "Value"
+            FROM lighthouse.{tableName}
+            """)
+            .ToListAsync();
+        return rows.FirstOrDefault()?.Value ?? 1;
+    }
+
+    private static DateTime NormalizeToUtc(DateTime value)
+    {
+        return value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc),
+        };
     }
 
     private sealed class CaseloadResidentRow
@@ -340,20 +923,72 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     private sealed class ProcessRecordingRow
     {
         public int Id { get; set; }
+        public string RecordKey { get; set; } = string.Empty;
         public int ResidentId { get; set; }
         public DateTime SessionDate { get; set; }
+        public string? SocialWorker { get; set; }
         public string SessionType { get; set; } = string.Empty;
-        public string? EmotionalState { get; set; }
-        public string? NarrativeSummary { get; set; }
+        public int? SessionDurationMinutes { get; set; }
+        public string? EmotionalStateObserved { get; set; }
+        public string? EmotionalStateEnd { get; set; }
+        public string? SessionNarrative { get; set; }
+        public string? InterventionsApplied { get; set; }
+        public string? FollowUpActions { get; set; }
+        public bool? ProgressNoted { get; set; }
+        public bool? ConcernsFlagged { get; set; }
+        public bool? ReferralMade { get; set; }
+        public string? NotesRestricted { get; set; }
     }
 
     private sealed class HomeVisitationRow
     {
         public int Id { get; set; }
+        public string RecordKey { get; set; } = string.Empty;
         public int ResidentId { get; set; }
         public DateTime VisitDate { get; set; }
+        public string? SocialWorker { get; set; }
         public string VisitType { get; set; } = string.Empty;
+        public string? LocationVisited { get; set; }
+        public string? FamilyMembersPresent { get; set; }
+        public string? Purpose { get; set; }
         public string? Observations { get; set; }
+        public string? FamilyCooperationLevel { get; set; }
+        public bool? SafetyConcernsNoted { get; set; }
+        public bool? FollowUpNeeded { get; set; }
+        public string? FollowUpNotes { get; set; }
+        public string? VisitOutcome { get; set; }
+    }
+
+    public sealed class HealthWellbeingRow
+    {
+        public DateTime? RecordDate { get; set; }
+        public decimal? GeneralHealthScore { get; set; }
+        public decimal? NutritionScore { get; set; }
+        public decimal? SleepQualityScore { get; set; }
+        public decimal? EnergyLevelScore { get; set; }
+        public decimal? HeightCm { get; set; }
+        public decimal? WeightKg { get; set; }
+        public decimal? Bmi { get; set; }
+        public bool? MedicalCheckupDone { get; set; }
+        public bool? DentalCheckupDone { get; set; }
+        public bool? PsychologicalCheckupDone { get; set; }
+        public string? Notes { get; set; }
+    }
+
+    private sealed class PrimaryKeyInfoRow
+    {
+        public string? IdColumn { get; set; }
+    }
+
+    private sealed class ColumnMetaRow
+    {
+        public string IsIdentity { get; set; } = "NO";
+        public string? ColumnDefault { get; set; }
+    }
+
+    private sealed class NumericRow
+    {
+        public int Value { get; set; }
     }
 
     public sealed class CreateProcessRecordingRequest
@@ -361,19 +996,126 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         public DateTime SessionDate { get; set; }
         public string SessionType { get; set; } = string.Empty;
         public string? SocialWorker { get; set; }
-        public string? EmotionalState { get; set; }
-        public string? NarrativeSummary { get; set; }
+        public int? SessionDurationMinutes { get; set; }
+        public string? EmotionalStateObserved { get; set; }
+        public string? EmotionalStateEnd { get; set; }
+        public string? SessionNarrative { get; set; }
         public string? InterventionsApplied { get; set; }
         public string? FollowUpActions { get; set; }
+        public bool? ProgressNoted { get; set; }
+        public bool? ConcernsFlagged { get; set; }
+        public bool? ReferralMade { get; set; }
+        public string? NotesRestricted { get; set; }
+    }
+
+    public sealed class UpdateResidentDetailRequest
+    {
+        public string? CaseStatus { get; set; }
+        public int? SafehouseId { get; set; }
+        public string? Sex { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public string? PlaceOfBirth { get; set; }
+        public string? Religion { get; set; }
+        public string? CaseCategory { get; set; }
+        public string? AssignedSocialWorker { get; set; }
+        public string? ReferralSource { get; set; }
+        public DateTime? DateAdmitted { get; set; }
+        public DateTime? DateClosed { get; set; }
+        public string? ReintegrationType { get; set; }
+        public string? ReintegrationStatus { get; set; }
+    }
+
+    public sealed class CreateResidentRequest
+    {
+        public string CaseControlNo { get; set; } = string.Empty;
+        public string InternalCode { get; set; } = string.Empty;
+        public string CaseStatus { get; set; } = string.Empty;
+        public int? SafehouseId { get; set; }
+        public string? Sex { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public string? PlaceOfBirth { get; set; }
+        public string? Religion { get; set; }
+        public string? CaseCategory { get; set; }
+        public string? AssignedSocialWorker { get; set; }
+        public string? ReferralSource { get; set; }
+        public DateTime? DateAdmitted { get; set; }
+        public DateTime? DateClosed { get; set; }
+        public string? ReintegrationType { get; set; }
+        public string? ReintegrationStatus { get; set; }
+    }
+
+    public sealed class UpdateProcessRecordingRequest
+    {
+        public DateTime SessionDate { get; set; }
+        public string SessionType { get; set; } = string.Empty;
+        public string? SocialWorker { get; set; }
+        public int? SessionDurationMinutes { get; set; }
+        public string? EmotionalStateObserved { get; set; }
+        public string? EmotionalStateEnd { get; set; }
+        public string? SessionNarrative { get; set; }
+        public string? InterventionsApplied { get; set; }
+        public string? FollowUpActions { get; set; }
+        public bool? ProgressNoted { get; set; }
+        public bool? ConcernsFlagged { get; set; }
+        public bool? ReferralMade { get; set; }
+        public string? NotesRestricted { get; set; }
     }
 
     public sealed class CreateHomeVisitationRequest
     {
         public DateTime VisitDate { get; set; }
+        public string? SocialWorker { get; set; }
         public string VisitType { get; set; } = string.Empty;
+        public string? LocationVisited { get; set; }
+        public string? FamilyMembersPresent { get; set; }
+        public string? Purpose { get; set; }
         public string? Observations { get; set; }
         public string? FamilyCooperationLevel { get; set; }
-        public string? SafetyConcerns { get; set; }
-        public string? FollowUpActions { get; set; }
+        public bool? SafetyConcernsNoted { get; set; }
+        public bool? FollowUpNeeded { get; set; }
+        public string? FollowUpNotes { get; set; }
+        public string? VisitOutcome { get; set; }
+    }
+
+    public sealed class UpdateHomeVisitationRequest
+    {
+        public DateTime VisitDate { get; set; }
+        public string? SocialWorker { get; set; }
+        public string VisitType { get; set; } = string.Empty;
+        public string? LocationVisited { get; set; }
+        public string? FamilyMembersPresent { get; set; }
+        public string? Purpose { get; set; }
+        public string? Observations { get; set; }
+        public string? FamilyCooperationLevel { get; set; }
+        public bool? SafetyConcernsNoted { get; set; }
+        public bool? FollowUpNeeded { get; set; }
+        public string? FollowUpNotes { get; set; }
+        public string? VisitOutcome { get; set; }
+    }
+
+    public sealed class HealthWellbeingSummaryRow
+    {
+        public DateTime? RecordDate { get; set; }
+        public decimal? GeneralHealthScore { get; set; }
+        public decimal? NutritionScore { get; set; }
+        public decimal? SleepQualityScore { get; set; }
+        public decimal? EnergyLevelScore { get; set; }
+        public decimal? HeightCm { get; set; }
+        public decimal? WeightKg { get; set; }
+        public decimal? Bmi { get; set; }
+        public bool? MedicalCheckupDone { get; set; }
+        public bool? DentalCheckupDone { get; set; }
+        public bool? PsychologicalCheckupDone { get; set; }
+        public string? Notes { get; set; }
+    }
+
+    public sealed class HealthWellbeingDashboardResponse
+    {
+        public HealthWellbeingSummaryRow? Latest { get; set; }
+        public int TotalRecords { get; set; }
+        public int MedicalDoneCount { get; set; }
+        public int DentalDoneCount { get; set; }
+        public int PsychologicalDoneCount { get; set; }
+        public List<HealthWellbeingRow> Recent { get; set; } = [];
     }
 }

@@ -4,9 +4,11 @@ using Lighthouse.API.Data;
 using Lighthouse.API.Data.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Lighthouse.API.Controllers;
@@ -15,7 +17,9 @@ namespace Lighthouse.API.Controllers;
 [Route("api/auth")]
 public class AuthController(
     AppDbContext dbContext,
-    IPasswordHasher<AppUser> passwordHasher) : ControllerBase
+    UserManager<AppUser> userManager,
+    SignInManager<AppUser> signInManager,
+    IConfiguration configuration) : ControllerBase
 {
     [HttpPost("register")]
     [AllowAnonymous]
@@ -31,17 +35,12 @@ public class AuthController(
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var normalizedUsername = request.Username.Trim().ToLowerInvariant();
 
-        if (request.Password.Length < 8)
-        {
-            return BadRequest(new { message = "Password must be at least 8 characters." });
-        }
-
-        if (await dbContext.Users.AnyAsync(user => user.Email.ToLower() == normalizedEmail))
+        if (await userManager.Users.AnyAsync(user => user.Email != null && user.Email.ToLower() == normalizedEmail))
         {
             return Conflict(new { message = "An account with this email already exists." });
         }
 
-        if (await dbContext.Users.AnyAsync(user => user.Username.ToLower() == normalizedUsername))
+        if (await userManager.Users.AnyAsync(user => user.UserName != null && user.UserName.ToLower() == normalizedUsername))
         {
             return Conflict(new { message = "This username is already taken." });
         }
@@ -83,13 +82,14 @@ public class AuthController(
         var user = CreateUser(
             username: request.Username.Trim(),
             email: request.Email.Trim(),
-            password: request.Password,
             role: role,
             residentId: residentId,
             supporterId: supporterId);
-
-        dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
+        var createResult = await userManager.CreateAsync(user, request.Password);
+        if (!createResult.Succeeded)
+        {
+            return BadRequest(new { message = string.Join(" ", createResult.Errors.Select(error => error.Description)) });
+        }
 
         return Ok(new { message = "Account created successfully." });
     }
@@ -107,18 +107,12 @@ public class AuthController(
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var normalizedUsername = request.Username.Trim().ToLowerInvariant();
-
-        if (request.Password.Length < 8)
-        {
-            return BadRequest(new { message = "Password must be at least 8 characters." });
-        }
-
-        if (await dbContext.Users.AnyAsync(user => user.Email.ToLower() == normalizedEmail))
+        if (await userManager.Users.AnyAsync(user => user.Email != null && user.Email.ToLower() == normalizedEmail))
         {
             return Conflict(new { message = "An account with this email already exists." });
         }
 
-        if (await dbContext.Users.AnyAsync(user => user.Username.ToLower() == normalizedUsername))
+        if (await userManager.Users.AnyAsync(user => user.UserName != null && user.UserName.ToLower() == normalizedUsername))
         {
             return Conflict(new { message = "This username is already taken." });
         }
@@ -140,12 +134,13 @@ public class AuthController(
         var user = CreateUser(
             username: request.Username.Trim(),
             email: request.Email.Trim(),
-            password: request.Password,
             role: role,
             staffMemberId: staffMember.Id);
-
-        dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
+        var createResult = await userManager.CreateAsync(user, request.Password);
+        if (!createResult.Succeeded)
+        {
+            return BadRequest(new { message = string.Join(" ", createResult.Errors.Select(error => error.Description)) });
+        }
 
         return Ok(new { message = $"{role} account created successfully." });
     }
@@ -155,18 +150,18 @@ public class AuthController(
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var normalizedLogin = request.Login.Trim().ToLowerInvariant();
-        var user = await dbContext.Users
+        var user = await userManager.Users
             .FirstOrDefaultAsync(candidate =>
-                candidate.Username.ToLower() == normalizedLogin
-                || candidate.Email.ToLower() == normalizedLogin);
+                (candidate.UserName != null && candidate.UserName.ToLower() == normalizedLogin)
+                || (candidate.Email != null && candidate.Email.ToLower() == normalizedLogin));
 
         if (user is null || !user.IsActive)
         {
             return Unauthorized(new { message = "Invalid credentials." });
         }
 
-        var passwordResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
-        if (passwordResult == PasswordVerificationResult.Failed)
+        var passwordResult = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
+        if (!passwordResult.Succeeded)
         {
             return Unauthorized(new { message = "Invalid credentials." });
         }
@@ -174,8 +169,8 @@ public class AuthController(
         var claims = new List<Claim>
         {
             new(ClaimTypes.Name, user.Username),
-            new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Role, user.Role),
+            new(ClaimTypes.Email, user.Email ?? string.Empty),
+            new(ClaimTypes.Role, string.IsNullOrWhiteSpace(user.Role) ? UserRoles.Donor : user.Role),
             new("user_id", user.Id.ToString()),
         };
         if (user.ResidentId.HasValue)
@@ -238,10 +233,90 @@ public class AuthController(
             });
     }
 
+    [HttpGet("providers")]
+    [AllowAnonymous]
+    public IActionResult GetExternalProviders()
+    {
+        var providers = new List<object>();
+        if (IsGoogleConfigured())
+        {
+            providers.Add(new { name = GoogleDefaults.AuthenticationScheme, displayName = "Google" });
+        }
+
+        return Ok(providers);
+    }
+
+    [HttpGet("external-login")]
+    [AllowAnonymous]
+    public IActionResult ExternalLogin([FromQuery] string provider, [FromQuery] string? returnPath = null)
+    {
+        if (!string.Equals(provider, GoogleDefaults.AuthenticationScheme, StringComparison.OrdinalIgnoreCase) || !IsGoogleConfigured())
+        {
+            return BadRequest(new { message = "The requested external login provider is not available." });
+        }
+
+        var callbackUrl = Url.Action(nameof(ExternalLoginCallback), new { returnPath = NormalizeReturnPath(returnPath) });
+        if (string.IsNullOrWhiteSpace(callbackUrl))
+        {
+            return Problem("Unable to create the external login callback URL.");
+        }
+
+        var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, callbackUrl);
+        return Challenge(properties, provider);
+    }
+
+    [HttpGet("external-callback")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ExternalLoginCallback([FromQuery] string? returnPath = null, [FromQuery] string? remoteError = null)
+    {
+        if (!string.IsNullOrWhiteSpace(remoteError))
+        {
+            return Redirect(BuildFrontendErrorUrl("External login failed."));
+        }
+
+        var info = await signInManager.GetExternalLoginInfoAsync();
+        if (info is null)
+        {
+            return Redirect(BuildFrontendErrorUrl("External login information was unavailable."));
+        }
+
+        var signInResult = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
+        if (signInResult.Succeeded)
+        {
+            return Redirect(BuildFrontendSuccessUrl(returnPath));
+        }
+
+        var email = info.Principal.FindFirstValue(ClaimTypes.Email) ?? info.Principal.FindFirstValue("email");
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return Redirect(BuildFrontendErrorUrl("The external provider did not return an email address."));
+        }
+
+        var user = await userManager.FindByEmailAsync(email);
+        if (user is null)
+        {
+            user = CreateUser(email, email, UserRoles.Donor);
+            user.EmailConfirmed = true;
+            var createResult = await userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
+            {
+                return Redirect(BuildFrontendErrorUrl("Unable to create a local account for the external login."));
+            }
+        }
+
+        var addLoginResult = await userManager.AddLoginAsync(user, info);
+        if (!addLoginResult.Succeeded && addLoginResult.Errors.All(e => !e.Code.Contains("Duplicate", StringComparison.OrdinalIgnoreCase)))
+        {
+            return Redirect(BuildFrontendErrorUrl("Unable to associate the external login with the local account."));
+        }
+
+        await signInManager.SignInAsync(user, false, info.LoginProvider);
+        return Redirect(BuildFrontendSuccessUrl(returnPath));
+    }
+
     private AppUser CreateUser(
         string username,
         string email,
-        string password,
         string role,
         int? residentId = null,
         int? supporterId = null,
@@ -258,8 +333,36 @@ public class AuthController(
             SupporterId = supporterId,
             StaffMemberId = staffMemberId,
         };
-        user.PasswordHash = passwordHasher.HashPassword(user, password);
         return user;
+    }
+
+    private bool IsGoogleConfigured()
+    {
+        return !string.IsNullOrWhiteSpace(configuration["Authentication:Google:ClientId"]) &&
+               !string.IsNullOrWhiteSpace(configuration["Authentication:Google:ClientSecret"]);
+    }
+
+    private static string NormalizeReturnPath(string? returnPath)
+    {
+        if (string.IsNullOrWhiteSpace(returnPath) || !returnPath.StartsWith('/'))
+        {
+            return "/";
+        }
+
+        return returnPath;
+    }
+
+    private string BuildFrontendSuccessUrl(string? returnPath)
+    {
+        var frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:5173";
+        return $"{frontendUrl.TrimEnd('/')}{NormalizeReturnPath(returnPath)}";
+    }
+
+    private string BuildFrontendErrorUrl(string errorMessage)
+    {
+        var frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:5173";
+        var loginUrl = $"{frontendUrl.TrimEnd('/')}/login";
+        return QueryHelpers.AddQueryString(loginUrl, "externalError", errorMessage);
     }
 }
 
@@ -278,6 +381,8 @@ public class RegisterRequest
 {
     [Required]
     [MinLength(2)]
+    [MaxLength(80)]
+    [RegularExpression(@"^[a-zA-Z0-9_.\- ]+$", ErrorMessage = "Username contains unsupported characters.")]
     public string Username { get; set; } = string.Empty;
 
     [Required]
@@ -285,6 +390,8 @@ public class RegisterRequest
     public string Email { get; set; } = string.Empty;
 
     [Required]
+    [MinLength(14)]
+    [RegularExpression(@"^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{14,}$", ErrorMessage = "Password must be at least 14 characters and include an uppercase and special character.")]
     public string Password { get; set; } = string.Empty;
 
     [Required]
@@ -295,6 +402,8 @@ public class RegisterStaffRequest
 {
     [Required]
     [MinLength(2)]
+    [MaxLength(80)]
+    [RegularExpression(@"^[a-zA-Z0-9_.\- ]+$", ErrorMessage = "Username contains unsupported characters.")]
     public string Username { get; set; } = string.Empty;
 
     [Required]
@@ -302,6 +411,8 @@ public class RegisterStaffRequest
     public string Email { get; set; } = string.Empty;
 
     [Required]
+    [MinLength(14)]
+    [RegularExpression(@"^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{14,}$", ErrorMessage = "Password must be at least 14 characters and include an uppercase and special character.")]
     public string Password { get; set; } = string.Empty;
 
     [Required]

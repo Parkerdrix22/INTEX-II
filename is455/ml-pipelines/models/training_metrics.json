@@ -146,5 +146,45 @@
       "n_test": 87,
       "n_features": 29
     }
+  },
+  "pipeline_06_reintegration_readiness": {
+    "status": "success",
+    "trained_at": "2026-04-07T17:18:38.443101+00:00",
+    "metrics": {
+      "lr_cv_roc_auc_mean": 0.3861,
+      "lr_cv_roc_auc_std": 0.1681,
+      "lr_cv_f1_mean": 0.2599,
+      "lr_cv_precision_mean": 0.231,
+      "lr_cv_recall_mean": 0.3333,
+      "rf_cv_roc_auc_mean": 0.4873,
+      "rf_cv_roc_auc_std": 0.0958,
+      "rf_cv_f1_mean": 0.261,
+      "rf_cv_precision_mean": 0.4,
+      "rf_cv_recall_mean": 0.2333,
+      "winning_model": "RandomForestClassifier",
+      "n_samples": 60,
+      "n_positives": 19,
+      "positive_class_pct": 31.67,
+      "n_features": 45,
+      "onnx_verified": true
+    }
+  },
+  "pipeline_06_case_resolution": {
+    "status": "success",
+    "trained_at": "2026-04-07T17:33:33.855218+00:00",
+    "metrics": {
+      "cv_roc_auc_mean": 0.7829,
+      "cv_roc_auc_std": 0.0779,
+      "cv_f1_mean": 0.4745,
+      "cv_precision_mean": 0.3857,
+      "cv_recall_mean": 0.65,
+      "winning_model": "LogisticRegression",
+      "n_samples": 60,
+      "n_positives": 19,
+      "positive_class_pct": 31.67,
+      "n_features": 8,
+      "onnx_verified": true,
+      "target": "case_status == 'Closed'"
+    }
   }
 }

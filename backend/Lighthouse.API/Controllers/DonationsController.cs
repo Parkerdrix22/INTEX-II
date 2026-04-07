@@ -196,10 +196,15 @@ public sealed class CreateDonationRequest
 {
     [Range(typeof(decimal), "0.01", "1000000000")]
     public decimal Amount { get; set; }
+    [StringLength(40)]
     public string DonationType { get; set; } = "Monetary";
+    [StringLength(20)]
     public string Frequency { get; set; } = "one-time";
+    [StringLength(8)]
     public string Currency { get; set; } = "USD";
     public DateTime? DonationDate { get; set; }
+    [StringLength(120)]
     public string? CampaignName { get; set; }
+    [StringLength(120)]
     public string? DonorName { get; set; }
 }
