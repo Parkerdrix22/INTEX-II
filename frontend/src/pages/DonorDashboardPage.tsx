@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { useAuth } from '../auth/useAuth';
+import { donorImpactApi, type DonorImpactReport } from '../lib/api';
 import { donationsApi } from '../lib/api';
 
 const DONOR_GIFTS_STORAGE_KEY = 'kateri-donor-gifts-v1';
@@ -101,19 +102,54 @@ export function DonorDashboardPage() {
 
   const [recordedGifts, setRecordedGifts] = useState<DonorGiftRecord[]>([]);
 
+  // Real per-donor data from /api/donor-impact/me — supporter_id is read
+  // server-side from the cookie claim, so we never have to know or pass it.
+  const [impact, setImpact] = useState<DonorImpactReport | null>(null);
+  const [impactLoading, setImpactLoading] = useState(true);
+  const [impactError, setImpactError] = useState<string | null>(null);
+
   useEffect(() => {
     setRecordedGifts(loadStoredGifts());
   }, []);
 
-  const giftTotals = useMemo(() => {
-    const totalAmount = recordedGifts.reduce((sum, g) => sum + g.amount, 0);
-    const meals = recordedGifts.reduce((sum, g) => sum + Math.max(1, Math.floor(g.amount / 10)), 0);
-    const counseling = recordedGifts.reduce(
-      (sum, g) => sum + Math.max(1, Math.floor(g.amount / 35)),
-      0,
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setImpactLoading(true);
+        const data = await donorImpactApi.me();
+        if (!cancelled) setImpact(data);
+      } catch (err) {
+        if (!cancelled) {
+          setImpactError(err instanceof Error ? err.message : 'Could not load your giving history.');
+        }
+      } finally {
+        if (!cancelled) setImpactLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const topProgramArea = useMemo(() => {
+    if (!impact || impact.programAreaBreakdown.length === 0) return null;
+    return [...impact.programAreaBreakdown].sort((a, b) => b.amount - a.amount)[0];
+  }, [impact]);
+
+  const supportSpanText = useMemo(() => {
+    if (!impact?.firstDonationDate) return null;
+    const first = new Date(impact.firstDonationDate);
+    const last = impact.lastDonationDate ? new Date(impact.lastDonationDate) : new Date();
+    const months = Math.max(
+      1,
+      (last.getFullYear() - first.getFullYear()) * 12 + (last.getMonth() - first.getMonth()),
     );
-    return { totalAmount, meals, counseling, count: recordedGifts.length };
-  }, [recordedGifts]);
+    if (months < 12) return `${months} month${months === 1 ? '' : 's'}`;
+    const years = (months / 12).toFixed(1).replace(/\.0$/, '');
+    return `${years} year${years === '1' ? '' : 's'}`;
+  }, [impact]);
 
   const onDonationSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -253,39 +289,148 @@ export function DonorDashboardPage() {
       </header>
 
       <article className="auth-card donor-history-overview" id="donor-history">
-        <h2>Your giving overview</h2>
-        <p className="auth-lead">
-          Gifts you submit on this device are listed here with an estimated impact. Official tax
-          receipts and records will come from Kateri separately.
-        </p>
-
-        <div className="donor-history-summary">
-          <div className="donor-history-summary__item">
-            <p className="metric-label">Total recorded (this device)</p>
-            <p className="metric-value donor-history-summary__value">
-              {money.format(giftTotals.totalAmount)}
-            </p>
-          </div>
-          <div className="donor-history-summary__item">
-            <p className="metric-label">Gifts recorded</p>
-            <p className="metric-value donor-history-summary__value">{giftTotals.count}</p>
-          </div>
-          <div className="donor-history-summary__item">
-            <p className="metric-label">Est. meals supported (cumulative)</p>
-            <p className="metric-value donor-history-summary__value">{giftTotals.meals}</p>
-          </div>
-          <div className="donor-history-summary__item">
-            <p className="metric-label">Est. counseling hours (cumulative)</p>
-            <p className="metric-value donor-history-summary__value">{giftTotals.counseling}</p>
-          </div>
+        <div className="donor-overview-head">
+          <h2>Your giving overview</h2>
+          <Link className="donor-overview-cta" to="/donor-impact">
+            See full impact report →
+          </Link>
         </div>
 
-        {recordedGifts.length === 0 ? (
-          <p className="donor-history-empty">
-            No gifts recorded yet. When you submit a donation below, it will appear in this table.
+        {impactLoading && (
+          <p className="auth-lead">Loading your giving history…</p>
+        )}
+
+        {impactError && (
+          <p className="auth-lead donor-history-empty">
+            {impactError === 'Your account isn\u2019t linked to a donor profile yet. Contact staff to connect them.'
+              ? impactError
+              : 'We couldn\u2019t load your giving history right now. Try refreshing the page.'}
           </p>
-        ) : (
-          <div className="donor-history-table-wrap">
+        )}
+
+        {!impactLoading && !impactError && impact && (
+          <>
+            <p className="auth-lead">
+              Welcome back{impact.displayName ? `, ${impact.displayName}` : ''}. Here&apos;s the
+              real impact of your support — pulled directly from your linked giving record.
+            </p>
+
+            <div className="donor-history-summary">
+              <div className="donor-history-summary__item">
+                <p className="metric-label">Total contributed</p>
+                <p className="metric-value donor-history-summary__value">
+                  {money.format(impact.totalContributed)}
+                </p>
+                {supportSpanText && (
+                  <p className="donor-overview-meta">over {supportSpanText} of giving</p>
+                )}
+              </div>
+              <div className="donor-history-summary__item">
+                <p className="metric-label">Gifts on record</p>
+                <p className="metric-value donor-history-summary__value">{impact.donationCount}</p>
+                {impact.lastDonationDate && (
+                  <p className="donor-overview-meta">
+                    last gift{' '}
+                    {new Date(impact.lastDonationDate).toLocaleDateString(undefined, {
+                      dateStyle: 'medium',
+                    })}
+                  </p>
+                )}
+              </div>
+              <div className="donor-history-summary__item">
+                <p className="metric-label">Safehouses you fund</p>
+                <p className="metric-value donor-history-summary__value">
+                  {impact.safehousesSupported.length}
+                </p>
+                {impact.safehousesSupported[0] && (
+                  <p className="donor-overview-meta">
+                    incl. {impact.safehousesSupported[0].name}
+                  </p>
+                )}
+              </div>
+              <div className="donor-history-summary__item">
+                <p className="metric-label">Top program area</p>
+                <p className="metric-value donor-history-summary__value donor-overview-program">
+                  {topProgramArea ? topProgramArea.name : '—'}
+                </p>
+                {topProgramArea && (
+                  <p className="donor-overview-meta">
+                    {money.format(topProgramArea.amount)} ({topProgramArea.percent.toFixed(0)}%)
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {impact.programAreaBreakdown.length > 0 && (
+              <div className="donor-overview-allocation">
+                <p className="metric-label">Where your dollars go</p>
+                <div className="donor-overview-bar">
+                  {impact.programAreaBreakdown.map((slice, idx) => {
+                    const colors = ['#385f82', '#c9983f', '#a05b3a', '#5f8448', '#7e7468'];
+                    return (
+                      <div
+                        key={slice.name}
+                        className="donor-overview-bar__segment"
+                        style={{
+                          width: `${slice.percent}%`,
+                          background: colors[idx % colors.length],
+                        }}
+                        title={`${slice.name}: ${money.format(slice.amount)} (${slice.percent.toFixed(1)}%)`}
+                      />
+                    );
+                  })}
+                </div>
+                <ul className="donor-overview-legend">
+                  {impact.programAreaBreakdown.map((slice, idx) => {
+                    const colors = ['#385f82', '#c9983f', '#a05b3a', '#5f8448', '#7e7468'];
+                    return (
+                      <li key={slice.name}>
+                        <span
+                          className="donor-overview-legend__dot"
+                          style={{ background: colors[idx % colors.length] }}
+                        />
+                        <span className="donor-overview-legend__label">{slice.name}</span>
+                        <span className="donor-overview-legend__pct">
+                          {slice.percent.toFixed(0)}%
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {(impact.avgHealthScore != null || impact.avgEducationProgress != null || impact.avgActiveResidents != null) && (
+              <div className="donor-overview-outcomes">
+                <p className="metric-label">Outcomes at your funded safehouses</p>
+                <div className="donor-overview-outcomes__row">
+                  {impact.avgHealthScore != null && (
+                    <div>
+                      <strong>{impact.avgHealthScore.toFixed(1)} / 5</strong>
+                      <span>Avg health score</span>
+                    </div>
+                  )}
+                  {impact.avgEducationProgress != null && (
+                    <div>
+                      <strong>{impact.avgEducationProgress.toFixed(0)}%</strong>
+                      <span>Avg education progress</span>
+                    </div>
+                  )}
+                  {impact.avgActiveResidents != null && (
+                    <div>
+                      <strong>{Math.round(impact.avgActiveResidents)}</strong>
+                      <span>Residents in care</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {recordedGifts.length > 0 && (
+          <details className="donor-history-table-wrap donor-overview-device-history">
+            <summary>Gifts submitted from this device ({recordedGifts.length})</summary>
             <table className="donor-history-table">
               <caption className="visually-hidden">Your recorded donations on this device</caption>
               <thead>
@@ -311,7 +456,7 @@ export function DonorDashboardPage() {
                   ))}
               </tbody>
             </table>
-          </div>
+          </details>
         )}
       </article>
 
