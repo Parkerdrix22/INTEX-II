@@ -1,5 +1,43 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import backgroundImage from '../background.jpg';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
+import { useAuth } from '../auth/useAuth';
+
+const DONOR_GIFTS_STORAGE_KEY = 'kateri-donor-gifts-v1';
+
+type DonorGiftRecord = {
+  id: string;
+  at: string;
+  amount: number;
+  frequency: 'one-time' | 'monthly';
+};
+
+function loadStoredGifts(): DonorGiftRecord[] {
+  try {
+    const raw = localStorage.getItem(DONOR_GIFTS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (row): row is DonorGiftRecord =>
+        typeof row === 'object' &&
+        row !== null &&
+        typeof (row as DonorGiftRecord).id === 'string' &&
+        typeof (row as DonorGiftRecord).at === 'string' &&
+        typeof (row as DonorGiftRecord).amount === 'number' &&
+        ((row as DonorGiftRecord).frequency === 'one-time' ||
+          (row as DonorGiftRecord).frequency === 'monthly'),
+    );
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredGifts(gifts: DonorGiftRecord[]) {
+  localStorage.setItem(DONOR_GIFTS_STORAGE_KEY, JSON.stringify(gifts));
+}
+
+const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
 const volunteerFocusOptions = [
   'Teaching',
@@ -12,7 +50,33 @@ const volunteerFocusOptions = [
   'Event support',
 ];
 
+const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
+const weekDayFull = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+] as const;
+
+const timeOfDayOptions = [
+  { id: 'Mornings', label: 'Mornings (approx. 8 AM–12 PM)' },
+  { id: 'Afternoons', label: 'Afternoons (approx. 12–5 PM)' },
+  { id: 'Evenings', label: 'Evenings (approx. 5–9 PM)' },
+] as const;
+
+function formatWelcomeName(raw: string | null): string | null {
+  if (!raw?.trim()) return null;
+  const cleaned = raw.trim();
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
 export function DonorDashboardPage() {
+  const { effectiveDisplayName } = useAuth();
+  const welcomeName = formatWelcomeName(effectiveDisplayName);
+
   const [amount, setAmount] = useState('100');
   const [frequency, setFrequency] = useState<'one-time' | 'monthly'>('monthly');
   const [donorName, setDonorName] = useState('');
@@ -23,20 +87,29 @@ export function DonorDashboardPage() {
   const [volunteerName, setVolunteerName] = useState('');
   const [volunteerEmail, setVolunteerEmail] = useState('');
   const [volunteerPhone, setVolunteerPhone] = useState('');
-  const [availability, setAvailability] = useState('');
+  const [availDays, setAvailDays] = useState<string[]>([]);
+  const [availTimes, setAvailTimes] = useState<string[]>([]);
+  const [flexibleOnDays, setFlexibleOnDays] = useState(false);
+  const [availabilityNotes, setAvailabilityNotes] = useState('');
   const [selectedFocuses, setSelectedFocuses] = useState<string[]>([]);
   const [volunteerSuccess, setVolunteerSuccess] = useState<string | null>(null);
   const [volunteerError, setVolunteerError] = useState<string | null>(null);
 
-  useEffect(() => {
-    document.body.classList.add('home-background');
-    document.documentElement.style.setProperty('--home-bg-image', `url(${backgroundImage})`);
+  const [recordedGifts, setRecordedGifts] = useState<DonorGiftRecord[]>([]);
 
-    return () => {
-      document.body.classList.remove('home-background');
-      document.documentElement.style.removeProperty('--home-bg-image');
-    };
+  useEffect(() => {
+    setRecordedGifts(loadStoredGifts());
   }, []);
+
+  const giftTotals = useMemo(() => {
+    const totalAmount = recordedGifts.reduce((sum, g) => sum + g.amount, 0);
+    const meals = recordedGifts.reduce((sum, g) => sum + Math.max(1, Math.floor(g.amount / 10)), 0);
+    const counseling = recordedGifts.reduce(
+      (sum, g) => sum + Math.max(1, Math.floor(g.amount / 35)),
+      0,
+    );
+    return { totalAmount, meals, counseling, count: recordedGifts.length };
+  }, [recordedGifts]);
 
   const onDonationSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -52,6 +125,17 @@ export function DonorDashboardPage() {
     const mealsSupported = Math.max(1, Math.floor(numericAmount / 10));
     const counselingHours = Math.max(1, Math.floor(numericAmount / 35));
     const cadenceLabel = frequency === 'monthly' ? 'monthly' : 'one-time';
+    const newGift: DonorGiftRecord = {
+      id: crypto.randomUUID(),
+      at: new Date().toISOString(),
+      amount: numericAmount,
+      frequency,
+    };
+    setRecordedGifts((prev) => {
+      const next = [newGift, ...prev];
+      saveStoredGifts(next);
+      return next;
+    });
     setDonationSuccess(
       `Thank you, ${donorName || 'supporter'}! Your ${cadenceLabel} gift can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
     );
@@ -71,13 +155,30 @@ export function DonorDashboardPage() {
       return;
     }
 
+    if (!flexibleOnDays && availDays.length === 0) {
+      setVolunteerError(
+        'Please choose at least one day you are usually available, or check “Flexible on days”.',
+      );
+      return;
+    }
+
+    if (availTimes.length === 0) {
+      setVolunteerError('Please choose at least one time of day you are usually available.');
+      return;
+    }
+
+    const daySummary = flexibleOnDays ? 'flexible on days' : availDays.join(', ');
+    const timeSummary = availTimes.join(', ');
     setVolunteerSuccess(
-      `Thank you, ${volunteerName}! We received your volunteer interests: ${selectedFocuses.join(', ')}.`,
+      `Thank you, ${volunteerName}! We recorded your interests (${selectedFocuses.join(', ')}), availability (${daySummary}; ${timeSummary}).`,
     );
     setVolunteerName('');
     setVolunteerEmail('');
     setVolunteerPhone('');
-    setAvailability('');
+    setAvailDays([]);
+    setAvailTimes([]);
+    setFlexibleOnDays(false);
+    setAvailabilityNotes('');
     setSelectedFocuses([]);
   };
 
@@ -87,30 +188,108 @@ export function DonorDashboardPage() {
     );
   };
 
-  return (
-    <section className="donor-page">
-      <article className="hero-panel">
-        <h1>Donor Dashboard</h1>
-        <p className="hero-copy">
-          Your support helps provide safe housing, counseling, education, and reintegration
-          services for the girls in Kateri&apos;s care.
-        </p>
-      </article>
+  const toggleAvailDay = (day: string) => {
+    setAvailDays((current) =>
+      current.includes(day) ? current.filter((d) => d !== day) : [...current, day],
+    );
+  };
 
-      <div className="stats-grid donor-stats">
-        <article className="stat-card">
-          <p className="metric-label">Girls Supported This Year</p>
-          <p className="metric-value">76</p>
-        </article>
-        <article className="stat-card">
-          <p className="metric-label">Counseling Sessions Funded</p>
-          <p className="metric-value">430+</p>
-        </article>
-        <article className="stat-card">
-          <p className="metric-label">School Reintegration Rate</p>
-          <p className="metric-value">88%</p>
-        </article>
-      </div>
+  const toggleAvailTime = (slot: string) => {
+    setAvailTimes((current) =>
+      current.includes(slot) ? current.filter((t) => t !== slot) : [...current, slot],
+    );
+  };
+
+  const heroTitle = welcomeName ? `Welcome back, ${welcomeName}` : 'Donor Portal';
+
+  return (
+    <section className="donor-page kateri-landing-section">
+      <header className="kateri-photo-hero">
+        <div
+          className="kateri-photo-hero__media"
+          style={{ backgroundImage: `url(${heroImage})` }}
+          aria-hidden={true}
+        />
+        <div className="kateri-photo-hero__scrim" aria-hidden={true} />
+        <div className="kateri-photo-hero__inner">
+          <h1 className="kateri-photo-hero__title">{heroTitle}</h1>
+          <p className="kateri-photo-hero__lead">
+            Your support helps provide safe housing, counseling, education, and reintegration
+            services for the girls in Kateri&apos;s care.
+          </p>
+          <div className="kateri-hero-actions">
+            <a className="btn-kateri-gold" href="#donate-forms">
+              Make a donation
+            </a>
+            <Link className="btn-kateri-ghost" to="/impact">
+              View Our Impact
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <article className="auth-card donor-history-overview" id="donor-history">
+        <h2>Your giving overview</h2>
+        <p className="auth-lead">
+          Gifts you submit on this device are listed here with an estimated impact. Official tax
+          receipts and records will come from Kateri separately.
+        </p>
+
+        <div className="donor-history-summary">
+          <div className="donor-history-summary__item">
+            <p className="metric-label">Total recorded (this device)</p>
+            <p className="metric-value donor-history-summary__value">
+              {money.format(giftTotals.totalAmount)}
+            </p>
+          </div>
+          <div className="donor-history-summary__item">
+            <p className="metric-label">Gifts recorded</p>
+            <p className="metric-value donor-history-summary__value">{giftTotals.count}</p>
+          </div>
+          <div className="donor-history-summary__item">
+            <p className="metric-label">Est. meals supported (cumulative)</p>
+            <p className="metric-value donor-history-summary__value">{giftTotals.meals}</p>
+          </div>
+          <div className="donor-history-summary__item">
+            <p className="metric-label">Est. counseling hours (cumulative)</p>
+            <p className="metric-value donor-history-summary__value">{giftTotals.counseling}</p>
+          </div>
+        </div>
+
+        {recordedGifts.length === 0 ? (
+          <p className="donor-history-empty">
+            No gifts recorded yet. When you submit a donation below, it will appear in this table.
+          </p>
+        ) : (
+          <div className="donor-history-table-wrap">
+            <table className="donor-history-table">
+              <caption className="visually-hidden">Your recorded donations on this device</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Amount</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Est. meals</th>
+                  <th scope="col">Est. counseling hrs</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...recordedGifts]
+                  .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+                  .map((gift) => (
+                    <tr key={gift.id}>
+                      <td>{new Date(gift.at).toLocaleDateString(undefined, { dateStyle: 'medium' })}</td>
+                      <td>{money.format(gift.amount)}</td>
+                      <td>{gift.frequency === 'monthly' ? 'Monthly' : 'One-time'}</td>
+                      <td>{Math.max(1, Math.floor(gift.amount / 10))}</td>
+                      <td>{Math.max(1, Math.floor(gift.amount / 35))}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </article>
 
       <hr className="section-divider" />
 
@@ -134,9 +313,9 @@ export function DonorDashboardPage() {
 
       <hr className="section-divider" />
 
-      <div className="donor-grid">
+      <div id="donate-forms" className="donor-forms-stack">
         <article className="auth-card">
-          <h2>Donate money</h2>
+          <h2>Donate</h2>
           <p className="auth-lead">Choose an amount and frequency. We will route it to direct care.</p>
           <form onSubmit={onDonationSubmit}>
             <label>
@@ -214,15 +393,67 @@ export function DonorDashboardPage() {
                 onChange={(event) => setVolunteerPhone(event.target.value)}
               />
             </label>
-            <label>
-              Availability
-              <input
-                placeholder="Example: Wednesdays 4-7 PM, Saturdays mornings"
-                type="text"
-                value={availability}
-                onChange={(event) => setAvailability(event.target.value)}
-              />
-            </label>
+
+            <fieldset className="donor-focus-fieldset volunteer-availability-fieldset">
+              <legend>When are you usually available?</legend>
+              <p className="volunteer-availability-hint">
+                Pick days and times of day so we can match you to opportunities. Staff can follow up
+                for exact times.
+              </p>
+
+              <label className="volunteer-flexible-option">
+                <input
+                  type="checkbox"
+                  checked={flexibleOnDays}
+                  onChange={(event) => {
+                    setFlexibleOnDays(event.target.checked);
+                    if (event.target.checked) setAvailDays([]);
+                  }}
+                />
+                <span>Flexible on which days I volunteer</span>
+              </label>
+
+              <div
+                className={`volunteer-day-grid${flexibleOnDays ? ' volunteer-day-grid--disabled' : ''}`}
+                aria-disabled={flexibleOnDays}
+              >
+                {weekDays.map((short, i) => (
+                  <label className="volunteer-day-chip" key={weekDayFull[i]}>
+                    <input
+                      type="checkbox"
+                      disabled={flexibleOnDays}
+                      checked={availDays.includes(weekDayFull[i])}
+                      onChange={() => toggleAvailDay(weekDayFull[i])}
+                    />
+                    <span>{short}</span>
+                  </label>
+                ))}
+              </div>
+
+              <p className="volunteer-availability-sublegend">Time of day (select all that apply)</p>
+              <div className="volunteer-time-grid">
+                {timeOfDayOptions.map((slot) => (
+                  <label className="donor-focus-option" key={slot.id}>
+                    <input
+                      type="checkbox"
+                      checked={availTimes.includes(slot.id)}
+                      onChange={() => toggleAvailTime(slot.id)}
+                    />
+                    <span>{slot.label}</span>
+                  </label>
+                ))}
+              </div>
+
+              <label className="volunteer-notes-label">
+                Additional notes (optional)
+                <textarea
+                  rows={3}
+                  placeholder="e.g. Only during school year, prefer virtual for tutoring, etc."
+                  value={availabilityNotes}
+                  onChange={(event) => setAvailabilityNotes(event.target.value)}
+                />
+              </label>
+            </fieldset>
 
             <fieldset className="donor-focus-fieldset">
               <legend>What would you like to help with?</legend>

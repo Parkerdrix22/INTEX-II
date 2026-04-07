@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
-import backgroundImage from '../background.jpg';
+import backgroundImage from '../background.jpg?format=webp&quality=82&w=1920';
 
 export function LoginPage() {
   const { login, isAuthenticated, roles } = useAuth();
@@ -58,9 +58,7 @@ export function LoginPage() {
     <section className="auth-page">
       <article className="auth-card">
         <h1>Sign in</h1>
-        <p className="auth-lead">
-          Welcome back to Kateri. Need an account? <Link to="/signup">Create one</Link>.
-        </p>
+        <p className="auth-lead">Welcome back to Kateri. New accounts are created by an administrator.</p>
         <form onSubmit={onSubmit}>
           <label>
             Username or Email
