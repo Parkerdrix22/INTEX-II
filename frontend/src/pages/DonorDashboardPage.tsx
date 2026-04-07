@@ -176,6 +176,7 @@ export function DonorDashboardPage() {
         frequency: 'one-time',
         currency,
         donationDate: new Date().toISOString(),
+        campaignName: campaignName.trim() || 'Donor Portal',
         donorName: (effectiveDisplayName ?? '').trim(),
       });
 
