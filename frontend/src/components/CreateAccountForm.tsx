@@ -40,7 +40,12 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
           : 'Account created. You can now sign in.',
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Signup failed.');
+      const message = err instanceof Error ? err.message : 'Signup failed.';
+      if (message.includes('Password')) {
+        setError('Password must be at least 14 characters and include one uppercase letter and one special character.');
+      } else {
+        setError(message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -72,13 +77,17 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
         Password
         <input
           required
-          minLength={8}
+          minLength={14}
           type="password"
           autoComplete="new-password"
+          title="At least 14 characters, including one uppercase letter and one special character."
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
       </label>
+      <p className="auth-lead profile-create-account-hint">
+        Passwords must be at least 14 characters and include one uppercase letter and one special character.
+      </p>
       <label>
         Account role
         <select value={role} onChange={(event) => setRole(event.target.value as CreateAccountRole)}>

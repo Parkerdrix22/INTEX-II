@@ -22,8 +22,11 @@ import { ResidentRiskPage } from './pages/ResidentRiskPage';
 import { PostPlannerPage } from './pages/PostPlannerPage';
 import { ReportsAnalyticsPage } from './pages/ReportsAnalyticsPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { CookiePolicyPage } from './pages/CookiePolicyPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { StaffSidebar } from './components/StaffSidebar';
+import { CookieConsentBanner } from './components/CookieConsentBanner';
 
 function ProfileNavIcon({ className }: { className?: string }) {
   return (
@@ -199,6 +202,8 @@ function App() {
           />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route
             path="/profile"
             element={
@@ -285,6 +290,7 @@ function App() {
           </Routes>
         </main>
       </div>
+      <CookieConsentBanner />
     </div>
   );
 }
