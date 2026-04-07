@@ -115,6 +115,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddScoped<IPasswordHasher<Lighthouse.API.Data.Entities.AppUser>, PasswordHasher<Lighthouse.API.Data.Entities.AppUser>>();
 builder.Services.AddScoped<Lighthouse.API.Services.IWebsiteChatService, Lighthouse.API.Services.AnthropicWebsiteChatService>();
+builder.Services.AddScoped<Lighthouse.API.Services.INeedBasedAllocationService, Lighthouse.API.Services.NeedBasedAllocationService>();
 
 var app = builder.Build();
 

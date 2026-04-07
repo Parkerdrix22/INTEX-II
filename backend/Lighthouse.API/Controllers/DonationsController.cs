@@ -16,7 +16,8 @@ namespace Lighthouse.API.Controllers;
 public class DonationsController(
     AppDbContext dbContext,
     UserManager<AppUser> userManager,
-    IStaffNotificationEmailService staffNotificationEmail) : ControllerBase
+    IStaffNotificationEmailService staffNotificationEmail,
+    INeedBasedAllocationService allocationService) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> CreateDonation([FromBody] CreateDonationRequest request)
@@ -58,8 +59,21 @@ public class DonationsController(
                 .ToListAsync();
             var insertedId = insertedRows.FirstOrDefault()?.Id ?? 0;
 
+            // ---- Pipeline 8: Need-Based Donation Routing -----------------------
+            // Decide where the dollars actually go and write the allocation rows.
+            var allocationPlan = await allocationService.AllocateAsync(
+                request.Amount,
+                request.ProgramArea ?? "Operations",
+                dbContext);
+            await WriteAllocationRowsAsync(insertedId, donationDate, allocationPlan);
+
             await NotifyStaffDonationAsync(request, currency, donationDate);
-            return Ok(new { message = "Donation recorded successfully.", donationId = insertedId });
+            return Ok(new
+            {
+                message = "Donation recorded successfully.",
+                donationId = insertedId,
+                allocation = allocationPlan
+            });
         }
         catch
         {
@@ -200,6 +214,69 @@ public class DonationsController(
         public int Id { get; set; }
     }
 
+    /// <summary>
+    /// Write a row in lighthouse.donation_allocations for each piece of the
+    /// allocation plan: the top-N safehouses (by need score), the General Fund,
+    /// and the Rainy Day Reserve. The General Fund + Rainy Day rows have
+    /// safehouse_id = NULL since they don't go to a specific safehouse.
+    /// </summary>
+    private async Task WriteAllocationRowsAsync(
+        int donationId,
+        DateTime donationDate,
+        AllocationPlan plan)
+    {
+        if (donationId <= 0) return;
+
+        var allocationDate = DateOnly.FromDateTime(donationDate);
+
+        foreach (var sa in plan.SafehouseAllocations)
+        {
+            if (sa.Amount <= 0) continue;
+            await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                INSERT INTO lighthouse.donation_allocations
+                    (donation_id, safehouse_id, program_area, amount_allocated, allocation_date, allocation_notes)
+                VALUES ({0}, {1}, {2}, {3}, {4}, {5})
+                """,
+                donationId,
+                sa.SafehouseId,
+                sa.ProgramArea,
+                sa.Amount,
+                allocationDate,
+                $"Auto-routed by need score = {sa.NeedScore:F4}");
+        }
+
+        if (plan.GeneralFundAmount > 0)
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                INSERT INTO lighthouse.donation_allocations
+                    (donation_id, safehouse_id, program_area, amount_allocated, allocation_date, allocation_notes)
+                VALUES ({0}, NULL, {1}, {2}, {3}, {4})
+                """,
+                donationId,
+                INeedBasedAllocationService.GeneralFundLabel,
+                plan.GeneralFundAmount,
+                allocationDate,
+                "10% reserve for general operating expenses");
+        }
+
+        if (plan.RainyDayAmount > 0)
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                INSERT INTO lighthouse.donation_allocations
+                    (donation_id, safehouse_id, program_area, amount_allocated, allocation_date, allocation_notes)
+                VALUES ({0}, NULL, {1}, {2}, {3}, {4})
+                """,
+                donationId,
+                INeedBasedAllocationService.RainyDayLabel,
+                plan.RainyDayAmount,
+                allocationDate,
+                "5% reserve for emergencies");
+        }
+    }
+
     private async Task<int> NextLighthouseIdAsync(string tableName, string idColumn)
     {
         var rows = await dbContext.Database.SqlQueryRaw<InsertedDonationIdRow>(
@@ -239,4 +316,6 @@ public sealed class CreateDonationRequest
     public string? CampaignName { get; set; }
     [StringLength(120)]
     public string? DonorName { get; set; }
+    [StringLength(40)]
+    public string? ProgramArea { get; set; }
 }
