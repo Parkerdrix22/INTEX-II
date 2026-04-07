@@ -2,7 +2,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Lighthouse.API.Data;
 using Lighthouse.API.Data.Entities;
+using Lighthouse.API.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +13,10 @@ namespace Lighthouse.API.Controllers;
 [ApiController]
 [Route("api/donations")]
 [Authorize]
-public class DonationsController(AppDbContext dbContext) : ControllerBase
+public class DonationsController(
+    AppDbContext dbContext,
+    UserManager<AppUser> userManager,
+    IStaffNotificationEmailService staffNotificationEmail) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> CreateDonation([FromBody] CreateDonationRequest request)
@@ -53,6 +58,7 @@ public class DonationsController(AppDbContext dbContext) : ControllerBase
                 .ToListAsync();
             var insertedId = insertedRows.FirstOrDefault()?.Id ?? 0;
 
+            await NotifyStaffDonationAsync(request, currency, donationDate);
             return Ok(new { message = "Donation recorded successfully.", donationId = insertedId });
         }
         catch
@@ -67,8 +73,32 @@ public class DonationsController(AppDbContext dbContext) : ControllerBase
             };
             dbContext.Donations.Add(donation);
             await dbContext.SaveChangesAsync();
+            await NotifyStaffDonationAsync(request, currency, donationDate);
             return Ok(new { message = "Donation recorded successfully.", donationId = donation.Id });
         }
+    }
+
+    private async Task NotifyStaffDonationAsync(CreateDonationRequest request, string currency, DateTime donationDateUtc)
+    {
+        var donorEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+        var donorName = string.IsNullOrWhiteSpace(request.DonorName) ? "Donor" : request.DonorName.Trim();
+        string? donorPhone = null;
+        var userId = User.FindFirstValue("user_id");
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            var user = await userManager.FindByIdAsync(userId);
+            donorPhone = user?.PhoneNumber;
+        }
+
+        await staffNotificationEmail.SendDonationNotificationAsync(
+            donorName,
+            donorEmail,
+            donorPhone,
+            request.Amount,
+            currency,
+            NormalizeDonationType(request.DonationType),
+            string.IsNullOrWhiteSpace(request.CampaignName) ? "Donor Portal" : request.CampaignName.Trim(),
+            donationDateUtc);
     }
 
     private async Task<int?> ResolveSupporterForLighthouseAsync(string? donorName)

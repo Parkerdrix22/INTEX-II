@@ -747,6 +747,11 @@ a.auth-nav-pill--solo-login:focus-visible {
   gap: 0.8rem;
 }
 
+.admin-dashboard-summary-grid .stat-card {
+  text-align: center;
+  align-items: center;
+}
+
 .admin-dashboard-charts-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1957,6 +1962,45 @@ a.auth-nav-pill--solo-login:focus-visible {
   display: grid;
   gap: 0.4rem;
   margin-bottom: 0.85rem;
+}
+
+.volunteer-account-contact {
+  margin: 0 0 1.1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(56, 95, 130, 0.06);
+}
+
+.volunteer-account-contact__title {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #27496a;
+  letter-spacing: 0.02em;
+}
+
+.volunteer-account-contact__line {
+  margin: 0.35rem 0 0;
+  display: grid;
+  gap: 0.15rem;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.volunteer-account-contact__line strong {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.volunteer-account-contact__hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.45;
 }
 
 .volunteer-notes-label {

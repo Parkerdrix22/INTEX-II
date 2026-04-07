@@ -181,11 +181,19 @@ public class AuthController(
 
     [HttpGet("me")]
     [AllowAnonymous]
-    public IActionResult Me()
+    public async Task<IActionResult> Me()
     {
         if (User.Identity?.IsAuthenticated != true)
         {
             return Ok(new { isAuthenticated = false, email = (string?)null, roles = Array.Empty<string>() });
+        }
+
+        string? phone = null;
+        var userId = User.FindFirstValue("user_id");
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            var user = await userManager.FindByIdAsync(userId);
+            phone = user?.PhoneNumber;
         }
 
         return Ok(
@@ -196,6 +204,7 @@ public class AuthController(
                 firstName = User.FindFirstValue(ClaimTypes.GivenName),
                 lastName = User.FindFirstValue(ClaimTypes.Surname),
                 email = User.FindFirstValue(ClaimTypes.Email),
+                phone,
                 roles = User.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray(),
                 residentId = User.FindFirstValue("resident_id"),
                 supporterId = User.FindFirstValue("supporter_id"),

@@ -9,9 +9,13 @@ type AuthContextValue = {
   firstName: string | null;
   lastName: string | null;
   email: string | null;
+  /** Phone on file from the account (Identity), when available */
+  accountPhone: string | null;
   roles: string[];
   profile: UserProfile;
   effectiveDisplayName: string | null;
+  /** Profile phone (local) or account phone — for contact displays */
+  effectivePhone: string | null;
   updateProfile: (patch: Partial<UserProfile>) => void;
   login: (login: string, password: string, rememberMe: boolean) => Promise<string[]>;
   logout: () => Promise<void>;
@@ -27,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [firstName, setFirstName] = useState<string | null>(null);
   const [lastName, setLastName] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [accountPhone, setAccountPhone] = useState<string | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
   const [profile, setProfile] = useState<UserProfile>({
     displayName: '',
@@ -51,11 +56,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setFirstName(result.firstName ?? null);
         setLastName(result.lastName ?? null);
         setEmail(result.email);
+        setAccountPhone(result.phone?.trim() || null);
         setRoles(result.roles ?? []);
       } catch {
         setIsAuthenticated(false);
         setUsername(null);
         setEmail(null);
+        setAccountPhone(null);
         setRoles([]);
       } finally {
         setIsLoading(false);
@@ -73,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       firstName,
       lastName,
       email,
+      accountPhone,
       roles,
       profile,
       effectiveDisplayName: (() => {
@@ -83,6 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const u = username?.trim();
         if (!u) return null;
         return u.charAt(0).toUpperCase() + u.slice(1);
+      })(),
+      effectivePhone: (() => {
+        const p = profile.phone?.trim();
+        if (p) return p;
+        return accountPhone?.trim() || null;
       })(),
       updateProfile: (patch) => {
         const next: UserProfile = {
@@ -103,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setFirstName(me.firstName ?? null);
         setLastName(me.lastName ?? null);
         setEmail(me.email);
+        setAccountPhone(me.phone?.trim() || null);
         setRoles(me.roles ?? []);
         setProfile(loadProfile(me.email, me.username ?? null));
         return me.roles ?? [];
@@ -114,11 +128,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setFirstName(null);
         setLastName(null);
         setEmail(null);
+        setAccountPhone(null);
         setRoles([]);
         setProfile({ displayName: '', phone: '', notes: '' });
       },
     }),
-    [isAuthenticated, isLoading, username, firstName, lastName, email, roles, profile],
+    [isAuthenticated, isLoading, username, firstName, lastName, email, accountPhone, roles, profile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

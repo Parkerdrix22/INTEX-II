@@ -34,7 +34,7 @@ export function StaffSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: ()
         </div>
 
         <div className="staff-sidebar__section staff-sidebar__section--secondary">
-          <p className="staff-sidebar__section-label">Reports and Analytics</p>
+          <p className="staff-sidebar__section-label">Predictive Insights</p>
           <NavLink to="/resident-risk-triage" className={navLinkClass} onClick={onClose}>
             Risk Triage
           </NavLink>
