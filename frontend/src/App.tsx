@@ -22,6 +22,7 @@ import { ResidentDashboardPage } from './pages/ResidentDashboardPage';
 import { ResidentCasePage } from './pages/ResidentCasePage';
 import { ResidentRiskPage } from './pages/ResidentRiskPage';
 import { PostPlannerPage } from './pages/PostPlannerPage';
+import { ReportsAnalyticsPage } from './pages/ReportsAnalyticsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { CookiePolicyPage } from './pages/CookiePolicyPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
@@ -53,7 +54,7 @@ function App() {
   const location = useLocation();
   useScrollReveal(mainRef, location.pathname);
   const { isAuthenticated, logout, roles } = useAuth();
-  const accentNavRoutes = ['/impact', '/donor-dashboard', '/profile'];
+  const accentNavRoutes = ['/profile'];
   const useAccentNav = accentNavRoutes.includes(location.pathname);
   const isStaffLike = roles.includes('Admin') || roles.includes('Staff');
   const isDonor = roles.includes('Donor');
@@ -259,6 +260,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
                 <CaseloadInventoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports-analytics"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <ReportsAnalyticsPage />
               </ProtectedRoute>
             }
           />

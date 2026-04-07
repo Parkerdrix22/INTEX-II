@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { caseloadApi, type CaseloadResident } from '../lib/api';
+import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 
 function safehouseLabel(row: CaseloadResident): string {
   if (row.safehouseName?.trim()) return row.safehouseName;
@@ -146,17 +147,25 @@ export function CaseloadInventoryPage() {
   }, [activeCount, transferredCount, withWorkerCount, closedCount]);
 
   return (
-    <section className="caseload-page">
-      <header className="caseload-page__header">
-        <div>
-          <h1>Resident Services</h1>
-          <p className="auth-lead">
+    <section className="caseload-page kateri-landing-section">
+      <header className="kateri-photo-hero">
+        <div
+          className="kateri-photo-hero__media"
+          style={{ backgroundImage: `url(${heroImage})` }}
+          aria-hidden={true}
+        />
+        <div className="kateri-photo-hero__scrim" aria-hidden={true} />
+        <div className="kateri-photo-hero__inner">
+          <h1 className="kateri-photo-hero__title">Resident Services</h1>
+          <p className="kateri-photo-hero__lead">
             Live resident records from the database, with filter/search tools for daily case management workflows.
           </p>
+          <div className="kateri-hero-actions">
+            <button type="button" className="btn-kateri-gold" onClick={() => setShowCreateResident(true)}>
+              + New resident case
+            </button>
+          </div>
         </div>
-        <button type="button" className="btn-primary" onClick={() => setShowCreateResident(true)}>
-          + New resident case
-        </button>
       </header>
 
       <section className="caseload-summary-grid" aria-label="Resident services key metrics">

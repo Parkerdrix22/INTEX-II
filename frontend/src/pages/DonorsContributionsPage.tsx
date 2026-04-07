@@ -13,6 +13,7 @@ import {
   donorsContributionsApi,
   type DonorsContributionsDashboard,
 } from '../lib/api';
+import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 
 function formatDate(value: string | null): string {
   if (!value) return '—';
@@ -202,12 +203,20 @@ export function DonorsContributionsPage() {
   };
 
   return (
-    <section className="donors-contributions-page">
-      <header className="donors-page-header">
-        <h1>Donors &amp; Contributions</h1>
-        <p className="auth-lead">
-          Staff workspace for supporter management, contribution logging, allocation tracking, and activity review.
-        </p>
+    <section className="donors-contributions-page kateri-landing-section">
+      <header className="kateri-photo-hero">
+        <div
+          className="kateri-photo-hero__media"
+          style={{ backgroundImage: `url(${heroImage})` }}
+          aria-hidden={true}
+        />
+        <div className="kateri-photo-hero__scrim" aria-hidden={true} />
+        <div className="kateri-photo-hero__inner">
+          <h1 className="kateri-photo-hero__title">Donors &amp; Contributions</h1>
+          <p className="kateri-photo-hero__lead">
+            Staff workspace for supporter management, contribution logging, allocation tracking, and activity review.
+          </p>
+        </div>
       </header>
 
       <section className="donor-summary-grid" aria-label="Summary metrics">
