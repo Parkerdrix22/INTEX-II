@@ -221,11 +221,7 @@
 }
 
 .impact-donor-card.is-selected {
-  background: linear-gradient(
-    135deg,
-    rgba(56, 95, 130, 0.14) 0%,
-    rgba(201, 152, 63, 0.10) 100%
-  );
+  background: rgba(56, 95, 130, 0.08);
   border-color: var(--accent);
   box-shadow: 0 8px 22px -16px rgba(56, 95, 130, 0.5);
 }
@@ -303,11 +299,7 @@
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 2rem;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 253, 247, 0.92) 0%,
-    rgba(243, 239, 228, 0.78) 100%
-  );
+  background: rgba(255, 253, 247, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border);
@@ -382,11 +374,9 @@
   font-size: 2.6rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  background: linear-gradient(135deg, #385f82 0%, #c9983f 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--accent);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .impact-hero-total-meta {
@@ -422,12 +412,8 @@
 }
 
 .impact-stat-card--accent {
-  background: linear-gradient(
-    135deg,
-    rgba(201, 152, 63, 0.14) 0%,
-    rgba(201, 152, 63, 0.06) 100%
-  );
-  border-color: rgba(201, 152, 63, 0.4);
+  background: rgba(201, 152, 63, 0.10);
+  border-color: rgba(201, 152, 63, 0.42);
 }
 
 .impact-stat-label {
@@ -513,31 +499,14 @@
 /* ── Research card ──────────────────────────────────────────────────── */
 
 .impact-research-card {
-  background: linear-gradient(
-    135deg,
-    rgba(56, 95, 130, 0.06) 0%,
-    rgba(201, 152, 63, 0.08) 100%
-  );
-  border: 1px solid rgba(56, 95, 130, 0.18);
+  background: rgba(255, 253, 247, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary-2);
   border-radius: 22px;
   padding: 1.6rem 1.8rem;
   position: relative;
-  overflow: hidden;
-}
-
-.impact-research-card::before {
-  content: '';
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 160px;
-  height: 160px;
-  background: radial-gradient(
-    circle,
-    rgba(201, 152, 63, 0.18) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
 }
 
 .impact-research-card header {
