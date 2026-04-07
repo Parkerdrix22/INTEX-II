@@ -113,8 +113,8 @@ export function ImpactDashboardPage() {
   }, []);
 
   return (
-    <section className="impact-page kateri-landing-section">
-      <header className="kateri-photo-hero">
+    <section className="impact-page kateri-landing-section scroll-reveal-skip">
+      <header className="kateri-photo-hero scroll-reveal-skip">
         <div
           className="kateri-photo-hero__media"
           style={{ backgroundImage: `url(${heroImage})` }}
@@ -138,22 +138,22 @@ export function ImpactDashboardPage() {
         </div>
       </header>
 
-      <div className="stats-grid impact-stats">
-        <article className="stat-card">
+      <div className="stats-grid impact-stats scroll-reveal-skip">
+        <article className="stat-card scroll-reveal-skip">
           <p className="metric-label">Active Residents</p>
           <p className="metric-value">{animatedImpactStats.activeResidents}+</p>
         </article>
-        <article className="stat-card">
+        <article className="stat-card scroll-reveal-skip">
           <p className="metric-label">Counseling Sessions Funded</p>
           <p className="metric-value">{animatedImpactStats.counselingSessionsFunded}+</p>
         </article>
-        <article className="stat-card">
+        <article className="stat-card scroll-reveal-skip">
           <p className="metric-label">School Reintegration Rate</p>
           <p className="metric-value">{animatedImpactStats.schoolReintegrationRate.toFixed(1)}%</p>
         </article>
       </div>
 
-      <article className="feature-slab">
+      <article className="feature-slab scroll-reveal-skip">
         <div className="impact-highlight">
           <div className="impact-highlight__content">
             <h2>Health & Well-being Impact</h2>
@@ -173,9 +173,9 @@ export function ImpactDashboardPage() {
 
       <hr className="section-divider" />
 
-      <div className="impact-grid">
+      <div className="impact-grid scroll-reveal-skip">
         {impactPillars.map((pillar) => (
-          <article className="impact-card" key={pillar.title}>
+          <article className="impact-card scroll-reveal-skip" key={pillar.title}>
             <p className="impact-number">{pillar.number}</p>
             <div className="impact-icon" aria-hidden="true">
               {pillar.icon}

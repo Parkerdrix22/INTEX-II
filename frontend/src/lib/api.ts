@@ -209,7 +209,16 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
     return {} as T;
   }
 
-  return (await response.json()) as T;
+  const raw = await response.text();
+  if (!raw.trim()) {
+    return {} as T;
+  }
+
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    throw new Error('Received invalid JSON response from server.');
+  }
 }
 
 export const authApi = {

@@ -20,13 +20,13 @@ import { ResidentDashboardPage } from './pages/ResidentDashboardPage';
 import { ResidentCasePage } from './pages/ResidentCasePage';
 import { ResidentRiskPage } from './pages/ResidentRiskPage';
 import { PostPlannerPage } from './pages/PostPlannerPage';
-import { ReportsAnalyticsPage } from './pages/ReportsAnalyticsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { CookiePolicyPage } from './pages/CookiePolicyPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { StaffSidebar } from './components/StaffSidebar';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
+import { NonBlockingErrorBoundary } from './components/NonBlockingErrorBoundary';
 
 function ProfileNavIcon({ className }: { className?: string }) {
   return (
@@ -277,20 +277,13 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/reports-analytics"
-            element={
-              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
-                <ReportsAnalyticsPage />
-              </ProtectedRoute>
-            }
-          />
-
           <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
-      <CookieConsentBanner />
+      <NonBlockingErrorBoundary>
+        <CookieConsentBanner />
+      </NonBlockingErrorBoundary>
     </div>
   );
 }
