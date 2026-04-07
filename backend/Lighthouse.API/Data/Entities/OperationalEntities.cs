@@ -103,19 +103,6 @@ public class HomeVisitation
     public string? Observations { get; set; }
 }
 
-public class Partner
-{
-    public int Id { get; set; }
-    public string PartnerName { get; set; } = string.Empty;
-    public string PartnerType { get; set; } = string.Empty;
-    public string? Email { get; set; }
-    public string Status { get; set; } = string.Empty;
-}
-
-public class PublicImpactSnapshot
-{
-    public int Id { get; set; }
-    public DateTime SnapshotDate { get; set; }
-    public int ResidentsServed { get; set; }
-    public decimal DonationsReceived { get; set; }
-}
+// Partner and PublicImpactSnapshot were removed: never used by any controller,
+// and PublicImpactSnapshot's lighthouse equivalent stores data in a JSON blob
+// rather than scalar columns, so the entity was structurally incompatible.
