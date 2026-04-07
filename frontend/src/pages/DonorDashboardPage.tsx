@@ -2,7 +2,15 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { useAuth } from '../auth/useAuth';
-import { donorImpactApi, donationsApi, donorVolunteerApi, type DonorImpactReport } from '../lib/api';
+import {
+  donorImpactApi,
+  donationsApi,
+  donorVolunteerApi,
+  PROGRAM_AREAS,
+  type AllocationPlan,
+  type DonorImpactReport,
+  type ProgramArea,
+} from '../lib/api';
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
@@ -84,8 +92,10 @@ export function DonorDashboardPage() {
 
   const [amount, setAmount] = useState('100');
   const [currency, setCurrency] = useState<'USD' | 'PHP'>('USD');
+  const [programArea, setProgramArea] = useState<ProgramArea>('Education');
   const [donationSuccess, setDonationSuccess] = useState<string | null>(null);
   const [donationError, setDonationError] = useState<string | null>(null);
+  const [allocationPlan, setAllocationPlan] = useState<AllocationPlan | null>(null);
   const [donationSubmitting, setDonationSubmitting] = useState(false);
 
   const [goodsItemName, setGoodsItemName] = useState('');
@@ -153,6 +163,7 @@ export function DonorDashboardPage() {
     event.preventDefault();
     setDonationError(null);
     setDonationSuccess(null);
+    setAllocationPlan(null);
     setDonationSubmitting(true);
 
     const numericAmount = Number.parseFloat(amount);
@@ -171,7 +182,7 @@ export function DonorDashboardPage() {
     }
 
     try {
-      await donationsApi.create({
+      const response = await donationsApi.create({
         amount: numericAmount,
         donationType: 'Monetary',
         frequency: 'one-time',
@@ -179,12 +190,12 @@ export function DonorDashboardPage() {
         donationDate: new Date().toISOString(),
         campaignName: 'Donor Portal',
         donorName: accountVolunteerName,
+        programArea,
       });
 
-      const mealsSupported = Math.max(1, Math.floor(numericAmount / 10));
-      const counselingHours = Math.max(1, Math.floor(numericAmount / 35));
+      setAllocationPlan(response.allocation);
       setDonationSuccess(
-        `Thank you, ${effectiveDisplayName || 'supporter'}! Your gift was recorded successfully and can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
+        `Thank you, ${effectiveDisplayName || 'supporter'}! Your ${money.format(numericAmount)} gift has been allocated based on current safehouse needs.`,
       );
       await loadImpact();
       setAmount('100');
@@ -532,7 +543,8 @@ export function DonorDashboardPage() {
           <article className="auth-card">
             <h2>Donate (monetary)</h2>
             <p className="auth-lead">
-              Your gift is recorded as a monetary donation and routed toward direct care.
+              Your gift is recorded as a monetary donation. Choose a program area; we route funds to
+              safehouses with the greatest current need in that area.
             </p>
             <form onSubmit={onDonationSubmit}>
               <label>
@@ -556,8 +568,58 @@ export function DonorDashboardPage() {
                   <option value="PHP">PHP</option>
                 </select>
               </label>
+              <label>
+                Where should your gift go?
+                <select
+                  value={programArea}
+                  onChange={(event) => setProgramArea(event.target.value as ProgramArea)}
+                >
+                  {PROGRAM_AREAS.map((area) => (
+                    <option key={area} value={area}>
+                      {area}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p className="donate-transparency-note">
+                Your gift is automatically routed to the safehouses with the greatest current need in{' '}
+                <strong>{programArea}</strong> using a data-driven need score (
+                <Link to="/impact">how this works</Link>). 10% goes to our General Operating Fund and 5%
+                to a Rainy Day Reserve; the remaining 85% is split across the top 2 most-needy
+                safehouses.
+              </p>
               {donationError && <p className="error-text">{donationError}</p>}
               {donationSuccess && <p className="success-text">{donationSuccess}</p>}
+              {allocationPlan && allocationPlan.safehouseAllocations.length > 0 && (
+                <div className="allocation-plan-card">
+                  <h3 className="allocation-plan-card__title">
+                    Where your {money.format(allocationPlan.totalAmount)} went
+                  </h3>
+                  <ul className="allocation-plan-card__list">
+                    {allocationPlan.safehouseAllocations.map((sa) => (
+                      <li key={sa.safehouseId}>
+                        <span className="allocation-plan-card__safehouse">{sa.safehouseName}</span>
+                        <span className="allocation-plan-card__area">{sa.programArea}</span>
+                        <span className="allocation-plan-card__amount">{money.format(sa.amount)}</span>
+                      </li>
+                    ))}
+                    <li className="allocation-plan-card__reserve">
+                      <span className="allocation-plan-card__safehouse">General Operating Fund</span>
+                      <span className="allocation-plan-card__area">10% reserve</span>
+                      <span className="allocation-plan-card__amount">
+                        {money.format(allocationPlan.generalFundAmount)}
+                      </span>
+                    </li>
+                    <li className="allocation-plan-card__reserve">
+                      <span className="allocation-plan-card__safehouse">Rainy Day Reserve</span>
+                      <span className="allocation-plan-card__area">5% emergency fund</span>
+                      <span className="allocation-plan-card__amount">
+                        {money.format(allocationPlan.rainyDayAmount)}
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              )}
               <button type="submit" disabled={donationSubmitting}>
                 {donationSubmitting ? 'Submitting…' : 'Submit donation'}
               </button>

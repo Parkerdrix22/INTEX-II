@@ -1153,6 +1153,99 @@ a.auth-nav-pill--solo-login:focus-visible {
   margin-bottom: 0.65rem;
 }
 
+/* ── Pipeline 8: Need-Based Donation Routing — donate form ──────────── */
+
+.donate-transparency-note {
+  margin: 0.75rem 0 0.85rem;
+  padding: 0.7rem 0.95rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  background: rgba(56, 95, 130, 0.06);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+}
+
+.donate-transparency-note strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.donate-transparency-note a {
+  color: var(--accent);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.allocation-plan-card {
+  margin: 1rem 0;
+  padding: 1rem 1.15rem 1.1rem;
+  background: rgba(255, 253, 247, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 28px -22px rgba(31, 47, 63, 0.35);
+}
+
+.allocation-plan-card__title {
+  margin: 0 0 0.7rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.allocation-plan-card__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.allocation-plan-card__list li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.4rem 0.85rem;
+  align-items: baseline;
+  padding: 0.42rem 0.6rem;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 8px;
+  font-size: 0.84rem;
+}
+
+.allocation-plan-card__list li.allocation-plan-card__reserve {
+  background: rgba(56, 95, 130, 0.05);
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.allocation-plan-card__safehouse {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.allocation-plan-card__area {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.allocation-plan-card__amount {
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.allocation-plan-card__reserve .allocation-plan-card__safehouse {
+  font-style: normal;
+}
+
+.allocation-plan-card__reserve .allocation-plan-card__amount {
+  color: var(--text-muted);
+}
+
 .donor-history-table-wrap {
   overflow-x: auto;
   margin: 0 -0.15rem;
@@ -2522,8 +2615,6 @@ input[type='reset']:disabled {
 /* Floating website chat widget */
 .chat-widget {
   position: fixed;
-  right: 1.1rem;
-  bottom: 1.1rem;
   z-index: 40;
 }
 
@@ -2545,8 +2636,10 @@ input[type='reset']:disabled {
 }
 
 .chat-widget__panel {
-  width: min(380px, calc(100vw - 2.2rem));
-  height: min(520px, calc(100vh - (var(--site-header-height) + 2.2rem)));
+  width: 380px;
+  height: 520px;
+  min-width: 260px;
+  min-height: 300px;
   display: grid;
   grid-template-rows: auto 1fr auto auto;
   border: 1px solid rgba(170, 190, 208, 0.62);
@@ -2556,6 +2649,7 @@ input[type='reset']:disabled {
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 16px 40px rgba(12, 22, 34, 0.26);
   overflow: hidden;
+  resize: both;
 }
 
 .chat-widget__header {
@@ -2564,6 +2658,8 @@ input[type='reset']:disabled {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.85rem 0.9rem 0.75rem;
+  cursor: move;
+  user-select: none;
   border-bottom: 1px solid rgba(170, 190, 208, 0.55);
   background: rgba(56, 95, 130, 0.08);
 }
@@ -2588,6 +2684,7 @@ input[type='reset']:disabled {
   color: var(--text);
   font-size: 1.4rem;
   line-height: 1;
+  cursor: pointer;
   cursor: pointer;
 }
 
@@ -2672,6 +2769,16 @@ input[type='reset']:disabled {
   padding: 0 0.85rem 0.85rem;
   color: var(--error);
   font-size: 0.9rem;
+}
+
+.chat-widget__link {
+  color: var(--accent);
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.chat-widget__link:hover {
+  color: var(--primary-2);
 }
 
 .cookie-banner {
