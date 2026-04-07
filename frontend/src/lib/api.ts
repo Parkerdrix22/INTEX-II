@@ -435,6 +435,8 @@ export const chatApi = {
       method: 'POST',
       body: JSON.stringify({ message }),
     }),
+};
+
 export const publicApi = {
   homeStats: () => apiFetch<HomeStats>('/api/public/home-stats', { method: 'GET' }),
   impactStats: () => apiFetch<ImpactStats>('/api/public/impact-stats', { method: 'GET' }),
