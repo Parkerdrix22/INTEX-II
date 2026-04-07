@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { useAuth } from '../auth/useAuth';
@@ -11,12 +11,6 @@ export function ProfilePage() {
   const [phone, setPhone] = useState(profile.phone);
   const [notes, setNotes] = useState(profile.notes);
   const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    setDisplayName(profile.displayName);
-    setPhone(profile.phone);
-    setNotes(profile.notes);
-  }, [profile.displayName, profile.phone, profile.notes]);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
