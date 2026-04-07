@@ -46,6 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUsername(result.username ?? null);
         setEmail(result.email);
         setRoles(result.roles ?? []);
+      } catch {
+        setIsAuthenticated(false);
+        setUsername(null);
+        setEmail(null);
+        setRoles([]);
       } finally {
         setIsLoading(false);
       }
