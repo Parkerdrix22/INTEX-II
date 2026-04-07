@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Component, type ReactNode } from 'react';
 
 type Props = {
   children: ReactNode;
@@ -15,7 +15,7 @@ export class NonBlockingErrorBoundary extends Component<Props, State> {
     return { hasError: true };
   }
 
-  componentDidCatch(_error: Error, _errorInfo: ErrorInfo) {
+  componentDidCatch() {
     // Intentionally swallow child errors so core pages keep rendering.
   }
 

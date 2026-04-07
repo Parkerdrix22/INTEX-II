@@ -62,17 +62,7 @@ function App() {
   const [staffSidebarOpen, setStaffSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!showStaffSidebar) {
-      setStaffSidebarOpen(false);
-    }
-  }, [showStaffSidebar]);
-
-  useEffect(() => {
-    setStaffSidebarOpen(false);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    if (!staffSidebarOpen) return;
+    if (!staffSidebarOpen || !showStaffSidebar) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setStaffSidebarOpen(false);
@@ -80,7 +70,7 @@ function App() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [staffSidebarOpen]);
+  }, [showStaffSidebar, staffSidebarOpen]);
 
   return (
     <div className="app-shell">
