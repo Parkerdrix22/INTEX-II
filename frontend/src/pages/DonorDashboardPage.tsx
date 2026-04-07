@@ -82,7 +82,6 @@ export function DonorDashboardPage() {
   const [amount, setAmount] = useState('100');
   const [donationType, setDonationType] = useState<'Monetary' | 'InKind' | 'Time' | 'Skills'>('Monetary');
   const [currency, setCurrency] = useState<'USD' | 'PHP'>('USD');
-  const [donorName, setDonorName] = useState('');
   const [donationSuccess, setDonationSuccess] = useState<string | null>(null);
   const [donationError, setDonationError] = useState<string | null>(null);
   const [donationSubmitting, setDonationSubmitting] = useState(false);
@@ -177,7 +176,7 @@ export function DonorDashboardPage() {
         frequency: 'one-time',
         currency,
         donationDate: new Date().toISOString(),
-        donorName: donorName.trim(),
+        donorName: (effectiveDisplayName ?? '').trim(),
       });
 
       const mealsSupported = Math.max(1, Math.floor(numericAmount / 10));
@@ -194,9 +193,8 @@ export function DonorDashboardPage() {
         return next;
       });
       setDonationSuccess(
-        `Thank you, ${donorName || 'supporter'}! Your gift was recorded successfully and can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
+        `Thank you, ${effectiveDisplayName || 'supporter'}! Your ${cadenceLabel} gift was recorded successfully and can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
       );
-      setDonorName('');
       setAmount('100');
       setDonationType('Monetary');
       setCurrency('USD');
@@ -304,13 +302,19 @@ export function DonorDashboardPage() {
 
         {impactError && (
           <p className="auth-lead donor-history-empty">
-            {impactError === 'Your account isn\u2019t linked to a donor profile yet. Contact staff to connect them.'
+            {impactError?.includes('linked to a donor profile')
               ? impactError
               : 'We couldn\u2019t load your giving history right now. Try refreshing the page.'}
           </p>
         )}
 
-        {!impactLoading && !impactError && impact && (
+        {!impactLoading && !impactError && impact && impact.donationCount === 0 && (
+          <p className="auth-lead donor-history-empty">
+            You haven&apos;t made any donations yet. Use the form below to make your first gift!
+          </p>
+        )}
+
+        {!impactLoading && !impactError && impact && impact.donationCount > 0 && (
           <>
             <p className="auth-lead">
               Welcome back{impact.displayName ? `, ${impact.displayName}` : ''}. Here&apos;s the
@@ -489,15 +493,6 @@ export function DonorDashboardPage() {
           <h2>Donate</h2>
           <p className="auth-lead">Choose an amount and frequency. We will route it to direct care.</p>
           <form onSubmit={onDonationSubmit}>
-            <label>
-              Name
-              <input
-                required
-                type="text"
-                value={donorName}
-                onChange={(event) => setDonorName(event.target.value)}
-              />
-            </label>
             <label>
               Amount
               <input
