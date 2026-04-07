@@ -176,7 +176,7 @@ export function DonorDashboardPage() {
         frequency: 'one-time',
         currency,
         donationDate: new Date().toISOString(),
-        campaignName: campaignName.trim() || 'Donor Portal',
+        campaignName: 'Donor Portal',
         donorName: (effectiveDisplayName ?? '').trim(),
       });
 
@@ -194,7 +194,7 @@ export function DonorDashboardPage() {
         return next;
       });
       setDonationSuccess(
-        `Thank you, ${effectiveDisplayName || 'supporter'}! Your ${cadenceLabel} gift was recorded successfully and can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
+        `Thank you, ${effectiveDisplayName || 'supporter'}! Your gift was recorded successfully and can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
       );
       setAmount('100');
       setDonationType('Monetary');
