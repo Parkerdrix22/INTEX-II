@@ -385,7 +385,7 @@ export function DonorsContributionsPage() {
             <h2>Activity log</h2>
             <ul className="donor-activity-list">
               {activityLog.map((row) => (
-                <li key={`${row.at ?? ''}-${row.action}-${row.details}`} className="donor-activity-item">
+                <li key={row.id} className="donor-activity-item">
                   <p><strong>{row.action}</strong> - {row.details}</p>
                   <p className="metric-label">{formatDate(row.at)}</p>
                 </li>

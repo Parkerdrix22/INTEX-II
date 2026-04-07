@@ -172,6 +172,7 @@ export type DonorsContributionsDashboard = {
     teachingPct: number;
   }>;
   activity: Array<{
+    id: number;
     at: string | null;
     action: string;
     details: string;
@@ -700,6 +701,24 @@ export const donationsApi = {
     donorName?: string;
   }) =>
     apiFetch<{ message: string; donationId: number }>('/api/donations', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  createInKind: (payload: {
+    itemName: string;
+    itemCategory: string;
+    quantity: number;
+    unitOfMeasure: string;
+    estimatedTotalValue: number;
+    intendedUse: string;
+    receivedCondition: string;
+    currency: string;
+    donationDate?: string;
+    campaignName?: string;
+    donorName?: string;
+  }) =>
+    apiFetch<{ message: string; donationId: number }>('/api/donations/in-kind', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),

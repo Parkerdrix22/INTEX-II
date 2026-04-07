@@ -271,7 +271,7 @@ export function AdminDashboardPage() {
                 </thead>
                 <tbody>
                   {recentActivity.map((item) => (
-                    <tr key={`${item.at ?? 'none'}-${item.details}`}>
+                    <tr key={item.id}>
                       <td>{item.at ? new Date(item.at).toLocaleDateString() : '—'}</td>
                       <td>{item.action}</td>
                       <td>{item.details}</td>

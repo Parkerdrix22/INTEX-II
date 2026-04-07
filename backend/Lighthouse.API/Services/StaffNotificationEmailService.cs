@@ -23,9 +23,12 @@ public class StaffNotificationEmailService(
         string donationType,
         string campaignName,
         DateTime donationDateUtc,
+        string? inKindItemDetails = null,
         CancellationToken cancellationToken = default)
     {
-        var subject = $"[Kateri] New donation — {donorDisplayName}";
+        var subject = string.IsNullOrWhiteSpace(inKindItemDetails)
+            ? $"[Kateri] New donation — {donorDisplayName}"
+            : $"[Kateri] In-kind goods — {donorDisplayName}";
         var body = BuildDonationHtml(
             donorDisplayName,
             donorEmail,
@@ -34,7 +37,8 @@ public class StaffNotificationEmailService(
             currency,
             donationType,
             campaignName,
-            donationDateUtc);
+            donationDateUtc,
+            inKindItemDetails);
         return SendInternalAsync(subject, body, cancellationToken);
     }
 
@@ -130,11 +134,17 @@ public class StaffNotificationEmailService(
         string currency,
         string donationType,
         string campaignName,
-        DateTime donationDateUtc)
+        DateTime donationDateUtc,
+        string? inKindItemDetails)
     {
         var phoneRow = string.IsNullOrWhiteSpace(donorPhone)
             ? ""
             : Row("Phone", WebUtility.HtmlEncode(donorPhone));
+
+        var inKindBlock = string.IsNullOrWhiteSpace(inKindItemDetails)
+            ? ""
+            : $@"<tr><td colspan=""2"" style=""padding:12px 0 8px; border-bottom:1px solid #f1f5f9;""><strong style=""color:#0f172a;"">Goods details</strong></td></tr>
+        <tr><td colspan=""2"" style=""padding:0 0 12px; color:#334155; font-size:14px; white-space:pre-wrap; border-bottom:1px solid #f1f5f9;"">{WebUtility.HtmlEncode(inKindItemDetails)}</td></tr>";
 
         return $@"
 <!DOCTYPE html>
@@ -155,6 +165,7 @@ public class StaffNotificationEmailService(
         {Row("Type", WebUtility.HtmlEncode(donationType))}
         {Row("Campaign", WebUtility.HtmlEncode(campaignName))}
         {Row("Submitted (UTC)", WebUtility.HtmlEncode(donationDateUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"))}
+        {inKindBlock}
       </table>
       <p style=""margin:24px 0 0; font-size:13px; color:#64748b;"">This message was generated automatically from the Kateri web application.</p>
     </td></tr>

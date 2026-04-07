@@ -78,6 +78,124 @@ public class DonationsController(
         }
     }
 
+    [HttpPost("in-kind")]
+    public async Task<IActionResult> CreateInKindDonation(
+        [FromBody] CreateInKindDonationRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.Quantity < 1)
+            return BadRequest(new { message = "Quantity must be at least 1." });
+        if (request.EstimatedTotalValue <= 0)
+            return BadRequest(new { message = "Estimated value must be greater than zero." });
+
+        var itemName = request.ItemName.Trim();
+        if (string.IsNullOrWhiteSpace(itemName))
+            return BadRequest(new { message = "Item name is required." });
+
+        var campaignName = string.IsNullOrWhiteSpace(request.CampaignName)
+            ? "Donor Portal"
+            : request.CampaignName.Trim();
+        var donationDate = request.DonationDate?.ToUniversalTime() ?? DateTime.UtcNow;
+        var currency = string.IsNullOrWhiteSpace(request.Currency) ? "USD" : request.Currency.Trim().ToUpperInvariant();
+
+        var supporterId = await ResolveSupporterForLighthouseAsync(request.DonorName);
+        var unitValue = Math.Round(request.EstimatedTotalValue / request.Quantity, 4, MidpointRounding.AwayFromZero);
+
+        var itemCategory = request.ItemCategory.Trim();
+        var unitOfMeasure = request.UnitOfMeasure.Trim();
+        var intendedUse = request.IntendedUse.Trim();
+        var receivedCondition = request.ReceivedCondition.Trim();
+
+        var recordedDonationId = 0;
+        await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var newDonationId = await NextLighthouseIdAsync("lighthouse.donations", "donation_id");
+            var insertedRows = await dbContext.Database.SqlQueryRaw<InsertedDonationIdRow>(
+                """
+                INSERT INTO lighthouse.donations
+                    (donation_id, supporter_id, donation_type, donation_date, estimated_value, campaign_name)
+                VALUES ({0}, {1}, {2}, {3}, {4}, {5})
+                RETURNING donation_id AS "Id"
+                """,
+                newDonationId,
+                supporterId,
+                "In-kind",
+                donationDate,
+                request.EstimatedTotalValue,
+                campaignName)
+                .ToListAsync(cancellationToken);
+            var donationId = insertedRows.FirstOrDefault()?.Id ?? 0;
+            if (donationId == 0)
+            {
+                await tx.RollbackAsync(cancellationToken);
+                return Problem("Could not record in-kind donation.");
+            }
+
+            var newItemId = await NextLighthouseIdAsync("lighthouse.in_kind_donation_items", "item_id");
+            var itemAffected = await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                INSERT INTO lighthouse.in_kind_donation_items
+                    (item_id, donation_id, item_name, item_category, quantity, unit_of_measure, estimated_unit_value, intended_use, received_condition)
+                VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})
+                """,
+                new object[]
+                {
+                    newItemId,
+                    donationId,
+                    itemName,
+                    itemCategory,
+                    request.Quantity,
+                    unitOfMeasure,
+                    unitValue,
+                    intendedUse,
+                    receivedCondition,
+                },
+                cancellationToken);
+
+            if (itemAffected == 0)
+            {
+                await tx.RollbackAsync(cancellationToken);
+                return Problem("Could not record in-kind item.");
+            }
+
+            recordedDonationId = donationId;
+            await tx.CommitAsync(cancellationToken);
+        }
+        catch (Exception)
+        {
+            await tx.RollbackAsync(cancellationToken);
+            throw;
+        }
+
+        var donorName = string.IsNullOrWhiteSpace(request.DonorName) ? "Donor" : request.DonorName.Trim();
+        var donorEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+        string? donorPhone = null;
+        var userId = User.FindFirstValue("user_id");
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            var user = await userManager.FindByIdAsync(userId);
+            donorPhone = user?.PhoneNumber;
+        }
+
+        var details =
+            $"Item: {itemName}\nCategory: {itemCategory}\nQuantity: {request.Quantity} {unitOfMeasure}\nEst. value (total): {request.EstimatedTotalValue:N2} {currency}\nEst. unit value: {unitValue:N2} {currency}\nIntended use: {intendedUse}\nReceived condition: {receivedCondition}";
+
+        await staffNotificationEmail.SendDonationNotificationAsync(
+            donorName,
+            donorEmail,
+            donorPhone,
+            request.EstimatedTotalValue,
+            currency,
+            "In-kind (goods)",
+            campaignName,
+            donationDate,
+            details,
+            cancellationToken);
+
+        return Ok(new { message = "In-kind donation recorded successfully.", donationId = recordedDonationId });
+    }
+
     private async Task NotifyStaffDonationAsync(CreateDonationRequest request, string currency, DateTime donationDateUtc)
     {
         var donorEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
@@ -237,6 +355,46 @@ public sealed class CreateDonationRequest
     public DateTime? DonationDate { get; set; }
     [StringLength(120)]
     public string? CampaignName { get; set; }
+    [StringLength(120)]
+    public string? DonorName { get; set; }
+}
+
+public sealed class CreateInKindDonationRequest
+{
+    [Required]
+    [StringLength(200)]
+    public string ItemName { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(80)]
+    public string ItemCategory { get; set; } = string.Empty;
+
+    [Range(1, long.MaxValue)]
+    public long Quantity { get; set; }
+
+    [Required]
+    [StringLength(40)]
+    public string UnitOfMeasure { get; set; } = string.Empty;
+
+    [Range(typeof(decimal), "0.01", "1000000000")]
+    public decimal EstimatedTotalValue { get; set; }
+
+    [Required]
+    [StringLength(80)]
+    public string IntendedUse { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(40)]
+    public string ReceivedCondition { get; set; } = string.Empty;
+
+    [StringLength(8)]
+    public string Currency { get; set; } = "USD";
+
+    public DateTime? DonationDate { get; set; }
+
+    [StringLength(120)]
+    public string? CampaignName { get; set; }
+
     [StringLength(120)]
     public string? DonorName { get; set; }
 }

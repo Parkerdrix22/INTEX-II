@@ -106,62 +106,40 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
             return BadRequest(new { message = "Donation amount must be greater than zero." });
         }
 
-        try
-        {
-            var affected = await dbContext.Database.ExecuteSqlRawAsync(
-                """
-                UPDATE lighthouse.donations
-                SET
-                    donation_type = {1},
-                    donation_date = {2},
-                    estimated_value = {3},
-                    campaign_name = {4}
-                WHERE donation_id = {0}
-                """,
-                donationId,
-                request.DonationType.Trim(),
-                request.DonationDate,
-                request.EstimatedValue,
-                CleanString(request.CampaignName));
+        var donationDate = DateOnly.FromDateTime(request.DonationDate.Date);
 
-            if (affected == 0) return NotFound(new { message = "Donation not found." });
-            return Ok(new { message = "Donation updated successfully." });
-        }
-        catch
-        {
-            var donation = await dbContext.Donations.FirstOrDefaultAsync(item => item.Id == donationId);
-            if (donation is null) return NotFound(new { message = "Donation not found." });
-            donation.Amount = request.EstimatedValue;
-            donation.DonatedAt = request.DonationDate;
-            donation.CampaignName = CleanString(request.CampaignName);
-            await dbContext.SaveChangesAsync();
-            return Ok(new { message = "Donation updated successfully." });
-        }
+        var affected = await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            UPDATE lighthouse.donations
+            SET
+                donation_type = {1},
+                donation_date = {2},
+                estimated_value = {3},
+                campaign_name = {4}
+            WHERE donation_id = {0}
+            """,
+            donationId,
+            request.DonationType.Trim(),
+            donationDate,
+            request.EstimatedValue,
+            CleanString(request.CampaignName));
+
+        if (affected == 0) return NotFound(new { message = "Donation not found." });
+        return Ok(new { message = "Donation updated successfully." });
     }
 
     [HttpDelete("donations/{donationId:int}")]
     public async Task<IActionResult> DeleteDonation(int donationId)
     {
-        try
-        {
-            var affected = await dbContext.Database.ExecuteSqlRawAsync(
-                """
-                DELETE FROM lighthouse.donations
-                WHERE donation_id = {0}
-                """,
-                donationId);
+        var affected = await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            DELETE FROM lighthouse.donations
+            WHERE donation_id = {0}
+            """,
+            donationId);
 
-            if (affected == 0) return NotFound(new { message = "Donation not found." });
-            return Ok(new { message = "Donation deleted successfully." });
-        }
-        catch
-        {
-            var donation = await dbContext.Donations.FirstOrDefaultAsync(item => item.Id == donationId);
-            if (donation is null) return NotFound(new { message = "Donation not found." });
-            dbContext.Donations.Remove(donation);
-            await dbContext.SaveChangesAsync();
-            return Ok(new { message = "Donation deleted successfully." });
-        }
+        if (affected == 0) return NotFound(new { message = "Donation not found." });
+        return Ok(new { message = "Donation deleted successfully." });
     }
 
     [HttpPost("supporters")]
@@ -425,6 +403,7 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
             .Take(12)
             .Select(row => new
             {
+                row.Id,
                 At = row.DonationDate,
                 Action = "Contribution recorded",
                 Details = $"{row.SupporterName} - {row.DonationType} ({row.EstimatedValue ?? 0m:N2})",
