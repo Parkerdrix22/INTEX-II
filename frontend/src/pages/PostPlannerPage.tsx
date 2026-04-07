@@ -1,4 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Scatter,
+  ScatterChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+  ZAxis,
+} from 'recharts';
 import './PostPlannerPage.css';
 
 type PlannerOptions = {
@@ -21,6 +34,47 @@ type PredictionResult = {
   engagementRate: number;
   rating: string;
   percentile: number;
+};
+
+type AttributionGroup = {
+  category: string;
+  postCount: number;
+  donationCount: number;
+  revenue: number;
+  avgDonation: number;
+  avgEngagementRate: number;
+  revenuePerPost: number;
+};
+
+type TopPost = {
+  postId: number;
+  postType: string;
+  contentTopic: string;
+  platform: string;
+  sentimentTone: string;
+  engagementRate: number;
+  donationCount: number;
+  revenue: number;
+  createdAt: string | null;
+};
+
+type ScatterPoint = {
+  postId: number;
+  postType: string;
+  engagementRate: number;
+  revenue: number;
+};
+
+type AttributionData = {
+  totalDonations: number;
+  attributedDonations: number;
+  attributedRevenue: number;
+  attributionCoveragePct: number;
+  byPostType: AttributionGroup[];
+  byContentTopic: AttributionGroup[];
+  byPlatform: AttributionGroup[];
+  topPosts: TopPost[];
+  engagementVsRevenue: ScatterPoint[];
 };
 
 type FormState = {
@@ -78,6 +132,8 @@ export function PostPlannerPage() {
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [animateResult, setAnimateResult] = useState(false);
+  const [attribution, setAttribution] = useState<AttributionData | null>(null);
+  const [attrTab, setAttrTab] = useState<'postType' | 'contentTopic' | 'platform'>('postType');
 
   const [form, setForm] = useState<FormState>({
     platform: 'Instagram',
@@ -106,6 +162,10 @@ export function PostPlannerPage() {
       .then(r => r.json())
       .then(setModelInfo)
       .catch(console.error);
+    fetch('/api/social-media-planner/attribution', { credentials: 'include' })
+      .then(r => r.json())
+      .then(setAttribution)
+      .catch(console.error);
   }, []);
 
   const predict = async () => {
@@ -131,6 +191,22 @@ export function PostPlannerPage() {
   const updateField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
+
+  const activeRollup = useMemo(() => {
+    if (!attribution) return [];
+    if (attrTab === 'postType') return attribution.byPostType;
+    if (attrTab === 'contentTopic') return attribution.byContentTopic;
+    return attribution.byPlatform;
+  }, [attribution, attrTab]);
+
+  const moneyShort = useMemo(
+    () => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
+    [],
+  );
+  const moneyDetailed = useMemo(
+    () => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }),
+    [],
+  );
 
   if (!options) {
     return (
@@ -429,6 +505,248 @@ export function PostPlannerPage() {
           </div>
         </div>
       </div>
+
+      {/* ============================================================== */}
+      {/* Donation Attribution — closes the loop on Pipeline 3            */}
+      {/* ============================================================== */}
+      {attribution && (
+        <section className="attribution-section">
+          <header className="attribution-header">
+            <span className="attribution-overline">Pipeline 3 Validation</span>
+            <h2 className="attribution-title">Do likes turn into dollars?</h2>
+            <p className="attribution-subtitle">
+              {attribution.attributedDonations} of {attribution.totalDonations} donations
+              ({attribution.attributionCoveragePct}%) trace back to a specific social media
+              post via <code>donations.referral_post_id</code>. That gives us a direct view of
+              which content is actually driving revenue — not just engagement.
+            </p>
+          </header>
+
+          {/* Headline KPIs */}
+          <div className="attribution-kpis">
+            <div className="attribution-kpi">
+              <span className="attribution-kpi-label">Attributed Revenue</span>
+              <span className="attribution-kpi-value">{moneyDetailed.format(attribution.attributedRevenue)}</span>
+              <span className="attribution-kpi-meta">across {attribution.attributedDonations} donations</span>
+            </div>
+            <div className="attribution-kpi">
+              <span className="attribution-kpi-label">Attribution Coverage</span>
+              <span className="attribution-kpi-value">{attribution.attributionCoveragePct}%</span>
+              <span className="attribution-kpi-meta">of all donations linked to a post</span>
+            </div>
+            <div className="attribution-kpi">
+              <span className="attribution-kpi-label">Top Earning Type</span>
+              <span className="attribution-kpi-value">
+                {attribution.byPostType[0] ? humanize(attribution.byPostType[0].category) : '—'}
+              </span>
+              <span className="attribution-kpi-meta">
+                {attribution.byPostType[0]
+                  ? `${moneyShort.format(attribution.byPostType[0].revenue)} total revenue`
+                  : ''}
+              </span>
+            </div>
+            <div className="attribution-kpi">
+              <span className="attribution-kpi-label">Best ROI Per Post</span>
+              <span className="attribution-kpi-value">
+                {attribution.byPostType.length > 0
+                  ? humanize([...attribution.byPostType].sort((a, b) => b.revenuePerPost - a.revenuePerPost)[0].category)
+                  : '—'}
+              </span>
+              <span className="attribution-kpi-meta">
+                {attribution.byPostType.length > 0
+                  ? `${moneyShort.format([...attribution.byPostType].sort((a, b) => b.revenuePerPost - a.revenuePerPost)[0].revenuePerPost)} avg per post`
+                  : ''}
+              </span>
+            </div>
+          </div>
+
+          {/* Tabs + bar chart */}
+          <article className="attribution-card">
+            <header className="attribution-card-head">
+              <div>
+                <h3>Revenue breakdown</h3>
+                <p>How much each category actually brought in</p>
+              </div>
+              <div className="attribution-tabs" role="tablist">
+                <button
+                  type="button"
+                  className={`attribution-tab${attrTab === 'postType' ? ' is-active' : ''}`}
+                  onClick={() => setAttrTab('postType')}
+                  role="tab"
+                  aria-selected={attrTab === 'postType'}
+                >
+                  Post Type
+                </button>
+                <button
+                  type="button"
+                  className={`attribution-tab${attrTab === 'contentTopic' ? ' is-active' : ''}`}
+                  onClick={() => setAttrTab('contentTopic')}
+                  role="tab"
+                  aria-selected={attrTab === 'contentTopic'}
+                >
+                  Content Topic
+                </button>
+                <button
+                  type="button"
+                  className={`attribution-tab${attrTab === 'platform' ? ' is-active' : ''}`}
+                  onClick={() => setAttrTab('platform')}
+                  role="tab"
+                  aria-selected={attrTab === 'platform'}
+                >
+                  Platform
+                </button>
+              </div>
+            </header>
+            <div className="attribution-chart-wrap">
+              <ResponsiveContainer width="100%" height={Math.max(260, activeRollup.length * 38)}>
+                <BarChart data={activeRollup} layout="vertical" margin={{ left: 16, right: 36 }}>
+                  <CartesianGrid stroke="rgba(170,190,208,0.25)" horizontal={false} />
+                  <XAxis
+                    type="number"
+                    stroke="rgba(31,47,63,0.55)"
+                    fontSize={11}
+                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="category"
+                    stroke="rgba(31,47,63,0.75)"
+                    fontSize={12}
+                    width={140}
+                    tickFormatter={(v: string) => humanize(v)}
+                  />
+                  <Tooltip
+                    formatter={((value: unknown, _name: unknown, item: { payload?: AttributionGroup }) => {
+                      const row = item?.payload;
+                      const num = typeof value === 'number' ? value : Number(value ?? 0);
+                      return [
+                        `${moneyDetailed.format(num)} from ${row?.donationCount ?? 0} donations`,
+                        row ? humanize(row.category) : '',
+                      ];
+                    }) as never}
+                    contentStyle={{
+                      background: 'rgba(255,253,247,0.96)',
+                      border: '1px solid rgba(170,190,208,0.4)',
+                      borderRadius: 12,
+                      fontSize: 12,
+                    }}
+                  />
+                  <Bar dataKey="revenue" radius={[0, 6, 6, 0]}>
+                    {activeRollup.map((_, i) => (
+                      <Cell
+                        key={i}
+                        fill={i === 0 ? '#385f82' : i === 1 ? '#5f8a9f' : '#8aa3b5'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="attribution-card-footnote">
+              Bars are total attributed dollars. Hover for donation count. The chart updates by category.
+            </p>
+          </article>
+
+          {/* Two-column row: scatter + top posts table */}
+          <div className="attribution-row">
+            {/* Scatter: engagement vs revenue */}
+            <article className="attribution-card">
+              <header className="attribution-card-head">
+                <div>
+                  <h3>Engagement vs revenue</h3>
+                  <p>Each dot is a post that drove at least one donation</p>
+                </div>
+              </header>
+              <div className="attribution-chart-wrap">
+                <ResponsiveContainer width="100%" height={300}>
+                  <ScatterChart margin={{ left: 8, right: 28, top: 12, bottom: 8 }}>
+                    <CartesianGrid stroke="rgba(170,190,208,0.25)" />
+                    <XAxis
+                      type="number"
+                      dataKey="engagementRate"
+                      name="Engagement"
+                      stroke="rgba(31,47,63,0.55)"
+                      fontSize={11}
+                      tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`}
+                    />
+                    <YAxis
+                      type="number"
+                      dataKey="revenue"
+                      name="Revenue"
+                      stroke="rgba(31,47,63,0.55)"
+                      fontSize={11}
+                      tickFormatter={(v: number) => `$${v.toFixed(0)}`}
+                    />
+                    <ZAxis range={[60, 120]} />
+                    <Tooltip
+                      cursor={{ strokeDasharray: '3 3' }}
+                      formatter={((value: unknown, name: unknown) => {
+                        const num = typeof value === 'number' ? value : Number(value ?? 0);
+                        if (name === 'Engagement') return [`${(num * 100).toFixed(2)}%`, 'Engagement'];
+                        if (name === 'Revenue') return [moneyDetailed.format(num), 'Revenue'];
+                        return [String(value), String(name)];
+                      }) as never}
+                      contentStyle={{
+                        background: 'rgba(255,253,247,0.96)',
+                        border: '1px solid rgba(170,190,208,0.4)',
+                        borderRadius: 12,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Scatter
+                      data={attribution.engagementVsRevenue}
+                      fill="#385f82"
+                      fillOpacity={0.65}
+                    />
+                  </ScatterChart>
+                </ResponsiveContainer>
+              </div>
+              <p className="attribution-card-footnote">
+                {attribution.engagementVsRevenue.length} posts shown. If high-engagement posts also
+                drove the highest revenue, points would cluster diagonally — they don't.
+              </p>
+            </article>
+
+            {/* Top 10 posts table */}
+            <article className="attribution-card">
+              <header className="attribution-card-head">
+                <div>
+                  <h3>Top 10 revenue-driving posts</h3>
+                  <p>The actual content that paid the bills</p>
+                </div>
+              </header>
+              <div className="attribution-table-wrap">
+                <table className="attribution-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Type</th>
+                      <th>Topic</th>
+                      <th>Platform</th>
+                      <th className="text-right">Eng</th>
+                      <th className="text-right">Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attribution.topPosts.map((p, idx) => (
+                      <tr key={p.postId}>
+                        <td>{idx + 1}</td>
+                        <td>{humanize(p.postType)}</td>
+                        <td>{humanize(p.contentTopic)}</td>
+                        <td>{p.platform}</td>
+                        <td className="text-right">{(p.engagementRate * 100).toFixed(1)}%</td>
+                        <td className="text-right attribution-revenue-cell">
+                          {moneyShort.format(p.revenue)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
