@@ -9,7 +9,8 @@ type CreateAccountFormProps = {
 };
 
 export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account' }: CreateAccountFormProps) {
-  const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<CreateAccountRole>('Resident');
@@ -25,12 +26,13 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
 
     try {
       if (role === 'Admin' || role === 'Staff') {
-        await authApi.registerStaff(username, email, password, role);
+        await authApi.registerStaff(firstName, lastName, email, password, role);
       } else {
-        await authApi.register(username, email, password, role);
+        await authApi.register(firstName, lastName, email, password, role);
       }
 
-      setUsername('');
+      setFirstName('');
+      setLastName('');
       setEmail('');
       setPassword('');
       setRole('Resident');
@@ -54,13 +56,23 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
   return (
     <form onSubmit={onSubmit}>
       <label>
-        Username
+        First name
         <input
           required
           type="text"
           autoComplete="off"
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
+          value={firstName}
+          onChange={(event) => setFirstName(event.target.value)}
+        />
+      </label>
+      <label>
+        Last name
+        <input
+          required
+          type="text"
+          autoComplete="off"
+          value={lastName}
+          onChange={(event) => setLastName(event.target.value)}
         />
       </label>
       <label>

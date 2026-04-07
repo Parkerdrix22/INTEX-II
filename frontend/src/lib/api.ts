@@ -3,6 +3,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 type MeResponse = {
   isAuthenticated: boolean;
   username?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
   email: string | null;
   roles: string[];
   residentId?: string | null;
@@ -227,15 +229,15 @@ export const authApi = {
       method: 'POST',
       body: JSON.stringify({ login, password, rememberMe }),
     }),
-  register: (username: string, email: string, password: string, role: 'Resident' | 'Donor') =>
+  register: (firstName: string, lastName: string, email: string, password: string, role: 'Resident' | 'Donor') =>
     apiFetch<{ message: string }>('/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username, email, password, role }),
+      body: JSON.stringify({ firstName, lastName, email, password, role }),
     }),
-  registerStaff: (username: string, email: string, password: string, role: 'Admin' | 'Staff') =>
+  registerStaff: (firstName: string, lastName: string, email: string, password: string, role: 'Admin' | 'Staff') =>
     apiFetch<{ message: string }>('/api/auth/register-staff', {
       method: 'POST',
-      body: JSON.stringify({ username, email, password, role }),
+      body: JSON.stringify({ firstName, lastName, email, password, role }),
     }),
   logout: () =>
     apiFetch<{ message: string }>('/api/auth/logout', {
@@ -244,8 +246,8 @@ export const authApi = {
   me: () => apiFetch<MeResponse>('/api/auth/me', { method: 'GET' }),
   providers: () =>
     apiFetch<Array<{ name: string; displayName: string }>>('/api/auth/providers', { method: 'GET' }),
-  externalLoginUrl: (provider: string, returnPath = '/') =>
-    `${API_BASE_URL}/api/auth/external-login?provider=${encodeURIComponent(provider)}&returnPath=${encodeURIComponent(returnPath)}`,
+  externalLoginUrl: (provider: string, returnPath = '/', flow: 'login' | 'signup' = 'login') =>
+    `${API_BASE_URL}/api/auth/external-login?provider=${encodeURIComponent(provider)}&returnPath=${encodeURIComponent(returnPath)}&flow=${encodeURIComponent(flow)}`,
 };
 
 export const caseloadApi = {

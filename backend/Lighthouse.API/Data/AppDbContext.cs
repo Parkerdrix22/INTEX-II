@@ -36,6 +36,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
         modelBuilder.Entity<AppUser>().Property(user => user.Id).HasColumnName("user_id");
         modelBuilder.Entity<AppUser>().Property(user => user.Email).HasColumnName("email");
+        modelBuilder.Entity<AppUser>().Property(user => user.FirstName).HasColumnName("first_name");
+        modelBuilder.Entity<AppUser>().Property(user => user.LastName).HasColumnName("last_name");
         modelBuilder.Entity<AppUser>().Property(user => user.PasswordHash).HasColumnName("password_hash");
         modelBuilder.Entity<AppUser>().Property(user => user.UserName).HasColumnName("full_name");
         modelBuilder.Entity<AppUser>().Property(user => user.NormalizedUserName).HasColumnName("normalized_user_name");
