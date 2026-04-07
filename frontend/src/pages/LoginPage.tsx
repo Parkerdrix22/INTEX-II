@@ -1,24 +1,16 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import backgroundImage from '../background.jpg?format=webp&quality=82&w=1920';
 
 export function LoginPage() {
-  const { login, isAuthenticated, roles } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [loginInput, setLoginInput] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  const from = (location.state as { from?: string } | undefined)?.from;
-  const authenticatedFallback = roles.includes('Resident')
-    ? '/resident-dashboard'
-    : roles.includes('Donor')
-      ? '/donor-dashboard'
-      : '/admin-dashboard';
 
   useEffect(() => {
     document.body.classList.add('home-background');
@@ -31,7 +23,7 @@ export function LoginPage() {
   }, []);
 
   if (isAuthenticated) {
-    return <Navigate to={from ?? authenticatedFallback} replace />;
+    return <Navigate to="/" replace />;
   }
 
   const onSubmit = async (event: FormEvent) => {
@@ -40,13 +32,8 @@ export function LoginPage() {
     setSubmitting(true);
 
     try {
-      const userRoles = await login(loginInput, password, rememberMe);
-      const defaultRoute = userRoles.includes('Resident')
-        ? '/resident-dashboard'
-        : userRoles.includes('Donor')
-          ? '/donor-dashboard'
-          : '/admin-dashboard';
-      navigate(from ?? defaultRoute, { replace: true });
+      await login(loginInput, password, rememberMe);
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed.');
     } finally {
@@ -58,7 +45,10 @@ export function LoginPage() {
     <section className="auth-page">
       <article className="auth-card">
         <h1>Sign in</h1>
-        <p className="auth-lead">Welcome back to Kateri. New accounts are created by an administrator.</p>
+        <p className="auth-lead">
+          Welcome back to Kateri. Donor and Resident users can sign up directly. Staff and Admin accounts are
+          created by an administrator.
+        </p>
         <form onSubmit={onSubmit}>
           <label>
             Username or Email

@@ -196,3 +196,19 @@ export const donorsContributionsApi = {
   dashboard: () =>
     apiFetch<DonorsContributionsDashboard>('/api/donors-contributions/dashboard', { method: 'GET' }),
 };
+
+export const donationsApi = {
+  create: (payload: {
+    amount: number;
+    donationType: string;
+    frequency: 'one-time' | 'monthly';
+    currency: string;
+    donationDate?: string;
+    campaignName?: string;
+    donorName?: string;
+  }) =>
+    apiFetch<{ message: string; donationId: number }>('/api/donations', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+};

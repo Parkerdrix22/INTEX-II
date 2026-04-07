@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { useAuth } from '../auth/useAuth';
+import { donationsApi } from '../lib/api';
 
 const DONOR_GIFTS_STORAGE_KEY = 'kateri-donor-gifts-v1';
 
@@ -79,10 +80,13 @@ export function DonorDashboardPage() {
 
   const [amount, setAmount] = useState('100');
   const [frequency, setFrequency] = useState<'one-time' | 'monthly'>('monthly');
+  const [donationType, setDonationType] = useState<'Monetary' | 'InKind' | 'Time' | 'Skills'>('Monetary');
+  const [campaignName, setCampaignName] = useState('Donor Portal');
+  const [currency, setCurrency] = useState<'USD' | 'PHP'>('USD');
   const [donorName, setDonorName] = useState('');
-  const [donorEmail, setDonorEmail] = useState('');
   const [donationSuccess, setDonationSuccess] = useState<string | null>(null);
   const [donationError, setDonationError] = useState<string | null>(null);
+  const [donationSubmitting, setDonationSubmitting] = useState(false);
 
   const [volunteerName, setVolunteerName] = useState('');
   const [volunteerEmail, setVolunteerEmail] = useState('');
@@ -111,38 +115,58 @@ export function DonorDashboardPage() {
     return { totalAmount, meals, counseling, count: recordedGifts.length };
   }, [recordedGifts]);
 
-  const onDonationSubmit = (event: FormEvent) => {
+  const onDonationSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setDonationError(null);
     setDonationSuccess(null);
+    setDonationSubmitting(true);
 
     const numericAmount = Number.parseFloat(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       setDonationError('Please enter a valid donation amount.');
+      setDonationSubmitting(false);
       return;
     }
 
-    const mealsSupported = Math.max(1, Math.floor(numericAmount / 10));
-    const counselingHours = Math.max(1, Math.floor(numericAmount / 35));
-    const cadenceLabel = frequency === 'monthly' ? 'monthly' : 'one-time';
-    const newGift: DonorGiftRecord = {
-      id: crypto.randomUUID(),
-      at: new Date().toISOString(),
-      amount: numericAmount,
-      frequency,
-    };
-    setRecordedGifts((prev) => {
-      const next = [newGift, ...prev];
-      saveStoredGifts(next);
-      return next;
-    });
-    setDonationSuccess(
-      `Thank you, ${donorName || 'supporter'}! Your ${cadenceLabel} gift can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
-    );
-    setDonorName('');
-    setDonorEmail('');
-    setAmount('100');
-    setFrequency('monthly');
+    try {
+      await donationsApi.create({
+        amount: numericAmount,
+        donationType,
+        frequency,
+        currency,
+        donationDate: new Date().toISOString(),
+        campaignName: campaignName.trim() || 'Donor Portal',
+        donorName: donorName.trim(),
+      });
+
+      const mealsSupported = Math.max(1, Math.floor(numericAmount / 10));
+      const counselingHours = Math.max(1, Math.floor(numericAmount / 35));
+      const cadenceLabel = frequency === 'monthly' ? 'monthly' : 'one-time';
+      const newGift: DonorGiftRecord = {
+        id: crypto.randomUUID(),
+        at: new Date().toISOString(),
+        amount: numericAmount,
+        frequency,
+      };
+      setRecordedGifts((prev) => {
+        const next = [newGift, ...prev];
+        saveStoredGifts(next);
+        return next;
+      });
+      setDonationSuccess(
+        `Thank you, ${donorName || 'supporter'}! Your ${cadenceLabel} gift was recorded successfully and can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
+      );
+      setDonorName('');
+      setAmount('100');
+      setFrequency('monthly');
+      setDonationType('Monetary');
+      setCampaignName('Donor Portal');
+      setCurrency('USD');
+    } catch (err) {
+      setDonationError(err instanceof Error ? err.message : 'Could not save donation.');
+    } finally {
+      setDonationSubmitting(false);
+    }
   };
 
   const onVolunteerSubmit = (event: FormEvent) => {
@@ -328,16 +352,7 @@ export function DonorDashboardPage() {
               />
             </label>
             <label>
-              Email
-              <input
-                required
-                type="email"
-                value={donorEmail}
-                onChange={(event) => setDonorEmail(event.target.value)}
-              />
-            </label>
-            <label>
-              Amount (USD)
+              Amount
               <input
                 required
                 min={1}
@@ -346,6 +361,20 @@ export function DonorDashboardPage() {
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
               />
+            </label>
+            <label>
+              Donation type
+              <select
+                value={donationType}
+                onChange={(event) =>
+                  setDonationType(event.target.value as 'Monetary' | 'InKind' | 'Time' | 'Skills')
+                }
+              >
+                <option value="Monetary">Monetary</option>
+                <option value="InKind">In-kind</option>
+                <option value="Time">Time</option>
+                <option value="Skills">Skills</option>
+              </select>
             </label>
             <label>
               Frequency
@@ -357,9 +386,27 @@ export function DonorDashboardPage() {
                 <option value="monthly">Monthly</option>
               </select>
             </label>
+            <label>
+              Currency
+              <select value={currency} onChange={(event) => setCurrency(event.target.value as 'USD' | 'PHP')}>
+                <option value="USD">USD</option>
+                <option value="PHP">PHP</option>
+              </select>
+            </label>
+            <label>
+              Campaign (optional)
+              <input
+                type="text"
+                value={campaignName}
+                onChange={(event) => setCampaignName(event.target.value)}
+                placeholder="Donor Portal"
+              />
+            </label>
             {donationError && <p className="error-text">{donationError}</p>}
             {donationSuccess && <p className="success-text">{donationSuccess}</p>}
-            <button type="submit">Submit donation</button>
+            <button type="submit" disabled={donationSubmitting}>
+              {donationSubmitting ? 'Submitting…' : 'Submit donation'}
+            </button>
           </form>
         </article>
 

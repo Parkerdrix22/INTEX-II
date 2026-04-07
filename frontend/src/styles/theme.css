@@ -505,9 +505,20 @@ a.btn-kateri-ghost {
   color: var(--accent);
 }
 
+.site-header--accent-nav a.auth-nav-pill--solo-login {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+
 .site-header--accent-nav .auth-nav-pill:hover {
   border-color: #fff;
   background: #fff;
+}
+
+.site-header--accent-nav a.auth-nav-pill--solo-login:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .site-header--accent-nav .auth-nav-pill .auth-nav-pill__link:hover {
@@ -597,7 +608,13 @@ a.btn-kateri-ghost {
 
 a.auth-nav-pill--solo-login {
   text-decoration: none;
-  color: inherit;
+  color: #fff;
+}
+
+a.auth-nav-pill--solo-login:hover,
+a.auth-nav-pill--solo-login:focus-visible,
+a.auth-nav-pill--solo-login:visited {
+  color: #fff;
 }
 
 a.auth-nav-pill--solo-login:focus-visible {
@@ -709,6 +726,54 @@ a.auth-nav-pill--solo-login:focus-visible {
 
 .blank-page {
   min-height: 300px;
+}
+
+.admin-dashboard-page {
+  width: min(1240px, 100%);
+  margin: 0 auto;
+  padding: 0 0.75rem;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.admin-dashboard-page__header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.admin-dashboard-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.admin-dashboard-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.admin-chart-card {
+  min-width: 0;
+}
+
+.admin-chart-card h2,
+.admin-activity-card h2 {
+  margin: 0 0 0.7rem;
+  color: #27496a;
+}
+
+.admin-chart-card--wide {
+  grid-column: 1 / -1;
+}
+
+.admin-chart-wrap {
+  width: 100%;
+  height: 320px;
+}
+
+.admin-activity-card {
+  min-width: 0;
 }
 
 .impact-page {
@@ -1421,6 +1486,18 @@ a.auth-nav-pill--solo-login:focus-visible {
 }
 
 @media (max-width: 980px) {
+  .admin-dashboard-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-dashboard-charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-chart-card--wide {
+    grid-column: auto;
+  }
+
   .donor-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1448,6 +1525,12 @@ a.auth-nav-pill--solo-login:focus-visible {
 
   .resident-case-grid,
   .resident-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-dashboard-summary-grid {
     grid-template-columns: 1fr;
   }
 }
