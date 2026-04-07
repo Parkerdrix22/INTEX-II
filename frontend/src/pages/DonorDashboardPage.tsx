@@ -80,9 +80,7 @@ export function DonorDashboardPage() {
   const welcomeName = formatWelcomeName(effectiveDisplayName);
 
   const [amount, setAmount] = useState('100');
-  const [frequency, setFrequency] = useState<'one-time' | 'monthly'>('monthly');
   const [donationType, setDonationType] = useState<'Monetary' | 'InKind' | 'Time' | 'Skills'>('Monetary');
-  const [campaignName, setCampaignName] = useState('Donor Portal');
   const [currency, setCurrency] = useState<'USD' | 'PHP'>('USD');
   const [donorName, setDonorName] = useState('');
   const [donationSuccess, setDonationSuccess] = useState<string | null>(null);
@@ -164,25 +162,31 @@ export function DonorDashboardPage() {
       return;
     }
 
+    const confirmed = window.confirm(
+      `Confirm donation of ${money.format(numericAmount)} as ${donationType}?`,
+    );
+    if (!confirmed) {
+      setDonationSubmitting(false);
+      return;
+    }
+
     try {
       await donationsApi.create({
         amount: numericAmount,
         donationType,
-        frequency,
+        frequency: 'one-time',
         currency,
         donationDate: new Date().toISOString(),
-        campaignName: campaignName.trim() || 'Donor Portal',
         donorName: donorName.trim(),
       });
 
       const mealsSupported = Math.max(1, Math.floor(numericAmount / 10));
       const counselingHours = Math.max(1, Math.floor(numericAmount / 35));
-      const cadenceLabel = frequency === 'monthly' ? 'monthly' : 'one-time';
       const newGift: DonorGiftRecord = {
         id: crypto.randomUUID(),
         at: new Date().toISOString(),
         amount: numericAmount,
-        frequency,
+        frequency: 'one-time',
       };
       setRecordedGifts((prev) => {
         const next = [newGift, ...prev];
@@ -190,13 +194,11 @@ export function DonorDashboardPage() {
         return next;
       });
       setDonationSuccess(
-        `Thank you, ${donorName || 'supporter'}! Your ${cadenceLabel} gift was recorded successfully and can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
+        `Thank you, ${donorName || 'supporter'}! Your gift was recorded successfully and can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
       );
       setDonorName('');
       setAmount('100');
-      setFrequency('monthly');
       setDonationType('Monetary');
-      setCampaignName('Donor Portal');
       setCurrency('USD');
     } catch (err) {
       setDonationError(err instanceof Error ? err.message : 'Could not save donation.');
@@ -522,30 +524,11 @@ export function DonorDashboardPage() {
               </select>
             </label>
             <label>
-              Frequency
-              <select
-                value={frequency}
-                onChange={(event) => setFrequency(event.target.value as 'one-time' | 'monthly')}
-              >
-                <option value="one-time">One-time</option>
-                <option value="monthly">Monthly</option>
-              </select>
-            </label>
-            <label>
               Currency
               <select value={currency} onChange={(event) => setCurrency(event.target.value as 'USD' | 'PHP')}>
                 <option value="USD">USD</option>
                 <option value="PHP">PHP</option>
               </select>
-            </label>
-            <label>
-              Campaign (optional)
-              <input
-                type="text"
-                value={campaignName}
-                onChange={(event) => setCampaignName(event.target.value)}
-                placeholder="Donor Portal"
-              />
             </label>
             {donationError && <p className="error-text">{donationError}</p>}
             {donationSuccess && <p className="success-text">{donationSuccess}</p>}

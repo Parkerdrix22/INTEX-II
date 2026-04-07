@@ -42,6 +42,14 @@ function safehouseName(row: CaseloadResident): string {
   return `Safehouse #${row.safehouseId}`;
 }
 
+function shortAreaLabel(value: string): string {
+  const label = value.trim();
+  const safehouseMatch = label.match(/safehouse\s*#?\s*(\d+)/i);
+  if (safehouseMatch) return `SH ${safehouseMatch[1]}`;
+  if (label.length <= 14) return label;
+  return `${label.slice(0, 13)}...`;
+}
+
 export function AdminDashboardPage() {
   const [residents, setResidents] = useState<CaseloadResident[]>([]);
   const [donors, setDonors] = useState<DonorsContributionsDashboard | null>(null);
@@ -224,7 +232,11 @@ export function AdminDashboardPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={allocationMix}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(56,95,130,0.15)" />
-                    <XAxis dataKey="area" tick={{ fill: '#385f82', fontSize: 12 }} />
+                    <XAxis
+                      dataKey="area"
+                      tick={{ fill: '#385f82', fontSize: 12 }}
+                      tickFormatter={(value) => shortAreaLabel(String(value))}
+                    />
                     <YAxis tick={{ fill: '#385f82', fontSize: 12 }} />
                     <Tooltip formatter={(value) => `${value}%`} />
                     <Legend />

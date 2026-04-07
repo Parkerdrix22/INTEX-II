@@ -30,7 +30,9 @@ public class DonationsController(AppDbContext dbContext) : ControllerBase
         var donationDate = request.DonationDate?.ToUniversalTime() ?? DateTime.UtcNow;
         var currency = string.IsNullOrWhiteSpace(request.Currency) ? "USD" : request.Currency.Trim().ToUpperInvariant();
 
-        int? supporterId = await ResolveSupporterForLighthouseAsync(request.DonorName);
+        int? supporterId = donationType == "Monetary"
+            ? await ResolveSupporterForLighthouseAsync(request.DonorName)
+            : null;
 
         try
         {

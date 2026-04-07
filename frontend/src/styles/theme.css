@@ -1325,6 +1325,7 @@ a.auth-nav-pill--solo-login:focus-visible {
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;
+  margin-top: 0.8rem;
 }
 
 .resident-profile-actions {
@@ -1451,6 +1452,14 @@ a.auth-nav-pill--solo-login:focus-visible {
   font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.donor-click-row {
+  cursor: pointer;
+}
+
+.donor-click-row:hover {
+  background: rgba(11, 92, 151, 0.08);
 }
 
 .donor-form-grid {
