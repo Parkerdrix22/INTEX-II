@@ -3,12 +3,24 @@ using Lighthouse.API.Data.Entities;
 using Lighthouse.API.Infrastructure;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 LocalEnvLoader.Apply(builder.Configuration, builder.Environment.ContentRootPath);
+
+// Behind Azure App Service Linux's reverse proxy, the app sees incoming
+// requests as http://localhost. Without ForwardedHeaders, ASP.NET Core
+// generates http:// callback URLs for OAuth (Google rejects them as a
+// redirect_uri_mismatch). This restores the original scheme and host.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -96,6 +108,11 @@ builder.Services.AddScoped<Lighthouse.API.Services.IWebsiteChatService, Lighthou
 var app = builder.Build();
 
 await AuthSeeder.SeedAsync(app.Services);
+
+// Honor X-Forwarded-Proto / X-Forwarded-For from Azure's reverse proxy
+// MUST be registered BEFORE UseAuthentication so OAuth callback URLs are
+// generated as https://, not http://. Otherwise Google rejects them.
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {
