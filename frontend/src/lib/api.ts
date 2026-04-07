@@ -141,6 +141,15 @@ export type DonorsContributionsDashboard = {
   }>;
 };
 
+export type SupporterDonation = {
+  id: number;
+  supporterId: number | null;
+  donationType: string;
+  donationDate: string | null;
+  estimatedValue: number | null;
+  campaignName: string | null;
+};
+
 export type HomeStats = {
   safehomesSupported: number;
   activeResidentCases: number;
@@ -420,6 +429,63 @@ export const caseloadApi = {
 export const donorsContributionsApi = {
   dashboard: () =>
     apiFetch<DonorsContributionsDashboard>('/api/donors-contributions/dashboard', { method: 'GET' }),
+  createSupporter: (payload: {
+    supporterType: string;
+    displayName?: string;
+    organizationName?: string;
+    firstName?: string;
+    lastName?: string;
+    relationshipType: string;
+    region: string;
+    country: string;
+    email?: string;
+    phone?: string;
+    status: string;
+    createdAt?: string;
+    firstDonationDate?: string;
+    acquisitionChannel: string;
+  }) =>
+    apiFetch<{ message: string; supporterId: number }>('/api/donors-contributions/supporters', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  supporterDonations: (supporterId: number) =>
+    apiFetch<SupporterDonation[]>(`/api/donors-contributions/supporters/${supporterId}/donations`, {
+      method: 'GET',
+    }),
+  createSupporterDonation: (
+    supporterId: number,
+    payload: {
+      donationType: string;
+      estimatedValue: number;
+      donationDate?: string;
+      campaignName?: string;
+    },
+  ) =>
+    apiFetch<{ message: string; donationId: number }>(
+      `/api/donors-contributions/supporters/${supporterId}/donations`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    ),
+  updateDonation: (
+    donationId: number,
+    payload: {
+      donationType: string;
+      estimatedValue: number;
+      donationDate: string;
+      campaignName?: string;
+    },
+  ) =>
+    apiFetch<{ message: string }>(`/api/donors-contributions/donations/${donationId}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  deleteDonation: (donationId: number) =>
+    apiFetch<{ message: string }>(`/api/donors-contributions/donations/${donationId}`, {
+      method: 'DELETE',
+    }),
 };
 
 export const donationsApi = {

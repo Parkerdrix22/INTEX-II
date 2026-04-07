@@ -11,6 +11,7 @@ import { DonorChurnPage } from './pages/DonorChurnPage';
 import { DonorDashboardPage } from './pages/DonorDashboardPage';
 import { DonorImpactPage } from './pages/DonorImpactPage';
 import { DonorsContributionsPage } from './pages/DonorsContributionsPage';
+import { SupporterDonationsPage } from './pages/SupporterDonationsPage';
 import { HomePage } from './pages/HomePage';
 import { HomeVisitationPage } from './pages/HomeVisitationPage';
 import { ImpactDashboardPage } from './pages/ImpactDashboardPage';
@@ -252,6 +253,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
                 <DonorsContributionsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/donors-contributions/supporters/:supporterId"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <SupporterDonationsPage />
               </ProtectedRoute>
             }
           />

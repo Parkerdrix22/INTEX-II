@@ -1,4 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import {
   donorsContributionsApi,
   type DonorsContributionsDashboard,
@@ -15,9 +25,19 @@ function formatPhp(value: number): string {
   return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value);
 }
 
+function monthLabel(value: string): string {
+  const [year, month] = value.split('-').map(Number);
+  if (!year || !month) return value;
+  return new Date(year, month - 1, 1).toLocaleDateString(undefined, {
+    month: 'short',
+    year: '2-digit',
+  });
+}
+
 type DonorTab = 'supporters' | 'contributions' | 'allocations' | 'activity';
 
 export function DonorsContributionsPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<DonorTab>('supporters');
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
@@ -31,21 +51,41 @@ export function DonorsContributionsPage() {
     contributionsMtd: 0,
     totalContributions: 0,
   });
+  const [showAddSupporterModal, setShowAddSupporterModal] = useState(false);
+  const [savingSupporter, setSavingSupporter] = useState(false);
+  const [supporterError, setSupporterError] = useState<string | null>(null);
+  const [supporterForm, setSupporterForm] = useState({
+    supporterType: 'MonetaryDonor',
+    displayName: '',
+    organizationName: '',
+    firstName: '',
+    lastName: '',
+    relationshipType: 'Local',
+    region: 'Luzon',
+    country: 'Philippines',
+    email: '',
+    phone: '',
+    status: 'Active',
+    createdAt: new Date().toISOString().slice(0, 10),
+    firstDonationDate: '',
+    acquisitionChannel: 'Website',
+  });
+
+  const loadDashboard = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await donorsContributionsApi.dashboard();
+      setDashboard(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load donors and contributions.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await donorsContributionsApi.dashboard();
-        setDashboard(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load donors and contributions.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    void load();
+    void loadDashboard();
   }, []);
 
   const supporters = dashboard?.supporters ?? [];
@@ -97,6 +137,69 @@ export function DonorsContributionsPage() {
     if (!q) return true;
     return [row.displayName, row.supporterType, row.status].join(' ').toLowerCase().includes(q);
   });
+  const contributionsOverTime = useMemo(() => {
+    const buckets = new Map<string, number>();
+    contributions.forEach((row) => {
+      if (!row.donationDate) return;
+      const date = new Date(row.donationDate);
+      if (Number.isNaN(date.getTime())) return;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      buckets.set(key, (buckets.get(key) ?? 0) + (row.estimatedValue ?? 0));
+    });
+    return Array.from(buckets.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, amount]) => ({ month, label: monthLabel(month), amount: Math.round(amount) }));
+  }, [contributions]);
+
+  const resetSupporterForm = () => {
+    setSupporterForm({
+      supporterType: 'MonetaryDonor',
+      displayName: '',
+      organizationName: '',
+      firstName: '',
+      lastName: '',
+      relationshipType: 'Local',
+      region: 'Luzon',
+      country: 'Philippines',
+      email: '',
+      phone: '',
+      status: 'Active',
+      createdAt: new Date().toISOString().slice(0, 10),
+      firstDonationDate: '',
+      acquisitionChannel: 'Website',
+    });
+    setSupporterError(null);
+  };
+
+  const handleSaveSupporter = async () => {
+    setSavingSupporter(true);
+    setSupporterError(null);
+    try {
+      await donorsContributionsApi.createSupporter({
+        supporterType: supporterForm.supporterType,
+        displayName: supporterForm.displayName || undefined,
+        organizationName: supporterForm.organizationName || undefined,
+        firstName: supporterForm.firstName || undefined,
+        lastName: supporterForm.lastName || undefined,
+        relationshipType: supporterForm.relationshipType,
+        region: supporterForm.region,
+        country: supporterForm.country,
+        email: supporterForm.email || undefined,
+        phone: supporterForm.phone || undefined,
+        status: supporterForm.status,
+        createdAt: supporterForm.createdAt || undefined,
+        firstDonationDate: supporterForm.firstDonationDate || undefined,
+        acquisitionChannel: supporterForm.acquisitionChannel,
+      });
+      setShowAddSupporterModal(false);
+      resetSupporterForm();
+      await loadDashboard();
+    } catch (err) {
+      setSupporterError(err instanceof Error ? err.message : 'Failed to create supporter.');
+    } finally {
+      setSavingSupporter(false);
+    }
+  };
 
   return (
     <section className="donors-contributions-page">
@@ -178,7 +281,16 @@ export function DonorsContributionsPage() {
                   </option>
                 ))}
               </select>
-              <button type="button">+ Add supporter</button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => {
+                  resetSupporterForm();
+                  setShowAddSupporterModal(true);
+                }}
+              >
+                + Add supporter
+              </button>
             </div>
 
             <div className="donor-table-wrap">
@@ -194,7 +306,11 @@ export function DonorsContributionsPage() {
                 </thead>
                 <tbody>
                   {filteredSupporters.map((row) => (
-                    <tr key={row.id}>
+                    <tr
+                      key={row.id}
+                      className="donor-click-row"
+                      onClick={() => navigate(`/donors-contributions/supporters/${row.id}`)}
+                    >
                       <td>{row.displayName}</td>
                       <td>{row.supporterType}</td>
                       <td>{row.status}</td>
@@ -213,32 +329,28 @@ export function DonorsContributionsPage() {
 
         {!loading && !error && activeTab === 'contributions' && (
           <section className="donor-tab-panel">
-            <div className="donor-form-grid">
-              <div>
-                <h2>Record contribution</h2>
-                <form className="donor-entry-form">
-                  <label>Supporter<input type="text" placeholder="Search or enter supporter" /></label>
-                  <label>Contribution type<select><option>Monetary</option><option>In-kind</option><option>Time</option><option>Skills</option><option>Social media</option></select></label>
-                  <label>Amount / Hours / Units<input type="text" placeholder="e.g., PHP 50,000 / 12 hours / 120 kits" /></label>
-                  <label>Program area<select><option>Caring</option><option>Healing</option><option>Teaching</option></select></label>
-                  <button type="button">Save entry</button>
-                </form>
-              </div>
-              <div className="donor-table-wrap">
-                <table className="donor-table">
-                  <thead>
-                    <tr><th>Date</th><th>Supporter</th><th>Type</th><th>Amount</th><th>Channel</th><th>Program</th></tr>
-                  </thead>
-                  <tbody>
-                    {contributions.map((row) => (
-                      <tr key={row.id}>
-                        <td>{formatDate(row.donationDate)}</td><td>{row.supporterName}</td><td>{row.donationType}</td><td>{formatPhp(row.estimatedValue ?? 0)}</td><td>{row.campaignName ?? '—'}</td><td>—</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <h2>Contributions over time</h2>
+            <p className="auth-lead">Monthly contribution totals from recorded donations.</p>
+            <div style={{ width: '100%', height: 320 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={contributionsOverTime}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(56,95,130,0.15)" />
+                  <XAxis dataKey="label" tick={{ fill: '#385f82', fontSize: 12 }} />
+                  <YAxis tick={{ fill: '#385f82', fontSize: 12 }} />
+                  <Tooltip formatter={(value) => formatPhp(Number(value))} />
+                  <Line
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="#0b5c97"
+                    strokeWidth={3}
+                    dot={{ r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
+            {contributionsOverTime.length === 0 && (
+              <p className="donor-inline-message">No contribution history available yet.</p>
+            )}
           </section>
         )}
 
@@ -273,6 +385,192 @@ export function DonorsContributionsPage() {
           </section>
         )}
       </article>
+
+      {showAddSupporterModal && (
+        <div className="resident-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-supporter-title">
+          <div className="resident-modal-card">
+            <h2 id="add-supporter-title">Add supporter</h2>
+            <form className="donor-entry-form" onSubmit={(event) => event.preventDefault()}>
+              <label>
+                Supporter type
+                <select
+                  value={supporterForm.supporterType}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, supporterType: event.target.value }))
+                  }
+                >
+                  <option value="MonetaryDonor">Monetary Donor</option>
+                  <option value="InKindDonor">In-Kind Donor</option>
+                  <option value="Volunteer">Volunteer</option>
+                  <option value="SkillsContributor">Skills Contributor</option>
+                  <option value="SocialMediaAdvocate">Social Media Advocate</option>
+                </select>
+              </label>
+              <label>
+                Display name
+                <input
+                  value={supporterForm.displayName}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, displayName: event.target.value }))
+                  }
+                  placeholder="Organization or full supporter name"
+                />
+              </label>
+              <label>
+                Organization name
+                <input
+                  value={supporterForm.organizationName}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, organizationName: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                First name
+                <input
+                  value={supporterForm.firstName}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, firstName: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Last name
+                <input
+                  value={supporterForm.lastName}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, lastName: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Relationship type
+                <select
+                  value={supporterForm.relationshipType}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, relationshipType: event.target.value }))
+                  }
+                >
+                  <option value="Local">Local</option>
+                  <option value="International">International</option>
+                  <option value="PartnerOrganization">Partner Organization</option>
+                </select>
+              </label>
+              <label>
+                Region
+                <select
+                  value={supporterForm.region}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, region: event.target.value }))
+                  }
+                >
+                  <option value="Luzon">Luzon</option>
+                  <option value="Visayas">Visayas</option>
+                  <option value="Mindanao">Mindanao</option>
+                </select>
+              </label>
+              <label>
+                Country
+                <input
+                  value={supporterForm.country}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, country: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Email
+                <input
+                  type="email"
+                  value={supporterForm.email}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, email: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Phone
+                <input
+                  value={supporterForm.phone}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, phone: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Status
+                <select
+                  value={supporterForm.status}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, status: event.target.value }))
+                  }
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </label>
+              <label>
+                Created at
+                <input
+                  type="date"
+                  value={supporterForm.createdAt}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, createdAt: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                First donation date
+                <input
+                  type="date"
+                  value={supporterForm.firstDonationDate}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, firstDonationDate: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Acquisition channel
+                <select
+                  value={supporterForm.acquisitionChannel}
+                  onChange={(event) =>
+                    setSupporterForm((prev) => ({ ...prev, acquisitionChannel: event.target.value }))
+                  }
+                >
+                  <option value="Website">Website</option>
+                  <option value="SocialMedia">Social media</option>
+                  <option value="WordOfMouth">Word of mouth</option>
+                  <option value="Event">Event</option>
+                  <option value="Church">Church</option>
+                  <option value="PartnerReferral">Partner referral</option>
+                </select>
+              </label>
+            </form>
+            {supporterError && <p className="error-text">{supporterError}</p>}
+            <div className="resident-modal-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  setShowAddSupporterModal(false);
+                  setSupporterError(null);
+                }}
+                disabled={savingSupporter}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => void handleSaveSupporter()}
+                disabled={savingSupporter}
+              >
+                {savingSupporter ? 'Saving...' : 'Save supporter'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
