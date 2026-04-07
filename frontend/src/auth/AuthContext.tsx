@@ -6,6 +6,8 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   isLoading: boolean;
   username: string | null;
+  firstName: string | null;
+  lastName: string | null;
   email: string | null;
   roles: string[];
   profile: UserProfile;
@@ -22,6 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [username, setUsername] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState<string | null>(null);
+  const [lastName, setLastName] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
   const [profile, setProfile] = useState<UserProfile>({
@@ -44,6 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = await authApi.me();
         setIsAuthenticated(result.isAuthenticated);
         setUsername(result.username ?? null);
+        setFirstName(result.firstName ?? null);
+        setLastName(result.lastName ?? null);
         setEmail(result.email);
         setRoles(result.roles ?? []);
       } catch {
@@ -64,12 +70,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated,
       isLoading,
       username,
+      firstName,
+      lastName,
       email,
       roles,
       profile,
       effectiveDisplayName: (() => {
         const fromProfile = profile.displayName?.trim();
         if (fromProfile) return fromProfile;
+        const f = firstName?.trim();
+        if (f) return f;
         const u = username?.trim();
         if (!u) return null;
         return u.charAt(0).toUpperCase() + u.slice(1);
@@ -90,6 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const me = await authApi.me();
         setIsAuthenticated(me.isAuthenticated);
         setUsername(me.username ?? null);
+        setFirstName(me.firstName ?? null);
+        setLastName(me.lastName ?? null);
         setEmail(me.email);
         setRoles(me.roles ?? []);
         setProfile(loadProfile(me.email, me.username ?? null));
@@ -99,12 +111,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await authApi.logout();
         setIsAuthenticated(false);
         setUsername(null);
+        setFirstName(null);
+        setLastName(null);
         setEmail(null);
         setRoles([]);
         setProfile({ displayName: '', phone: '', notes: '' });
       },
     }),
-    [isAuthenticated, isLoading, username, email, roles, profile],
+    [isAuthenticated, isLoading, username, firstName, lastName, email, roles, profile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

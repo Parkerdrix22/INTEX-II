@@ -5,7 +5,7 @@ import { useAuth } from '../auth/useAuth';
 import { CreateAccountForm } from '../components/CreateAccountForm';
 
 export function ProfilePage() {
-  const { username, email, roles, profile, updateProfile, effectiveDisplayName } = useAuth();
+  const { username, firstName, lastName, email, roles, profile, updateProfile, effectiveDisplayName } = useAuth();
   const isAdmin = roles.includes('Admin');
   const [displayName, setDisplayName] = useState(profile.displayName);
   const [phone, setPhone] = useState(profile.phone);
@@ -62,8 +62,8 @@ export function ProfilePage() {
       <article className="auth-card profile-form-card" id="profile-form">
         <h2>Profile information</h2>
         <p className="auth-lead">
-          Changes are saved on this device and applied across the app for your account. Account email and
-          username come from your login and are not editable here yet.
+          Changes are saved on this device and applied across the app for your account. Your account name and
+          email come from your login and are not editable here yet.
         </p>
         <form onSubmit={onSubmit}>
           <label>
@@ -71,9 +71,29 @@ export function ProfilePage() {
             <input
               type="text"
               autoComplete="nickname"
-              placeholder={username ?? 'Your name'}
+              placeholder={firstName ?? username ?? 'Your name'}
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
+            />
+          </label>
+          <label>
+            First name (read-only)
+            <input
+              type="text"
+              value={firstName ?? ''}
+              readOnly
+              disabled
+              className="profile-field--readonly"
+            />
+          </label>
+          <label>
+            Last name (read-only)
+            <input
+              type="text"
+              value={lastName ?? ''}
+              readOnly
+              disabled
+              className="profile-field--readonly"
             />
           </label>
           <label>
@@ -81,7 +101,7 @@ export function ProfilePage() {
             <input type="email" value={email ?? ''} readOnly disabled className="profile-field--readonly" />
           </label>
           <label>
-            Username (read-only)
+            Account username (read-only)
             <input
               type="text"
               value={username ?? ''}

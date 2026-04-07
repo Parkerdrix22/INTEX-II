@@ -13,6 +13,8 @@ public static class UserRoles
 
 public class AppUser : IdentityUser<int>
 {
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
     public string Role { get; set; } = UserRoles.Staff;
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

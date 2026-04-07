@@ -25,6 +25,9 @@ public class AuthController(
     [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
+        var firstName = request.FirstName.Trim();
+        var lastName = request.LastName.Trim();
+        var username = BuildUsername(firstName, lastName, request.Email);
         var selectedRole = request.Role.Trim();
         if (!string.Equals(selectedRole, UserRoles.Resident, StringComparison.OrdinalIgnoreCase)
             && !string.Equals(selectedRole, UserRoles.Donor, StringComparison.OrdinalIgnoreCase))
@@ -33,16 +36,11 @@ public class AuthController(
         }
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        var normalizedUsername = request.Username.Trim().ToLowerInvariant();
+        var normalizedUsername = username.ToLowerInvariant();
 
         if (await userManager.Users.AnyAsync(user => user.Email != null && user.Email.ToLower() == normalizedEmail))
         {
             return Conflict(new { message = "An account with this email already exists." });
-        }
-
-        if (await userManager.Users.AnyAsync(user => user.UserName != null && user.UserName.ToLower() == normalizedUsername))
-        {
-            return Conflict(new { message = "This username is already taken." });
         }
 
         var role = selectedRole.Equals(UserRoles.Resident, StringComparison.OrdinalIgnoreCase)
@@ -69,7 +67,7 @@ public class AuthController(
             var supporter = new Supporter
             {
                 SupporterType = "MonetaryDonor",
-                DisplayName = request.Username.Trim(),
+                DisplayName = $"{firstName} {lastName}".Trim(),
                 Email = request.Email.Trim(),
                 Status = "Active",
                 CreatedAt = DateTime.UtcNow,
@@ -80,7 +78,9 @@ public class AuthController(
         }
 
         var user = CreateUser(
-            username: request.Username.Trim(),
+            username: username,
+            firstName: firstName,
+            lastName: lastName,
             email: request.Email.Trim(),
             role: role,
             residentId: residentId,
@@ -98,6 +98,9 @@ public class AuthController(
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RegisterStaff([FromBody] RegisterStaffRequest request)
     {
+        var firstName = request.FirstName.Trim();
+        var lastName = request.LastName.Trim();
+        var username = BuildUsername(firstName, lastName, request.Email);
         var selectedRole = request.Role.Trim();
         if (!string.Equals(selectedRole, UserRoles.Admin, StringComparison.OrdinalIgnoreCase)
             && !string.Equals(selectedRole, UserRoles.Staff, StringComparison.OrdinalIgnoreCase))
@@ -106,15 +109,10 @@ public class AuthController(
         }
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        var normalizedUsername = request.Username.Trim().ToLowerInvariant();
+        var normalizedUsername = username.ToLowerInvariant();
         if (await userManager.Users.AnyAsync(user => user.Email != null && user.Email.ToLower() == normalizedEmail))
         {
             return Conflict(new { message = "An account with this email already exists." });
-        }
-
-        if (await userManager.Users.AnyAsync(user => user.UserName != null && user.UserName.ToLower() == normalizedUsername))
-        {
-            return Conflict(new { message = "This username is already taken." });
         }
 
         var role = selectedRole.Equals(UserRoles.Admin, StringComparison.OrdinalIgnoreCase)
@@ -123,7 +121,7 @@ public class AuthController(
 
         var staffMember = new StaffMember
         {
-            FullName = request.Username.Trim(),
+            FullName = $"{firstName} {lastName}".Trim(),
             Email = request.Email.Trim(),
             Title = role == UserRoles.Admin ? "Administrator" : "Staff",
             CreatedAt = DateTime.UtcNow,
@@ -132,7 +130,9 @@ public class AuthController(
         await dbContext.SaveChangesAsync();
 
         var user = CreateUser(
-            username: request.Username.Trim(),
+            username: username,
+            firstName: firstName,
+            lastName: lastName,
             email: request.Email.Trim(),
             role: role,
             staffMemberId: staffMember.Id);
@@ -166,39 +166,7 @@ public class AuthController(
             return Unauthorized(new { message = "Invalid credentials." });
         }
 
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.Name, user.Username),
-            new(ClaimTypes.Email, user.Email ?? string.Empty),
-            new(ClaimTypes.Role, string.IsNullOrWhiteSpace(user.Role) ? UserRoles.Donor : user.Role),
-            new("user_id", user.Id.ToString()),
-        };
-        if (user.ResidentId.HasValue)
-        {
-            claims.Add(new("resident_id", user.ResidentId.Value.ToString()));
-        }
-
-        if (user.SupporterId.HasValue)
-        {
-            claims.Add(new("supporter_id", user.SupporterId.Value.ToString()));
-        }
-
-        if (user.StaffMemberId.HasValue)
-        {
-            claims.Add(new("staff_member_id", user.StaffMemberId.Value.ToString()));
-        }
-
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var principal = new ClaimsPrincipal(identity);
-
-        await HttpContext.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            principal,
-            new AuthenticationProperties
-            {
-                IsPersistent = request.RememberMe,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7),
-            });
+        await SignInWithAppCookieAsync(user, request.RememberMe);
 
         return Ok(new { message = "Login successful." });
     }
@@ -225,6 +193,8 @@ public class AuthController(
             {
                 isAuthenticated = true,
                 username = User.FindFirstValue(ClaimTypes.Name),
+                firstName = User.FindFirstValue(ClaimTypes.GivenName),
+                lastName = User.FindFirstValue(ClaimTypes.Surname),
                 email = User.FindFirstValue(ClaimTypes.Email),
                 roles = User.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray(),
                 residentId = User.FindFirstValue("resident_id"),
@@ -248,14 +218,15 @@ public class AuthController(
 
     [HttpGet("external-login")]
     [AllowAnonymous]
-    public IActionResult ExternalLogin([FromQuery] string provider, [FromQuery] string? returnPath = null)
+    public IActionResult ExternalLogin([FromQuery] string provider, [FromQuery] string? returnPath = null, [FromQuery] string? flow = null)
     {
         if (!string.Equals(provider, GoogleDefaults.AuthenticationScheme, StringComparison.OrdinalIgnoreCase) || !IsGoogleConfigured())
         {
             return BadRequest(new { message = "The requested external login provider is not available." });
         }
 
-        var callbackUrl = Url.Action(nameof(ExternalLoginCallback), new { returnPath = NormalizeReturnPath(returnPath) });
+        var normalizedFlow = NormalizeExternalFlow(flow);
+        var callbackUrl = Url.Action(nameof(ExternalLoginCallback), new { returnPath = NormalizeReturnPath(returnPath), flow = normalizedFlow });
         if (string.IsNullOrWhiteSpace(callbackUrl))
         {
             return Problem("Unable to create the external login callback URL.");
@@ -267,8 +238,9 @@ public class AuthController(
 
     [HttpGet("external-callback")]
     [AllowAnonymous]
-    public async Task<IActionResult> ExternalLoginCallback([FromQuery] string? returnPath = null, [FromQuery] string? remoteError = null)
+    public async Task<IActionResult> ExternalLoginCallback([FromQuery] string? returnPath = null, [FromQuery] string? flow = null, [FromQuery] string? remoteError = null)
     {
+        var normalizedFlow = NormalizeExternalFlow(flow);
         if (!string.IsNullOrWhiteSpace(remoteError))
         {
             return Redirect(BuildFrontendErrorUrl("External login failed."));
@@ -280,9 +252,11 @@ public class AuthController(
             return Redirect(BuildFrontendErrorUrl("External login information was unavailable."));
         }
 
-        var signInResult = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
-        if (signInResult.Succeeded)
+        var linkedUser = await userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+        if (linkedUser is not null)
         {
+            await TryBackfillNamesFromExternalInfoAsync(linkedUser, info);
+            await SignInWithAppCookieAsync(linkedUser, false);
             return Redirect(BuildFrontendSuccessUrl(returnPath));
         }
 
@@ -295,13 +269,23 @@ public class AuthController(
         var user = await userManager.FindByEmailAsync(email);
         if (user is null)
         {
-            user = CreateUser(email, email, UserRoles.Donor);
+            if (normalizedFlow == "login")
+            {
+                return Redirect(BuildFrontendErrorUrl("No account found for this Google user. Please create an account first."));
+            }
+
+            var (firstName, lastName) = ExtractNamesFromExternalInfo(info);
+            user = CreateUser(email, firstName, lastName, email, UserRoles.Donor);
             user.EmailConfirmed = true;
-            var createResult = await userManager.CreateAsync(user);
+            var createResult = await userManager.CreateAsync(user, GenerateExternalPlaceholderPassword());
             if (!createResult.Succeeded)
             {
                 return Redirect(BuildFrontendErrorUrl("Unable to create a local account for the external login."));
             }
+        }
+        else
+        {
+            await TryBackfillNamesFromExternalInfoAsync(user, info);
         }
 
         var addLoginResult = await userManager.AddLoginAsync(user, info);
@@ -310,12 +294,14 @@ public class AuthController(
             return Redirect(BuildFrontendErrorUrl("Unable to associate the external login with the local account."));
         }
 
-        await signInManager.SignInAsync(user, false, info.LoginProvider);
+        await SignInWithAppCookieAsync(user, false);
         return Redirect(BuildFrontendSuccessUrl(returnPath));
     }
 
     private AppUser CreateUser(
         string username,
+        string firstName,
+        string lastName,
         string email,
         string role,
         int? residentId = null,
@@ -325,6 +311,8 @@ public class AuthController(
         var user = new AppUser
         {
             Username = username,
+            FirstName = firstName,
+            LastName = lastName,
             Email = email,
             Role = role,
             IsActive = true,
@@ -350,6 +338,137 @@ public class AuthController(
         }
 
         return returnPath;
+    }
+
+    private static string BuildUsername(string firstName, string lastName, string email)
+    {
+        var full = $"{firstName} {lastName}".Trim();
+        if (!string.IsNullOrWhiteSpace(full))
+        {
+            return full;
+        }
+
+        return email.Trim();
+    }
+
+    private static string NormalizeExternalFlow(string? flow)
+    {
+        return string.Equals(flow, "signup", StringComparison.OrdinalIgnoreCase) ? "signup" : "login";
+    }
+
+    private static string GenerateExternalPlaceholderPassword()
+    {
+        // Legacy schema requires password_hash NOT NULL, even for external-only accounts.
+        // We generate a strong random placeholder that satisfies Identity policy.
+        return $"A#External{Guid.NewGuid():N}";
+    }
+
+    private async Task SignInWithAppCookieAsync(AppUser user, bool rememberMe)
+    {
+        var displayName = $"{user.FirstName} {user.LastName}".Trim();
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            displayName = user.Username;
+        }
+        if (string.IsNullOrWhiteSpace(displayName) || displayName.Contains('@'))
+        {
+            displayName = "Friend";
+        }
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.Name, displayName),
+            new(ClaimTypes.GivenName, user.FirstName),
+            new(ClaimTypes.Surname, user.LastName),
+            new(ClaimTypes.Email, user.Email ?? string.Empty),
+            new(ClaimTypes.Role, string.IsNullOrWhiteSpace(user.Role) ? UserRoles.Donor : user.Role),
+            new("user_id", user.Id.ToString()),
+        };
+
+        if (user.ResidentId.HasValue)
+        {
+            claims.Add(new("resident_id", user.ResidentId.Value.ToString()));
+        }
+
+        if (user.SupporterId.HasValue)
+        {
+            claims.Add(new("supporter_id", user.SupporterId.Value.ToString()));
+        }
+
+        if (user.StaffMemberId.HasValue)
+        {
+            claims.Add(new("staff_member_id", user.StaffMemberId.Value.ToString()));
+        }
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            principal,
+            new AuthenticationProperties
+            {
+                IsPersistent = rememberMe,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7),
+            });
+    }
+
+    private static (string firstName, string lastName) ExtractNamesFromExternalInfo(ExternalLoginInfo info)
+    {
+        var firstName = info.Principal.FindFirstValue(ClaimTypes.GivenName)
+            ?? info.Principal.FindFirstValue("given_name")
+            ?? string.Empty;
+        var lastName = info.Principal.FindFirstValue(ClaimTypes.Surname)
+            ?? info.Principal.FindFirstValue("family_name")
+            ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(firstName) && string.IsNullOrWhiteSpace(lastName))
+        {
+            var fullName = info.Principal.FindFirstValue(ClaimTypes.Name)
+                ?? info.Principal.FindFirstValue("name")
+                ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(fullName))
+            {
+                var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (parts.Length > 0)
+                {
+                    firstName = parts[0];
+                    lastName = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : string.Empty;
+                }
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(firstName))
+        {
+            firstName = "Google";
+        }
+        if (string.IsNullOrWhiteSpace(lastName))
+        {
+            lastName = "User";
+        }
+
+        return (firstName, lastName);
+    }
+
+    private async Task TryBackfillNamesFromExternalInfoAsync(AppUser user, ExternalLoginInfo info)
+    {
+        var (firstName, lastName) = ExtractNamesFromExternalInfo(info);
+        var changed = false;
+
+        if (string.IsNullOrWhiteSpace(user.FirstName) && !string.IsNullOrWhiteSpace(firstName))
+        {
+            user.FirstName = firstName;
+            changed = true;
+        }
+
+        if (string.IsNullOrWhiteSpace(user.LastName) && !string.IsNullOrWhiteSpace(lastName))
+        {
+            user.LastName = lastName;
+            changed = true;
+        }
+
+        if (changed)
+        {
+            await userManager.UpdateAsync(user);
+        }
     }
 
     private string BuildFrontendSuccessUrl(string? returnPath)
@@ -380,10 +499,16 @@ public class LoginRequest
 public class RegisterRequest
 {
     [Required]
-    [MinLength(2)]
+    [MinLength(1)]
     [MaxLength(80)]
-    [RegularExpression(@"^[a-zA-Z0-9_.\- ]+$", ErrorMessage = "Username contains unsupported characters.")]
-    public string Username { get; set; } = string.Empty;
+    [RegularExpression(@"^[a-zA-Z\- ]+$", ErrorMessage = "First name contains unsupported characters.")]
+    public string FirstName { get; set; } = string.Empty;
+
+    [Required]
+    [MinLength(1)]
+    [MaxLength(80)]
+    [RegularExpression(@"^[a-zA-Z\- ]+$", ErrorMessage = "Last name contains unsupported characters.")]
+    public string LastName { get; set; } = string.Empty;
 
     [Required]
     [EmailAddress]
@@ -401,10 +526,16 @@ public class RegisterRequest
 public class RegisterStaffRequest
 {
     [Required]
-    [MinLength(2)]
+    [MinLength(1)]
     [MaxLength(80)]
-    [RegularExpression(@"^[a-zA-Z0-9_.\- ]+$", ErrorMessage = "Username contains unsupported characters.")]
-    public string Username { get; set; } = string.Empty;
+    [RegularExpression(@"^[a-zA-Z\- ]+$", ErrorMessage = "First name contains unsupported characters.")]
+    public string FirstName { get; set; } = string.Empty;
+
+    [Required]
+    [MinLength(1)]
+    [MaxLength(80)]
+    [RegularExpression(@"^[a-zA-Z\- ]+$", ErrorMessage = "Last name contains unsupported characters.")]
+    public string LastName { get; set; } = string.Empty;
 
     [Required]
     [EmailAddress]
