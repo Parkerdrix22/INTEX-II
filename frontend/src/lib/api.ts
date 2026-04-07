@@ -689,6 +689,40 @@ export const donorsContributionsApi = {
     }),
 };
 
+// Pipeline 8: Need-Based Donation Routing
+export type SafehouseAllocation = {
+  safehouseId: number;
+  safehouseName: string;
+  programArea: string;
+  amount: number;
+  needScore: number;
+};
+
+export type AllocationPlan = {
+  totalAmount: number;
+  generalFundAmount: number;
+  rainyDayAmount: number;
+  programArea: string;
+  safehouseAllocations: SafehouseAllocation[];
+};
+
+export type CreateDonationResponse = {
+  message: string;
+  donationId: number;
+  allocation: AllocationPlan;
+};
+
+export const PROGRAM_AREAS = [
+  'Education',
+  'Wellbeing',
+  'Operations',
+  'Outreach',
+  'Transport',
+  'Maintenance',
+] as const;
+
+export type ProgramArea = (typeof PROGRAM_AREAS)[number];
+
 export const donationsApi = {
   create: (payload: {
     amount: number;
@@ -698,8 +732,9 @@ export const donationsApi = {
     donationDate?: string;
     campaignName?: string;
     donorName?: string;
+    programArea?: ProgramArea;
   }) =>
-    apiFetch<{ message: string; donationId: number }>('/api/donations', {
+    apiFetch<CreateDonationResponse>('/api/donations', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
