@@ -11,6 +11,7 @@ public interface IStaffNotificationEmailService
         string donationType,
         string campaignName,
         DateTime donationDateUtc,
+        string? inKindItemDetails = null,
         CancellationToken cancellationToken = default);
 
     Task SendVolunteerInterestNotificationAsync(

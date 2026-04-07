@@ -42,6 +42,39 @@ const timeOfDayOptions = [
   { id: 'Evenings', label: 'Evenings (approx. 5–9 PM)' },
 ] as const;
 
+/** Values aligned with `in_kind_donation_items.csv` (lighthouse dataset). */
+const inKindItemCategories = [
+  { value: 'SchoolMaterials', label: 'School materials' },
+  { value: 'Food', label: 'Food' },
+  { value: 'Supplies', label: 'Supplies' },
+  { value: 'Medical', label: 'Medical' },
+  { value: 'Hygiene', label: 'Hygiene' },
+  { value: 'Furniture', label: 'Furniture' },
+  { value: 'Clothing', label: 'Clothing' },
+] as const;
+
+const inKindUnits = [
+  { value: 'sets', label: 'sets' },
+  { value: 'packs', label: 'packs' },
+  { value: 'kg', label: 'kg' },
+  { value: 'boxes', label: 'boxes' },
+  { value: 'pcs', label: 'pcs' },
+] as const;
+
+const inKindIntendedUse = [
+  { value: 'Health', label: 'Health' },
+  { value: 'Shelter', label: 'Shelter' },
+  { value: 'Hygiene', label: 'Hygiene' },
+  { value: 'Education', label: 'Education' },
+  { value: 'Meals', label: 'Meals' },
+] as const;
+
+const inKindConditions = [
+  { value: 'New', label: 'New' },
+  { value: 'Good', label: 'Good' },
+  { value: 'Fair', label: 'Fair' },
+] as const;
+
 function formatWelcomeName(raw: string | null): string | null {
   if (!raw?.trim()) return null;
   const cleaned = raw.trim();
@@ -58,13 +91,23 @@ export function DonorDashboardPage() {
   }, [firstName, lastName]);
 
   const [amount, setAmount] = useState('100');
-  const [donationType, setDonationType] = useState<'Monetary' | 'InKind' | 'Time' | 'Skills'>('Monetary');
   const [currency, setCurrency] = useState<'USD' | 'PHP'>('USD');
   const [programArea, setProgramArea] = useState<ProgramArea>('Education');
   const [donationSuccess, setDonationSuccess] = useState<string | null>(null);
   const [donationError, setDonationError] = useState<string | null>(null);
   const [allocationPlan, setAllocationPlan] = useState<AllocationPlan | null>(null);
   const [donationSubmitting, setDonationSubmitting] = useState(false);
+
+  const [goodsItemName, setGoodsItemName] = useState('');
+  const [goodsCategory, setGoodsCategory] = useState<string>(inKindItemCategories[0].value);
+  const [goodsQuantity, setGoodsQuantity] = useState('1');
+  const [goodsUnit, setGoodsUnit] = useState<string>(inKindUnits[0].value);
+  const [goodsEstimatedValue, setGoodsEstimatedValue] = useState('');
+  const [goodsIntendedUse, setGoodsIntendedUse] = useState<string>(inKindIntendedUse[0].value);
+  const [goodsCondition, setGoodsCondition] = useState<string>(inKindConditions[0].value);
+  const [goodsSuccess, setGoodsSuccess] = useState<string | null>(null);
+  const [goodsError, setGoodsError] = useState<string | null>(null);
+  const [goodsSubmitting, setGoodsSubmitting] = useState(false);
 
   const [availDays, setAvailDays] = useState<string[]>([]);
   const [availTimes, setAvailTimes] = useState<string[]>([]);
@@ -131,7 +174,7 @@ export function DonorDashboardPage() {
     }
 
     const confirmed = window.confirm(
-      `Confirm donation of ${money.format(numericAmount)} as ${donationType}?`,
+      `Confirm monetary donation of ${money.format(numericAmount)} (${currency})?`,
     );
     if (!confirmed) {
       setDonationSubmitting(false);
@@ -141,7 +184,7 @@ export function DonorDashboardPage() {
     try {
       const response = await donationsApi.create({
         amount: numericAmount,
-        donationType,
+        donationType: 'Monetary',
         frequency: 'one-time',
         currency,
         donationDate: new Date().toISOString(),
@@ -156,12 +199,78 @@ export function DonorDashboardPage() {
       );
       await loadImpact();
       setAmount('100');
-      setDonationType('Monetary');
       setCurrency('USD');
     } catch (err) {
       setDonationError(err instanceof Error ? err.message : 'Could not save donation.');
     } finally {
       setDonationSubmitting(false);
+    }
+  };
+
+  const onGoodsSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setGoodsError(null);
+    setGoodsSuccess(null);
+    setGoodsSubmitting(true);
+
+    const name = goodsItemName.trim();
+    if (!name) {
+      setGoodsError('Please describe the item you would like to donate.');
+      setGoodsSubmitting(false);
+      return;
+    }
+
+    const qty = Number.parseInt(goodsQuantity, 10);
+    if (!Number.isFinite(qty) || qty < 1) {
+      setGoodsError('Please enter a valid quantity (whole number, at least 1).');
+      setGoodsSubmitting(false);
+      return;
+    }
+
+    const totalVal = Number.parseFloat(goodsEstimatedValue);
+    if (!Number.isFinite(totalVal) || totalVal <= 0) {
+      setGoodsError('Please enter an approximate total value greater than zero.');
+      setGoodsSubmitting(false);
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Submit goods pledge: ${qty} × ${name} (approx. ${money.format(totalVal)} total ${currency})? Staff will follow up on drop-off or shipping.`,
+    );
+    if (!confirmed) {
+      setGoodsSubmitting(false);
+      return;
+    }
+
+    try {
+      await donationsApi.createInKind({
+        itemName: name,
+        itemCategory: goodsCategory,
+        quantity: qty,
+        unitOfMeasure: goodsUnit,
+        estimatedTotalValue: totalVal,
+        intendedUse: goodsIntendedUse,
+        receivedCondition: goodsCondition,
+        currency,
+        donationDate: new Date().toISOString(),
+        campaignName: 'Donor Portal',
+        donorName: accountVolunteerName,
+      });
+      setGoodsSuccess(
+        `Thank you! We recorded your in-kind pledge for "${name}". Our team may contact you at your account email to coordinate delivery.`,
+      );
+      await loadImpact();
+      setGoodsItemName('');
+      setGoodsQuantity('1');
+      setGoodsEstimatedValue('');
+      setGoodsCategory(inKindItemCategories[0].value);
+      setGoodsUnit(inKindUnits[0].value);
+      setGoodsIntendedUse(inKindIntendedUse[0].value);
+      setGoodsCondition(inKindConditions[0].value);
+    } catch (err) {
+      setGoodsError(err instanceof Error ? err.message : 'Could not save goods donation.');
+    } finally {
+      setGoodsSubmitting(false);
     }
   };
 
@@ -430,91 +539,196 @@ export function DonorDashboardPage() {
       <hr className="section-divider" />
 
       <div id="donate-forms" className="donor-forms-stack">
-        <article className="auth-card">
-          <h2>Donate</h2>
-          <p className="auth-lead">Choose an amount and donation type. We will route it to direct care.</p>
-          <form onSubmit={onDonationSubmit}>
-            <label>
-              Amount
-              <input
-                required
-                min={1}
-                step="0.01"
-                type="number"
-                value={amount}
-                onChange={(event) => setAmount(event.target.value)}
-              />
-            </label>
-            <label>
-              Donation type
-              <select
-                value={donationType}
-                onChange={(event) =>
-                  setDonationType(event.target.value as 'Monetary' | 'InKind' | 'Time' | 'Skills')
-                }
-              >
-                <option value="Monetary">Monetary</option>
-                <option value="InKind">In-kind</option>
-                <option value="Time">Time</option>
-                <option value="Skills">Skills</option>
-              </select>
-            </label>
-            <label>
-              Currency
-              <select value={currency} onChange={(event) => setCurrency(event.target.value as 'USD' | 'PHP')}>
-                <option value="USD">USD</option>
-                <option value="PHP">PHP</option>
-              </select>
-            </label>
-            <label>
-              Where should your gift go?
-              <select
-                value={programArea}
-                onChange={(event) => setProgramArea(event.target.value as ProgramArea)}
-              >
-                {PROGRAM_AREAS.map((area) => (
-                  <option key={area} value={area}>{area}</option>
-                ))}
-              </select>
-            </label>
-            <p className="donate-transparency-note">
-              Your gift is automatically routed to the safehouses with the greatest current need
-              in <strong>{programArea}</strong> using a data-driven need score
-              (<Link to="/impact">how this works</Link>). 10% goes to our General Operating Fund and
-              5% to a Rainy Day Reserve; the remaining 85% is split across the top 2 most-needy
-              safehouses.
+        <div className="donor-donate-row">
+          <article className="auth-card">
+            <h2>Donate (monetary)</h2>
+            <p className="auth-lead">
+              Your gift is recorded as a monetary donation. Choose a program area; we route funds to
+              safehouses with the greatest current need in that area.
             </p>
-            {donationError && <p className="error-text">{donationError}</p>}
-            {donationSuccess && <p className="success-text">{donationSuccess}</p>}
-            {allocationPlan && allocationPlan.safehouseAllocations.length > 0 && (
-              <div className="allocation-plan-card">
-                <h3 className="allocation-plan-card__title">Where your {money.format(allocationPlan.totalAmount)} went</h3>
-                <ul className="allocation-plan-card__list">
-                  {allocationPlan.safehouseAllocations.map((sa) => (
-                    <li key={sa.safehouseId}>
-                      <span className="allocation-plan-card__safehouse">{sa.safehouseName}</span>
-                      <span className="allocation-plan-card__area">{sa.programArea}</span>
-                      <span className="allocation-plan-card__amount">{money.format(sa.amount)}</span>
-                    </li>
+            <form onSubmit={onDonationSubmit}>
+              <label>
+                Amount
+                <input
+                  required
+                  min={1}
+                  step="0.01"
+                  type="number"
+                  value={amount}
+                  onChange={(event) => setAmount(event.target.value)}
+                />
+              </label>
+              <label>
+                Currency
+                <select
+                  value={currency}
+                  onChange={(event) => setCurrency(event.target.value as 'USD' | 'PHP')}
+                >
+                  <option value="USD">USD</option>
+                  <option value="PHP">PHP</option>
+                </select>
+              </label>
+              <label>
+                Where should your gift go?
+                <select
+                  value={programArea}
+                  onChange={(event) => setProgramArea(event.target.value as ProgramArea)}
+                >
+                  {PROGRAM_AREAS.map((area) => (
+                    <option key={area} value={area}>
+                      {area}
+                    </option>
                   ))}
-                  <li className="allocation-plan-card__reserve">
-                    <span className="allocation-plan-card__safehouse">General Operating Fund</span>
-                    <span className="allocation-plan-card__area">10% reserve</span>
-                    <span className="allocation-plan-card__amount">{money.format(allocationPlan.generalFundAmount)}</span>
-                  </li>
-                  <li className="allocation-plan-card__reserve">
-                    <span className="allocation-plan-card__safehouse">Rainy Day Reserve</span>
-                    <span className="allocation-plan-card__area">5% emergency fund</span>
-                    <span className="allocation-plan-card__amount">{money.format(allocationPlan.rainyDayAmount)}</span>
-                  </li>
-                </ul>
-              </div>
-            )}
-            <button type="submit" disabled={donationSubmitting}>
-              {donationSubmitting ? 'Submitting…' : 'Submit donation'}
-            </button>
-          </form>
-        </article>
+                </select>
+              </label>
+              <p className="donate-transparency-note">
+                Your gift is automatically routed to the safehouses with the greatest current need in{' '}
+                <strong>{programArea}</strong> using a data-driven need score (
+                <Link to="/impact">how this works</Link>). 10% goes to our General Operating Fund and 5%
+                to a Rainy Day Reserve; the remaining 85% is split across the top 2 most-needy
+                safehouses.
+              </p>
+              {donationError && <p className="error-text">{donationError}</p>}
+              {donationSuccess && <p className="success-text">{donationSuccess}</p>}
+              {allocationPlan && allocationPlan.safehouseAllocations.length > 0 && (
+                <div className="allocation-plan-card">
+                  <h3 className="allocation-plan-card__title">
+                    Where your {money.format(allocationPlan.totalAmount)} went
+                  </h3>
+                  <ul className="allocation-plan-card__list">
+                    {allocationPlan.safehouseAllocations.map((sa) => (
+                      <li key={sa.safehouseId}>
+                        <span className="allocation-plan-card__safehouse">{sa.safehouseName}</span>
+                        <span className="allocation-plan-card__area">{sa.programArea}</span>
+                        <span className="allocation-plan-card__amount">{money.format(sa.amount)}</span>
+                      </li>
+                    ))}
+                    <li className="allocation-plan-card__reserve">
+                      <span className="allocation-plan-card__safehouse">General Operating Fund</span>
+                      <span className="allocation-plan-card__area">10% reserve</span>
+                      <span className="allocation-plan-card__amount">
+                        {money.format(allocationPlan.generalFundAmount)}
+                      </span>
+                    </li>
+                    <li className="allocation-plan-card__reserve">
+                      <span className="allocation-plan-card__safehouse">Rainy Day Reserve</span>
+                      <span className="allocation-plan-card__area">5% emergency fund</span>
+                      <span className="allocation-plan-card__amount">
+                        {money.format(allocationPlan.rainyDayAmount)}
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              )}
+              <button type="submit" disabled={donationSubmitting}>
+                {donationSubmitting ? 'Submitting…' : 'Submit donation'}
+              </button>
+            </form>
+          </article>
+
+          <article className="auth-card">
+            <h2>Donate goods</h2>
+            <p className="auth-lead">
+              Tell us what you would like to give. Fields match our in-kind data: category, quantity,
+              unit, total estimated value, intended use, and condition. Value currency is the same as
+              in the monetary section above ({currency}).
+            </p>
+            <form onSubmit={(e) => void onGoodsSubmit(e)}>
+              <label>
+                Item description
+                <input
+                  required
+                  maxLength={200}
+                  type="text"
+                  placeholder="e.g. School supplies, hygiene kits, rice"
+                  value={goodsItemName}
+                  onChange={(event) => setGoodsItemName(event.target.value)}
+                  autoComplete="off"
+                />
+              </label>
+              <label>
+                Item category
+                <select
+                  value={goodsCategory}
+                  onChange={(event) => setGoodsCategory(event.target.value)}
+                >
+                  {inKindItemCategories.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Quantity
+                <input
+                  required
+                  min={1}
+                  step={1}
+                  type="number"
+                  value={goodsQuantity}
+                  onChange={(event) => setGoodsQuantity(event.target.value)}
+                />
+              </label>
+              <label>
+                Unit of measure
+                <select value={goodsUnit} onChange={(event) => setGoodsUnit(event.target.value)}>
+                  {inKindUnits.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Approximate total value ({currency})
+                <input
+                  required
+                  min={0.01}
+                  step="0.01"
+                  type="number"
+                  value={goodsEstimatedValue}
+                  onChange={(event) => setGoodsEstimatedValue(event.target.value)}
+                  placeholder="Total estimated value for this pledge"
+                />
+              </label>
+              <p className="donor-goods-hint">
+                We save per-unit value as total ÷ quantity (same structure as our in-kind import).
+              </p>
+              <label>
+                Intended use
+                <select
+                  value={goodsIntendedUse}
+                  onChange={(event) => setGoodsIntendedUse(event.target.value)}
+                >
+                  {inKindIntendedUse.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Received condition
+                <select
+                  value={goodsCondition}
+                  onChange={(event) => setGoodsCondition(event.target.value)}
+                >
+                  {inKindConditions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {goodsError && <p className="error-text">{goodsError}</p>}
+              {goodsSuccess && <p className="success-text">{goodsSuccess}</p>}
+              <button type="submit" disabled={goodsSubmitting}>
+                {goodsSubmitting ? 'Submitting…' : 'Submit goods pledge'}
+              </button>
+            </form>
+          </article>
+        </div>
 
         <article className="auth-card">
           <h2>Volunteer sign-up</h2>
