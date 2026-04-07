@@ -24,19 +24,19 @@
   },
   "pipeline_02_donor_churn": {
     "status": "success",
-    "trained_at": "2026-04-07T04:27:43.016668+00:00",
+    "trained_at": "2026-04-07T21:31:49.645764+00:00",
     "metrics": {
-      "roc_auc_mean": 1.0,
-      "roc_auc_std": 0.0,
-      "f1_mean": 0.6,
-      "precision_mean": 0.8,
-      "recall_mean": 0.5,
+      "roc_auc_mean": 0.68,
+      "roc_auc_std": 0.186,
+      "f1_mean": 0.0,
+      "precision_mean": 0.0,
+      "recall_mean": 0.0,
       "winning_model": "RandomForest",
-      "best_params": "{'model__max_depth': 3, 'model__min_samples_leaf': 2, 'model__n_estimators': 100}",
+      "best_params": "{'model__max_depth': 2, 'model__min_samples_leaf': 5, 'model__n_estimators': 200}",
       "n_supporters": 59,
       "churn_rate": 0.1356,
-      "lr_cv_auc": 0.95,
-      "rf_cv_auc": 1.0,
+      "lr_cv_auc": 0.5736,
+      "rf_cv_auc": 0.68,
       "onnx_verified": true
     }
   },

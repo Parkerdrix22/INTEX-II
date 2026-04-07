@@ -2614,6 +2614,8 @@ input[type='reset']:disabled {
   padding: 0 0.85rem 0.85rem;
   color: var(--error);
   font-size: 0.9rem;
+}
+
 .cookie-banner {
   position: fixed;
   bottom: 1rem;
@@ -2669,45 +2671,60 @@ input[type='reset']:disabled {
   gap: 0.5rem;
 }
 
-.auth-external-link {
+.auth-external-link,
+.auth-external-button {
   display: inline-flex;
   justify-content: center;
   align-items: center;
   padding: 0.65rem 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: 0.55rem;
-  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
   text-decoration: none;
-  background: var(--surface);
+  background: #fff;
+  width: 100%;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
-.auth-external-link:hover {
-  border-color: var(--primary-2);
+.auth-external-link:hover,
+.auth-external-button:hover {
+  border-color: var(--accent);
+  background: rgba(56, 95, 130, 0.08);
+}
+
+.auth-external-button__content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .auth-external-link--google {
-  min-height: 40px;
-  justify-content: flex-start;
-  gap: 12px;
-  padding: 0 12px;
+  min-height: 42px;
+  justify-content: center;
+  padding: 0.6rem 0.75rem;
   background: #fff;
-  border-color: #dadce0;
-  color: #3c4043;
-  font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.2px;
-  line-height: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: normal;
+  line-height: 1.2;
 }
 
 .auth-external-link--google:hover {
-  background: #f8f9fa;
-  border-color: #d2e3fc;
-  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  background: rgba(56, 95, 130, 0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: none;
 }
 
 .auth-external-link--google:focus-visible {
-  outline: 2px solid #1a73e8;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 

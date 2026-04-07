@@ -3,7 +3,7 @@
    Warm glassmorphism, deep blue + gold accents, generous breathing room.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.impact-page {
+.donor-impact-page {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2.5rem 1.5rem 5rem;
@@ -13,7 +13,7 @@
   transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-.impact-page.is-visible {
+.donor-impact-page.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
