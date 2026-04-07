@@ -12,6 +12,7 @@ import { HomePage } from './pages/HomePage';
 import { HomeVisitationPage } from './pages/HomeVisitationPage';
 import { ImpactDashboardPage } from './pages/ImpactDashboardPage';
 import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
 import { ProcessRecordingPage } from './pages/ProcessRecordingPage';
 import { ResidentDashboardPage } from './pages/ResidentDashboardPage';
 import { ResidentCasePage } from './pages/ResidentCasePage';
@@ -109,9 +110,17 @@ function App() {
               </Link>
             )}
             {!isAuthenticated && (
-              <Link className="auth-nav-pill auth-nav-pill--solo-login" to="/login">
-                Login
-              </Link>
+              <div className="auth-nav-pill" role="group" aria-label="Authentication">
+                <Link className="auth-nav-pill__link" to="/signup">
+                  Sign up
+                </Link>
+                <span className="auth-nav-pill__sep" aria-hidden="true">
+                  |
+                </span>
+                <Link className="auth-nav-pill__link" to="/login">
+                  Login
+                </Link>
+              </div>
             )}
             {isAuthenticated && (
               <div className="auth-nav-pill auth-nav-pill--session" role="group" aria-label="Account menu">
@@ -162,7 +171,7 @@ function App() {
             }
           />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<Navigate to="/login" replace />} />
+          <Route path="/signup" element={<SignupPage />} />
           <Route
             path="/profile"
             element={
