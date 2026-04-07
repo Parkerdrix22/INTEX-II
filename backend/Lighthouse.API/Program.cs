@@ -10,6 +10,7 @@ LocalEnvLoader.Apply(builder.Configuration, builder.Environment.ContentRootPath)
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpClient();
 
 var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
 builder.Services.AddCors(options =>
@@ -54,6 +55,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddScoped<IPasswordHasher<Lighthouse.API.Data.Entities.AppUser>, PasswordHasher<Lighthouse.API.Data.Entities.AppUser>>();
+builder.Services.AddScoped<Lighthouse.API.Services.IWebsiteChatService, Lighthouse.API.Services.AnthropicWebsiteChatService>();
 
 var app = builder.Build();
 
