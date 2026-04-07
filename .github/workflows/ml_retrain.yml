@@ -27,6 +27,9 @@ concurrency:
   group: ml-retrain
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   retrain:
     name: Retrain All ML Pipelines
