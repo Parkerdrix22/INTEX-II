@@ -67,7 +67,15 @@ app.UseCors("Frontend");
 app.UseLighthouseSecurityHeaders();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Serve the React frontend from wwwroot (populated during CI/CD build)
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapControllers();
+
+// SPA fallback — any non-API, non-file request serves index.html for client-side routing
+app.MapFallbackToFile("index.html");
 
 app.MapGet(
         "/api/ping",
