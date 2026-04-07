@@ -37,9 +37,14 @@ export function ChatWidget() {
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const positionRef = useRef(position);
-  positionRef.current = position;
+  // FAB and panel each remember their own position independently
+  const [fabPos, setFabPos] = useState({ x: 0, y: 0 });
+  const [panelPos, setPanelPos] = useState({ x: 0, y: 0 });
+  const fabPosRef = useRef(fabPos);
+  fabPosRef.current = fabPos;
+  const panelPosRef = useRef(panelPos);
+  panelPosRef.current = panelPos;
+  const wasDraggedRef = useRef(false);
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
@@ -52,28 +57,26 @@ export function ChatWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const canSend = useMemo(() => input.trim().length > 0 && !isSending, [input, isSending]);
 
-  // Initialize FAB to bottom-right corner (bottom: 1.1rem, right: 1.1rem)
+  // Initialize both positions relative to the bottom-right corner
   const fabRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const REM = parseFloat(getComputedStyle(document.documentElement).fontSize);
     const margin = Math.round(1.1 * REM);
-    // Measure actual FAB size after render, fall back to estimates
     const fabW = fabRef.current?.offsetWidth  ?? 68;
     const fabH = fabRef.current?.offsetHeight ?? 40;
-    setPosition({
-      x: window.innerWidth  - fabW - margin,
-      y: window.innerHeight - fabH - Math.round(12 * REM),
+    const fx = window.innerWidth  - fabW - margin;
+    const fy = window.innerHeight - fabH - Math.round(12 * REM);
+    setFabPos({ x: fx, y: fy });
+    // Panel opens so its bottom-right aligns with the FAB's bottom-right
+    setPanelPos({
+      x: Math.max(0, fx + fabW - 380),
+      y: Math.max(0, fy + fabH - 520),
     });
   }, []);
 
   useEffect(() => {
     if (!isOpen) return;
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-    // Clamp position so the panel doesn't open outside the viewport
-    setPosition((prev) => ({
-      x: Math.min(Math.max(0, prev.x), window.innerWidth  - 380),
-      y: Math.min(Math.max(0, prev.y), window.innerHeight - 520),
-    }));
   }, [isOpen, messages.length]);
 
   useEffect(() => {
@@ -88,6 +91,7 @@ export function ChatWidget() {
   /**
    * Attach drag listeners on mousedown.
    * Movement threshold of 4px distinguishes a drag from a click.
+   * FAB and panel positions are tracked independently.
    */
   function startDrag(e: React.MouseEvent<HTMLElement>) {
     // Don't start drag on the close button
@@ -95,19 +99,20 @@ export function ChatWidget() {
 
     const startMouseX = e.clientX;
     const startMouseY = e.clientY;
-    const startPosX = positionRef.current.x;
-    const startPosY = positionRef.current.y;
-    let dragging = false;
+    const startPosX = isOpen ? panelPosRef.current.x : fabPosRef.current.x;
+    const startPosY = isOpen ? panelPosRef.current.y : fabPosRef.current.y;
+    wasDraggedRef.current = false;
 
     function onMouseMove(ev: MouseEvent) {
       const dx = ev.clientX - startMouseX;
       const dy = ev.clientY - startMouseY;
-      if (!dragging && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
-      dragging = true;
+      if (!wasDraggedRef.current && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+      wasDraggedRef.current = true;
       ev.preventDefault();
       const panelW = isOpen ? 380 : 80;
       const panelH = isOpen ? 520 : 48;
-      setPosition({
+      const setter = isOpen ? setPanelPos : setFabPos;
+      setter({
         x: Math.min(Math.max(0, startPosX + dx), window.innerWidth  - panelW),
         y: Math.min(Math.max(0, startPosY + dy), window.innerHeight - panelH),
       });
@@ -152,10 +157,12 @@ export function ChatWidget() {
     }
   }
 
+  const pos = isOpen ? panelPos : fabPos;
+
   return (
     <div
       className="chat-widget"
-      style={{ left: position.x, top: position.y }}
+      style={{ left: pos.x, top: pos.y }}
       aria-live="polite"
     >
       {!isOpen && (
@@ -164,7 +171,10 @@ export function ChatWidget() {
           type="button"
           className="chat-widget__fab"
           onMouseDown={startDrag}
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
+            setIsOpen(true);
+          }}
           aria-label="Open chat"
           title="Ask about this website"
         >
