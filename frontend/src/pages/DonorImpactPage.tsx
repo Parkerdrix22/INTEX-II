@@ -256,7 +256,7 @@ export function DonorImpactPage() {
   }
 
   return (
-    <section className={`impact-page ${visible ? 'is-visible' : ''}`}>
+    <section className={`donor-impact-page ${visible ? 'is-visible' : ''}`}>
       {/* ─── Header ───────────────────────────────────────── */}
       <header className="impact-header">
         <span className="impact-overline">Pipeline 5 · Donation Impact Attribution</span>
