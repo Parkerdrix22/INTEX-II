@@ -43,6 +43,9 @@ export type ResidentDetail = {
   reintegrationType: string | null;
   reintegrationStatus: string | null;
   notesRestricted: string | null;
+  educationGrade: string | null;
+  schoolName: string | null;
+  isEnrolled: boolean | null;
 };
 
 export type ProcessRecording = {
@@ -80,6 +83,37 @@ export type HomeVisitation = {
   followUpNeeded: boolean | null;
   followUpNotes: string | null;
   visitOutcome: string | null;
+};
+
+export type IncidentReport = {
+  id: number;
+  recordKey: string;
+  residentId: number;
+  safehouseId: number | null;
+  incidentDate: string;
+  incidentType: string;
+  severity: string | null;
+  description: string | null;
+  responseTaken: string | null;
+  resolved: boolean | null;
+  resolutionDate: string | null;
+  reportedBy: string | null;
+  followUpRequired: boolean | null;
+};
+
+export type InterventionPlan = {
+  id: number;
+  recordKey: string;
+  residentId: number;
+  planCategory: string | null;
+  planDescription: string | null;
+  servicesProvided: string | null;
+  targetValue: number | null;
+  targetDate: string | null;
+  status: string | null;
+  caseConferenceDate: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 };
 
 export type HealthWellbeingRow = {
@@ -174,6 +208,53 @@ export type HealthImpact = {
   }>;
   averageScoreChange: number;
   improvedResidentPct: number;
+};
+
+export type ReportsAnalyticsDashboard = {
+  serviceVolumeOverTime: Array<{
+    monthKey: string;
+    processRecordings: number;
+    homeVisitations: number;
+    incidents: number;
+  }>;
+  safehouseComparison: Array<{
+    safehouseId: number;
+    safehouseName: string;
+    activeResidents: number;
+    avgHealthScore: number;
+    avgEducationProgress: number;
+    incidentCount: number;
+  }>;
+  residentOutcomes: {
+    avgHealthScore: number;
+    avgEducationProgress: number;
+    totalProcessRecordings: number;
+    totalHomeVisitations: number;
+  };
+  reintegration: {
+    overallRate: number;
+    residentsWithReintegrationStatus: number;
+  };
+  reintegrationBreakdown: Array<{
+    label: string;
+    count: number;
+  }>;
+  incidentTypeBreakdown: Array<{
+    label: string;
+    count: number;
+  }>;
+  interventionPlanStatus: Array<{
+    label: string;
+    count: number;
+  }>;
+  educationLevelBreakdown: Array<{
+    label: string;
+    count: number;
+  }>;
+  conferenceSummary: {
+    upcoming: number;
+    past: number;
+  };
 };
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -425,6 +506,106 @@ export const caseloadApi = {
         method: 'DELETE',
       },
     ),
+  incidentReports: (residentId: number) =>
+    apiFetch<IncidentReport[]>(`/api/caseload/residents/${residentId}/incident-reports`, {
+      method: 'GET',
+    }),
+  addIncidentReport: (
+    residentId: number,
+    payload: {
+      incidentDate: string;
+      incidentType: string;
+      safehouseId?: number | null;
+      severity?: string;
+      description?: string;
+      responseTaken?: string;
+      resolved?: boolean;
+      resolutionDate?: string;
+      reportedBy?: string;
+      followUpRequired?: boolean;
+    },
+  ) =>
+    apiFetch<{ message: string }>(`/api/caseload/residents/${residentId}/incident-reports`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  updateIncidentReport: (
+    residentId: number,
+    recordKey: string,
+    payload: {
+      incidentDate: string;
+      incidentType: string;
+      safehouseId?: number | null;
+      severity?: string;
+      description?: string;
+      responseTaken?: string;
+      resolved?: boolean;
+      resolutionDate?: string;
+      reportedBy?: string;
+      followUpRequired?: boolean;
+    },
+  ) =>
+    apiFetch<{ message: string }>(
+      `/api/caseload/residents/${residentId}/incident-reports/${encodeURIComponent(recordKey)}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      },
+    ),
+  deleteIncidentReport: (residentId: number, recordKey: string) =>
+    apiFetch<{ message: string }>(
+      `/api/caseload/residents/${residentId}/incident-reports/${encodeURIComponent(recordKey)}`,
+      {
+        method: 'DELETE',
+      },
+    ),
+  interventionPlans: (residentId: number) =>
+    apiFetch<InterventionPlan[]>(`/api/caseload/residents/${residentId}/intervention-plans`, {
+      method: 'GET',
+    }),
+  addInterventionPlan: (
+    residentId: number,
+    payload: {
+      planCategory?: string;
+      planDescription?: string;
+      servicesProvided?: string;
+      targetValue?: number;
+      targetDate?: string;
+      status?: string;
+      caseConferenceDate?: string;
+    },
+  ) =>
+    apiFetch<{ message: string }>(`/api/caseload/residents/${residentId}/intervention-plans`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  updateInterventionPlan: (
+    residentId: number,
+    recordKey: string,
+    payload: {
+      planCategory?: string;
+      planDescription?: string;
+      servicesProvided?: string;
+      targetValue?: number;
+      targetDate?: string;
+      status?: string;
+      caseConferenceDate?: string;
+    },
+  ) =>
+    apiFetch<{ message: string }>(
+      `/api/caseload/residents/${residentId}/intervention-plans/${encodeURIComponent(recordKey)}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      },
+    ),
+  deleteInterventionPlan: (residentId: number, recordKey: string) =>
+    apiFetch<{ message: string }>(
+      `/api/caseload/residents/${residentId}/intervention-plans/${encodeURIComponent(recordKey)}`,
+      {
+        method: 'DELETE',
+      },
+    ),
   healthWellbeing: (residentId: number) =>
     apiFetch<HealthWellbeingDashboard>(`/api/caseload/residents/${residentId}/health-wellbeing`, {
       method: 'GET',
@@ -563,6 +744,11 @@ export type DonorImpactReport = {
 
 export const donorImpactApi = {
   me: () => apiFetch<DonorImpactReport>('/api/donor-impact/me', { method: 'GET' }),
+};
+
+export const reportsAnalyticsApi = {
+  dashboard: () =>
+    apiFetch<ReportsAnalyticsDashboard>('/api/reports-analytics/dashboard', { method: 'GET' }),
 };
 
 export const publicApi = {

@@ -89,9 +89,22 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
                     r.date_closed AS "DateClosed",
                     r.reintegration_type AS "ReintegrationType",
                     r.reintegration_status AS "ReintegrationStatus",
-                    r.notes_restricted AS "NotesRestricted"
+                    r.notes_restricted AS "NotesRestricted",
+                    edu.education_level AS "EducationGrade",
+                    edu.school_name AS "SchoolName",
+                    (LOWER(COALESCE(edu.enrollment_status, '')) = 'enrolled') AS "IsEnrolled"
                 FROM lighthouse.residents r
                 LEFT JOIN lighthouse.safehouses s ON s.safehouse_id = r.safehouse_id
+                LEFT JOIN LATERAL (
+                    SELECT
+                        er.education_level,
+                        er.school_name,
+                        er.enrollment_status
+                    FROM lighthouse.education_records er
+                    WHERE er.resident_id = r.resident_id
+                    ORDER BY er.record_date DESC NULLS LAST, er.education_record_id DESC
+                    LIMIT 1
+                ) edu ON TRUE
                 WHERE r.resident_id = {0}
                 LIMIT 1
                 """, residentId)
@@ -329,6 +342,8 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         {
             await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM lighthouse.process_recordings WHERE resident_id = {0}", residentId);
             await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM lighthouse.home_visitations WHERE resident_id = {0}", residentId);
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM lighthouse.incident_reports WHERE resident_id = {0}", residentId);
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM lighthouse.intervention_plans WHERE resident_id = {0}", residentId);
             var affected = await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM lighthouse.residents WHERE resident_id = {0}", residentId);
             if (affected == 0) return NotFound(new { message = "Resident not found." });
             return Ok(new { message = "Resident deleted." });
@@ -345,6 +360,277 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
             await dbContext.SaveChangesAsync();
             return Ok(new { message = "Resident deleted." });
         }
+    }
+
+    [HttpGet("residents/{residentId:int}/incident-reports")]
+    public async Task<IActionResult> GetIncidentReports(int residentId)
+    {
+        try
+        {
+            var rows = await dbContext.Database.SqlQueryRaw<IncidentReportRow>(
+                """
+                SELECT
+                    ROW_NUMBER() OVER (ORDER BY ir.incident_date DESC, ir.incident_id DESC) AS "Id",
+                    ir.ctid::text AS "RecordKey",
+                    ir.resident_id AS "ResidentId",
+                    ir.safehouse_id AS "SafehouseId",
+                    ir.incident_date AS "IncidentDate",
+                    ir.incident_type AS "IncidentType",
+                    ir.severity AS "Severity",
+                    ir.description AS "Description",
+                    ir.response_taken AS "ResponseTaken",
+                    ir.resolved AS "Resolved",
+                    ir.resolution_date AS "ResolutionDate",
+                    ir.reported_by AS "ReportedBy",
+                    ir.follow_up_required AS "FollowUpRequired"
+                FROM lighthouse.incident_reports ir
+                WHERE ir.resident_id = {0}
+                ORDER BY ir.incident_date DESC, ir.incident_id DESC
+                """,
+                residentId)
+                .ToListAsync();
+            return Ok(rows);
+        }
+        catch
+        {
+            return Ok(new List<IncidentReportRow>());
+        }
+    }
+
+    [HttpGet("residents/{residentId:int}/intervention-plans")]
+    public async Task<IActionResult> GetInterventionPlans(int residentId)
+    {
+        var rows = await dbContext.Database.SqlQueryRaw<InterventionPlanRow>(
+            """
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY ip.created_at DESC NULLS LAST, ip.plan_id DESC) AS "Id",
+                ip.ctid::text AS "RecordKey",
+                ip.resident_id AS "ResidentId",
+                ip.plan_category AS "PlanCategory",
+                ip.plan_description AS "PlanDescription",
+                ip.services_provided AS "ServicesProvided",
+                ip.target_value AS "TargetValue",
+                ip.target_date AS "TargetDate",
+                ip.status AS "Status",
+                ip.case_conference_date AS "CaseConferenceDate",
+                ip.created_at AS "CreatedAt",
+                ip.updated_at AS "UpdatedAt"
+            FROM lighthouse.intervention_plans ip
+            WHERE ip.resident_id = {0}
+            ORDER BY ip.created_at DESC NULLS LAST, ip.plan_id DESC
+            """,
+            residentId)
+            .ToListAsync();
+        return Ok(rows);
+    }
+
+    [HttpPost("residents/{residentId:int}/intervention-plans")]
+    public async Task<IActionResult> AddInterventionPlan(int residentId, [FromBody] CreateInterventionPlanRequest request)
+    {
+        var (idColumn, idIsGenerated) = await GetLighthousePrimaryKeyInfoAsync("intervention_plans");
+        if (!string.IsNullOrWhiteSpace(idColumn) && !idIsGenerated)
+        {
+            var newId = await NextLighthouseIdAsync("intervention_plans", idColumn);
+            var insertSql =
+                "INSERT INTO lighthouse.intervention_plans " +
+                $"({idColumn}, resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date, created_at, updated_at) " +
+                "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10})";
+            await dbContext.Database.ExecuteSqlRawAsync(
+                insertSql,
+                newId,
+                residentId,
+                request.PlanCategory,
+                request.PlanDescription,
+                request.ServicesProvided,
+                request.TargetValue,
+                request.TargetDate,
+                request.Status,
+                request.CaseConferenceDate,
+                DateTime.UtcNow,
+                DateTime.UtcNow);
+        }
+        else
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                INSERT INTO lighthouse.intervention_plans
+                    (resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date, created_at, updated_at)
+                VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})
+                """,
+                residentId,
+                request.PlanCategory,
+                request.PlanDescription,
+                request.ServicesProvided,
+                request.TargetValue,
+                request.TargetDate,
+                request.Status,
+                request.CaseConferenceDate,
+                DateTime.UtcNow,
+                DateTime.UtcNow);
+        }
+        return Ok(new { message = "Intervention plan saved." });
+    }
+
+    [HttpPut("residents/{residentId:int}/intervention-plans/{recordKey}")]
+    public async Task<IActionResult> UpdateInterventionPlan(int residentId, string recordKey, [FromBody] UpdateInterventionPlanRequest request)
+    {
+        var affected = await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            UPDATE lighthouse.intervention_plans
+            SET plan_category = {0},
+                plan_description = {1},
+                services_provided = {2},
+                target_value = {3},
+                target_date = {4},
+                status = {5},
+                case_conference_date = {6},
+                updated_at = {7}
+            WHERE resident_id = {8}
+              AND ctid = CAST({9} AS tid)
+            """,
+            request.PlanCategory,
+            request.PlanDescription,
+            request.ServicesProvided,
+            request.TargetValue,
+            request.TargetDate,
+            request.Status,
+            request.CaseConferenceDate,
+            DateTime.UtcNow,
+            residentId,
+            recordKey);
+        if (affected == 0) return NotFound(new { message = "Intervention plan not found." });
+        return Ok(new { message = "Intervention plan updated." });
+    }
+
+    [HttpDelete("residents/{residentId:int}/intervention-plans/{recordKey}")]
+    public async Task<IActionResult> DeleteInterventionPlan(int residentId, string recordKey)
+    {
+        var affected = await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            DELETE FROM lighthouse.intervention_plans
+            WHERE resident_id = {0}
+              AND ctid = CAST({1} AS tid)
+            """,
+            residentId,
+            recordKey);
+        if (affected == 0) return NotFound(new { message = "Intervention plan not found." });
+        return Ok(new { message = "Intervention plan deleted." });
+    }
+
+    [HttpPost("residents/{residentId:int}/incident-reports")]
+    public async Task<IActionResult> AddIncidentReport(int residentId, [FromBody] CreateIncidentReportRequest request)
+    {
+        if (request.IncidentDate == default)
+            return BadRequest(new { message = "IncidentDate is required." });
+        if (string.IsNullOrWhiteSpace(request.IncidentType))
+            return BadRequest(new { message = "IncidentType is required." });
+
+        var incidentDateUtc = NormalizeToUtc(request.IncidentDate);
+        var resolutionDateUtc = request.ResolutionDate.HasValue ? NormalizeToUtc(request.ResolutionDate.Value) : (DateTime?)null;
+
+        var (idColumn, idIsGenerated) = await GetLighthousePrimaryKeyInfoAsync("incident_reports");
+        if (!string.IsNullOrWhiteSpace(idColumn) && !idIsGenerated)
+        {
+            var newId = await NextLighthouseIdAsync("incident_reports", idColumn);
+            var insertSql =
+                "INSERT INTO lighthouse.incident_reports " +
+                $"({idColumn}, resident_id, safehouse_id, incident_date, incident_type, severity, description, response_taken, resolved, resolution_date, reported_by, follow_up_required) " +
+                "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11})";
+            await dbContext.Database.ExecuteSqlRawAsync(
+                insertSql,
+                newId,
+                residentId,
+                request.SafehouseId,
+                incidentDateUtc,
+                request.IncidentType.Trim(),
+                request.Severity,
+                request.Description,
+                request.ResponseTaken,
+                request.Resolved,
+                resolutionDateUtc,
+                request.ReportedBy,
+                request.FollowUpRequired);
+        }
+        else
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                INSERT INTO lighthouse.incident_reports
+                    (resident_id, safehouse_id, incident_date, incident_type, severity, description, response_taken, resolved, resolution_date, reported_by, follow_up_required)
+                VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10})
+                """,
+                residentId,
+                request.SafehouseId,
+                incidentDateUtc,
+                request.IncidentType.Trim(),
+                request.Severity,
+                request.Description,
+                request.ResponseTaken,
+                request.Resolved,
+                resolutionDateUtc,
+                request.ReportedBy,
+                request.FollowUpRequired);
+        }
+        return Ok(new { message = "Incident report saved." });
+    }
+
+    [HttpPut("residents/{residentId:int}/incident-reports/{recordKey}")]
+    public async Task<IActionResult> UpdateIncidentReport(int residentId, string recordKey, [FromBody] UpdateIncidentReportRequest request)
+    {
+        if (request.IncidentDate == default)
+            return BadRequest(new { message = "IncidentDate is required." });
+        if (string.IsNullOrWhiteSpace(request.IncidentType))
+            return BadRequest(new { message = "IncidentType is required." });
+
+        var incidentDateUtc = NormalizeToUtc(request.IncidentDate);
+        var resolutionDateUtc = request.ResolutionDate.HasValue ? NormalizeToUtc(request.ResolutionDate.Value) : (DateTime?)null;
+
+        var affected = await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            UPDATE lighthouse.incident_reports
+            SET safehouse_id = {0},
+                incident_date = {1},
+                incident_type = {2},
+                severity = {3},
+                description = {4},
+                response_taken = {5},
+                resolved = {6},
+                resolution_date = {7},
+                reported_by = {8},
+                follow_up_required = {9}
+            WHERE resident_id = {10}
+              AND ctid = CAST({11} AS tid)
+            """,
+            request.SafehouseId,
+            incidentDateUtc,
+            request.IncidentType.Trim(),
+            request.Severity,
+            request.Description,
+            request.ResponseTaken,
+            request.Resolved,
+            resolutionDateUtc,
+            request.ReportedBy,
+            request.FollowUpRequired,
+            residentId,
+            recordKey);
+
+        if (affected == 0) return NotFound(new { message = "Incident report not found." });
+        return Ok(new { message = "Incident report updated." });
+    }
+
+    [HttpDelete("residents/{residentId:int}/incident-reports/{recordKey}")]
+    public async Task<IActionResult> DeleteIncidentReport(int residentId, string recordKey)
+    {
+        var affected = await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            DELETE FROM lighthouse.incident_reports
+            WHERE resident_id = {0}
+              AND ctid = CAST({1} AS tid)
+            """,
+            residentId,
+            recordKey);
+        if (affected == 0) return NotFound(new { message = "Incident report not found." });
+        return Ok(new { message = "Incident report deleted." });
     }
 
     [HttpGet("residents/{residentId:int}/process-recordings")]
@@ -918,6 +1204,9 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         public string? ReintegrationType { get; set; }
         public string? ReintegrationStatus { get; set; }
         public string? NotesRestricted { get; set; }
+        public string? EducationGrade { get; set; }
+        public string? SchoolName { get; set; }
+        public bool? IsEnrolled { get; set; }
     }
 
     private sealed class ProcessRecordingRow
@@ -957,6 +1246,39 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         public bool? FollowUpNeeded { get; set; }
         public string? FollowUpNotes { get; set; }
         public string? VisitOutcome { get; set; }
+    }
+
+    private sealed class IncidentReportRow
+    {
+        public int Id { get; set; }
+        public string RecordKey { get; set; } = string.Empty;
+        public int ResidentId { get; set; }
+        public int? SafehouseId { get; set; }
+        public DateTime IncidentDate { get; set; }
+        public string IncidentType { get; set; } = string.Empty;
+        public string? Severity { get; set; }
+        public string? Description { get; set; }
+        public string? ResponseTaken { get; set; }
+        public bool? Resolved { get; set; }
+        public DateTime? ResolutionDate { get; set; }
+        public string? ReportedBy { get; set; }
+        public bool? FollowUpRequired { get; set; }
+    }
+
+    private sealed class InterventionPlanRow
+    {
+        public int Id { get; set; }
+        public string RecordKey { get; set; } = string.Empty;
+        public int ResidentId { get; set; }
+        public string? PlanCategory { get; set; }
+        public string? PlanDescription { get; set; }
+        public string? ServicesProvided { get; set; }
+        public decimal? TargetValue { get; set; }
+        public DateTime? TargetDate { get; set; }
+        public string? Status { get; set; }
+        public DateTime? CaseConferenceDate { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 
     public sealed class HealthWellbeingRow
@@ -1091,6 +1413,56 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         public bool? FollowUpNeeded { get; set; }
         public string? FollowUpNotes { get; set; }
         public string? VisitOutcome { get; set; }
+    }
+
+    public sealed class CreateIncidentReportRequest
+    {
+        public int? SafehouseId { get; set; }
+        public DateTime IncidentDate { get; set; }
+        public string IncidentType { get; set; } = string.Empty;
+        public string? Severity { get; set; }
+        public string? Description { get; set; }
+        public string? ResponseTaken { get; set; }
+        public bool? Resolved { get; set; }
+        public DateTime? ResolutionDate { get; set; }
+        public string? ReportedBy { get; set; }
+        public bool? FollowUpRequired { get; set; }
+    }
+
+    public sealed class UpdateIncidentReportRequest
+    {
+        public int? SafehouseId { get; set; }
+        public DateTime IncidentDate { get; set; }
+        public string IncidentType { get; set; } = string.Empty;
+        public string? Severity { get; set; }
+        public string? Description { get; set; }
+        public string? ResponseTaken { get; set; }
+        public bool? Resolved { get; set; }
+        public DateTime? ResolutionDate { get; set; }
+        public string? ReportedBy { get; set; }
+        public bool? FollowUpRequired { get; set; }
+    }
+
+    public sealed class CreateInterventionPlanRequest
+    {
+        public string? PlanCategory { get; set; }
+        public string? PlanDescription { get; set; }
+        public string? ServicesProvided { get; set; }
+        public decimal? TargetValue { get; set; }
+        public DateTime? TargetDate { get; set; }
+        public string? Status { get; set; }
+        public DateTime? CaseConferenceDate { get; set; }
+    }
+
+    public sealed class UpdateInterventionPlanRequest
+    {
+        public string? PlanCategory { get; set; }
+        public string? PlanDescription { get; set; }
+        public string? ServicesProvided { get; set; }
+        public decimal? TargetValue { get; set; }
+        public DateTime? TargetDate { get; set; }
+        public string? Status { get; set; }
+        public DateTime? CaseConferenceDate { get; set; }
     }
 
     public sealed class HealthWellbeingSummaryRow

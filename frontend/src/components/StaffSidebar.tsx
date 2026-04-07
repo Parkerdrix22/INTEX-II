@@ -28,6 +28,9 @@ export function StaffSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: ()
           <NavLink to="/caseload-inventory" className={navLinkClass} onClick={onClose}>
             Resident Services
           </NavLink>
+          <NavLink to="/reports-analytics" className={navLinkClass} onClick={onClose}>
+            Reports & Analytics
+          </NavLink>
         </div>
 
         <div className="staff-sidebar__section staff-sidebar__section--secondary">

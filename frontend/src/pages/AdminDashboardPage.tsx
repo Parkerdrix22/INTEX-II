@@ -17,6 +17,7 @@ import {
   type CaseloadResident,
   type DonorsContributionsDashboard,
 } from '../lib/api';
+import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('en-PH', {
@@ -161,12 +162,20 @@ export function AdminDashboardPage() {
   const recentActivity = (donors?.activity ?? []).slice(0, 6);
 
   return (
-    <section className="admin-dashboard-page">
-      <header className="admin-dashboard-page__header">
-        <h1>Admin Dashboard</h1>
-        <p className="auth-lead">
-          Command center for daily operations across residents, safehouses, and donations.
-        </p>
+    <section className="admin-dashboard-page kateri-landing-section">
+      <header className="kateri-photo-hero">
+        <div
+          className="kateri-photo-hero__media"
+          style={{ backgroundImage: `url(${heroImage})` }}
+          aria-hidden={true}
+        />
+        <div className="kateri-photo-hero__scrim" aria-hidden={true} />
+        <div className="kateri-photo-hero__inner">
+          <h1 className="kateri-photo-hero__title">Admin Dashboard</h1>
+          <p className="kateri-photo-hero__lead">
+            Command center for daily operations across residents, safehouses, and donations.
+          </p>
+        </div>
       </header>
 
       <section className="admin-dashboard-summary-grid" aria-label="Admin summary metrics">

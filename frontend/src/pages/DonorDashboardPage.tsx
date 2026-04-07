@@ -5,40 +5,6 @@ import { useAuth } from '../auth/useAuth';
 import { donorImpactApi, type DonorImpactReport } from '../lib/api';
 import { donationsApi } from '../lib/api';
 
-const DONOR_GIFTS_STORAGE_KEY = 'kateri-donor-gifts-v1';
-
-type DonorGiftRecord = {
-  id: string;
-  at: string;
-  amount: number;
-  frequency: 'one-time' | 'monthly';
-};
-
-function loadStoredGifts(): DonorGiftRecord[] {
-  try {
-    const raw = localStorage.getItem(DONOR_GIFTS_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (row): row is DonorGiftRecord =>
-        typeof row === 'object' &&
-        row !== null &&
-        typeof (row as DonorGiftRecord).id === 'string' &&
-        typeof (row as DonorGiftRecord).at === 'string' &&
-        typeof (row as DonorGiftRecord).amount === 'number' &&
-        ((row as DonorGiftRecord).frequency === 'one-time' ||
-          (row as DonorGiftRecord).frequency === 'monthly'),
-    );
-  } catch {
-    return [];
-  }
-}
-
-function saveStoredGifts(gifts: DonorGiftRecord[]) {
-  localStorage.setItem(DONOR_GIFTS_STORAGE_KEY, JSON.stringify(gifts));
-}
-
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
 const volunteerFocusOptions = [
@@ -97,37 +63,27 @@ export function DonorDashboardPage() {
   const [volunteerSuccess, setVolunteerSuccess] = useState<string | null>(null);
   const [volunteerError, setVolunteerError] = useState<string | null>(null);
 
-  const [recordedGifts, setRecordedGifts] = useState<DonorGiftRecord[]>([]);
-
   // Real per-donor data from /api/donor-impact/me — supporter_id is read
   // server-side from the cookie claim, so we never have to know or pass it.
   const [impact, setImpact] = useState<DonorImpactReport | null>(null);
   const [impactLoading, setImpactLoading] = useState(true);
   const [impactError, setImpactError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setRecordedGifts(loadStoredGifts());
-  }, []);
+  const loadImpact = async () => {
+    setImpactLoading(true);
+    setImpactError(null);
+    try {
+      const data = await donorImpactApi.me();
+      setImpact(data);
+    } catch (err) {
+      setImpactError(err instanceof Error ? err.message : 'Could not load your giving history.');
+    } finally {
+      setImpactLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        setImpactLoading(true);
-        const data = await donorImpactApi.me();
-        if (!cancelled) setImpact(data);
-      } catch (err) {
-        if (!cancelled) {
-          setImpactError(err instanceof Error ? err.message : 'Could not load your giving history.');
-        }
-      } finally {
-        if (!cancelled) setImpactLoading(false);
-      }
-    };
-    void load();
-    return () => {
-      cancelled = true;
-    };
+    void loadImpact();
   }, []);
 
   const topProgramArea = useMemo(() => {
@@ -182,20 +138,11 @@ export function DonorDashboardPage() {
 
       const mealsSupported = Math.max(1, Math.floor(numericAmount / 10));
       const counselingHours = Math.max(1, Math.floor(numericAmount / 35));
-      const newGift: DonorGiftRecord = {
-        id: crypto.randomUUID(),
-        at: new Date().toISOString(),
-        amount: numericAmount,
-        frequency: 'one-time',
-      };
-      setRecordedGifts((prev) => {
-        const next = [newGift, ...prev];
-        saveStoredGifts(next);
-        return next;
-      });
       setDonationSuccess(
         `Thank you, ${effectiveDisplayName || 'supporter'}! Your gift was recorded successfully and can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
       );
+      await loadImpact();
+      setDonorName('');
       setAmount('100');
       setDonationType('Monetary');
       setCurrency('USD');
@@ -435,36 +382,6 @@ export function DonorDashboardPage() {
           </>
         )}
 
-        {recordedGifts.length > 0 && (
-          <details className="donor-history-table-wrap donor-overview-device-history">
-            <summary>Gifts submitted from this device ({recordedGifts.length})</summary>
-            <table className="donor-history-table">
-              <caption className="visually-hidden">Your recorded donations on this device</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Date</th>
-                  <th scope="col">Amount</th>
-                  <th scope="col">Type</th>
-                  <th scope="col">Est. meals</th>
-                  <th scope="col">Est. counseling hrs</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...recordedGifts]
-                  .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
-                  .map((gift) => (
-                    <tr key={gift.id}>
-                      <td>{new Date(gift.at).toLocaleDateString(undefined, { dateStyle: 'medium' })}</td>
-                      <td>{money.format(gift.amount)}</td>
-                      <td>{gift.frequency === 'monthly' ? 'Monthly' : 'One-time'}</td>
-                      <td>{Math.max(1, Math.floor(gift.amount / 10))}</td>
-                      <td>{Math.max(1, Math.floor(gift.amount / 35))}</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </details>
-        )}
       </article>
 
       <hr className="section-divider" />
@@ -492,7 +409,7 @@ export function DonorDashboardPage() {
       <div id="donate-forms" className="donor-forms-stack">
         <article className="auth-card">
           <h2>Donate</h2>
-          <p className="auth-lead">Choose an amount and frequency. We will route it to direct care.</p>
+          <p className="auth-lead">Choose an amount and donation type. We will route it to direct care.</p>
           <form onSubmit={onDonationSubmit}>
             <label>
               Amount
