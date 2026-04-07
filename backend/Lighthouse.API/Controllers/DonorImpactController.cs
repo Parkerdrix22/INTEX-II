@@ -100,6 +100,28 @@ public class DonorImpactController : ControllerBase
     // Personalized impact report for one donor. Mirrors generate_donor_impact_report()
     // from the Python pipeline. No ML inference — pure SQL aggregation.
     // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // GET /api/donor-impact/me
+    // Convenience endpoint that returns the impact report for the currently
+    // logged-in user (reads supporter_id from the cookie claim, never from
+    // the request). Returns 404 if the user is logged in but not linked to
+    // a supporter (e.g. an admin without a donor profile).
+    // -------------------------------------------------------------------------
+    [HttpGet("me")]
+    [Authorize]
+    public Task<IActionResult> GetMyImpact([FromServices] AppDbContext dbContext)
+    {
+        var supporterIdClaim = User.FindFirst("supporter_id")?.Value;
+        if (string.IsNullOrWhiteSpace(supporterIdClaim) || !int.TryParse(supporterIdClaim, out var supporterId))
+        {
+            return Task.FromResult<IActionResult>(NotFound(new
+            {
+                error = "Your account isn't linked to a donor profile yet. Contact staff to connect them."
+            }));
+        }
+        return GetDonorImpact(supporterId, dbContext);
+    }
+
     [HttpGet("{supporterId:int}")]
     [Authorize(Roles = "Admin,Staff,Donor")]
     public async Task<IActionResult> GetDonorImpact(

@@ -446,6 +446,54 @@ export const chatApi = {
     }),
 };
 
+// Donor impact — current logged-in donor's personalized data.
+// The supporter_id is read server-side from the cookie claim, so the frontend
+// never has to know it (and donor B can never see donor A's data).
+export type DonorImpactProgramArea = {
+  name: string;
+  amount: number;
+  percent: number;
+};
+
+export type DonorImpactSafehouse = {
+  safehouseId: number;
+  name: string;
+  city: string;
+  province: string;
+  country: string;
+  amountAllocated: number;
+};
+
+export type DonorImpactMonthly = {
+  month: string;
+  amount: number;
+  count: number;
+};
+
+export type DonorImpactReport = {
+  supporterId: number;
+  displayName: string;
+  supporterType: string;
+  country: string;
+  region: string;
+  totalContributed: number;
+  totalAllocated: number;
+  donationCount: number;
+  firstDonationDate: string | null;
+  lastDonationDate: string | null;
+  programAreaBreakdown: DonorImpactProgramArea[];
+  safehousesSupported: DonorImpactSafehouse[];
+  monthlyTimeline: DonorImpactMonthly[];
+  avgHealthScore: number | null;
+  avgEducationProgress: number | null;
+  avgActiveResidents: number | null;
+  message?: string;
+};
+
+export const donorImpactApi = {
+  me: () => apiFetch<DonorImpactReport>('/api/donor-impact/me', { method: 'GET' }),
+};
+
 export const publicApi = {
   homeStats: () => apiFetch<HomeStats>('/api/public/home-stats', { method: 'GET' }),
   impactStats: () => apiFetch<ImpactStats>('/api/public/impact-stats', { method: 'GET' }),
