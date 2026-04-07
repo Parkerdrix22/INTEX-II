@@ -142,7 +142,6 @@ export function DonorDashboardPage() {
         `Thank you, ${effectiveDisplayName || 'supporter'}! Your gift was recorded successfully and can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
       );
       await loadImpact();
-      setDonorName('');
       setAmount('100');
       setDonationType('Monetary');
       setCurrency('USD');
