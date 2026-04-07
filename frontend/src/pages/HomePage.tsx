@@ -1,10 +1,22 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useLayoutEffect } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import backgroundImage from '../background.jpg?format=webp&quality=82&w=1920';
 import threeSistersImage from '../Three sisters in a sunlit field.png?format=webp&quality=82&w=960';
 import kateriPortraitImage from '../Kateri Tekakwitha in golden grasses.png?format=webp&quality=82&w=960';
+import { publicApi } from '../lib/api';
 
 export function HomePage() {
+  const [stats, setStats] = useState({
+    safehomesSupported: 4,
+    activeResidentCases: 60,
+    communityPartners: 30,
+  });
+  const [animatedStats, setAnimatedStats] = useState({
+    safehomesSupported: 0,
+    activeResidentCases: 0,
+    communityPartners: 0,
+  });
+
   useLayoutEffect(() => {
     const id = 'preload-kateri-home-bg';
     if (document.getElementById(id)) return;
@@ -30,6 +42,43 @@ export function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const response = await publicApi.homeStats();
+        setStats({
+          safehomesSupported: response.safehomesSupported,
+          activeResidentCases: response.activeResidentCases,
+          communityPartners: response.communityPartners,
+        });
+      } catch {
+        // Keep fallback values if public stats endpoint is unavailable.
+      }
+    };
+
+    void loadStats();
+  }, []);
+
+  useEffect(() => {
+    const durationMs = 900;
+    const start = performance.now();
+    const initial = { ...animatedStats };
+    let rafId = 0;
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / durationMs);
+      setAnimatedStats({
+        safehomesSupported: Math.round(initial.safehomesSupported + (stats.safehomesSupported - initial.safehomesSupported) * progress),
+        activeResidentCases: Math.round(initial.activeResidentCases + (stats.activeResidentCases - initial.activeResidentCases) * progress),
+        communityPartners: Math.round(initial.communityPartners + (stats.communityPartners - initial.communityPartners) * progress),
+      });
+      if (progress < 1) rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [stats]);
+
   return (
     <section className="home-page">
       <div className="hero-panel hero-full-width">
@@ -49,19 +98,17 @@ export function HomePage() {
       <div className="stats-grid">
         <article className="stat-card">
           <p className="metric-label">Safehomes Supported</p>
-          <p className="metric-value">4</p>
+          <p className="metric-value">{animatedStats.safehomesSupported}+</p>
         </article>
         <article className="stat-card">
           <p className="metric-label">Active Resident Cases</p>
-          <p className="metric-value">60+</p>
+          <p className="metric-value">{animatedStats.activeResidentCases}+</p>
         </article>
         <article className="stat-card">
           <p className="metric-label">Community Partners</p>
-          <p className="metric-value">30+</p>
+          <p className="metric-value">{animatedStats.communityPartners}+</p>
         </article>
       </div>
-
-      <hr className="section-divider" />
 
       <div className="serve-grid">
         <article className="feature-slab serve-content">
@@ -99,8 +146,6 @@ export function HomePage() {
           />
         </figure>
       </div>
-
-      <hr className="section-divider" />
 
       <div className="name-grid">
         <figure className="name-figure">
