@@ -212,3 +212,11 @@ export const donationsApi = {
       body: JSON.stringify(payload),
     }),
 };
+
+export const chatApi = {
+  ask: (message: string) =>
+    apiFetch<{ answer: string }>('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    }),
+};

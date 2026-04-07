@@ -22,6 +22,7 @@ import { ReportsAnalyticsPage } from './pages/ReportsAnalyticsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { StaffSidebar } from './components/StaffSidebar';
+import { ChatWidget } from './components/ChatWidget';
 
 function ProfileNavIcon({ className }: { className?: string }) {
   return (
@@ -266,6 +267,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+        <ChatWidget />
       </div>
     </div>
   );
