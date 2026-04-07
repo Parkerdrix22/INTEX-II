@@ -7,6 +7,7 @@ import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { CaseloadInventoryPage } from './pages/CaseloadInventoryPage';
 import { DonorChurnPage } from './pages/DonorChurnPage';
 import { DonorDashboardPage } from './pages/DonorDashboardPage';
+import { DonorImpactPage } from './pages/DonorImpactPage';
 import { DonorsContributionsPage } from './pages/DonorsContributionsPage';
 import { HomePage } from './pages/HomePage';
 import { HomeVisitationPage } from './pages/HomeVisitationPage';
@@ -167,6 +168,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
                 <DonorChurnPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/donor-impact"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Donor']}>
+                <DonorImpactPage />
               </ProtectedRoute>
             }
           />

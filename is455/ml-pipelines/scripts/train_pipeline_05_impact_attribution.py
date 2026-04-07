@@ -538,6 +538,54 @@ def train(engine, models_dir: Path) -> dict:
         print("  WARNING: ONNX verification failed — keeping model but flagging.")
 
     # ------------------------------------------------------------------
+    # 4a. Save OLS coefficients to JSON for C# API consumption
+    # ------------------------------------------------------------------
+    import json as _json
+    coef_path = models_dir / "pipeline_05_ols_coefficients.json"
+
+    def _filter_donation_coefs(coef_table: list[dict]) -> list[dict]:
+        """Keep only the donation/control coefs (drop fixed-effect dummies + const)."""
+        keep = []
+        for row in coef_table:
+            v = row["variable"]
+            if v == "const":
+                continue
+            if v.startswith("sh_fe_"):
+                continue
+            keep.append(row)
+        return keep
+
+    coef_export = {
+        "trained_at_utc": pd.Timestamp.utcnow().isoformat(),
+        "model": "OLS (statsmodels) with safehouse fixed effects",
+        "interpretation": (
+            "Each coefficient is the estimated change in the outcome (avg health score "
+            "or avg education progress) per unit increase in the predictor, holding other "
+            "predictors constant. Donation amounts are in USD lagged by one month."
+        ),
+        "health": {
+            "target": "avg_health_score",
+            "n_obs": health_ols["n_obs"],
+            "r_squared": health_ols["r_squared"],
+            "adj_r_squared": health_ols["adj_r_squared"],
+            "f_statistic": health_ols["f_statistic"],
+            "f_pvalue": health_ols["f_pvalue"],
+            "coefficients": _filter_donation_coefs(health_ols["coef_table"]),
+        },
+        "education": {
+            "target": "avg_education_progress",
+            "n_obs": edu_ols["n_obs"],
+            "r_squared": edu_ols["r_squared"],
+            "adj_r_squared": edu_ols["adj_r_squared"],
+            "f_statistic": edu_ols["f_statistic"],
+            "f_pvalue": edu_ols["f_pvalue"],
+            "coefficients": _filter_donation_coefs(edu_ols["coef_table"]),
+        },
+    }
+    coef_path.write_text(_json.dumps(coef_export, indent=2))
+    print(f"  Saved OLS coefficients → {coef_path.name}")
+
+    # ------------------------------------------------------------------
     # 4. Collate and log metrics
     # ------------------------------------------------------------------
     all_metrics = {

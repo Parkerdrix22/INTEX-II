@@ -41,6 +41,9 @@ export function StaffSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: ()
           <NavLink to="/donor-churn" className={navLinkClass} onClick={onClose}>
             Donor Retention
           </NavLink>
+          <NavLink to="/donor-impact" className={navLinkClass} onClick={onClose}>
+            Donor Impact
+          </NavLink>
         </div>
       </nav>
     </aside>
