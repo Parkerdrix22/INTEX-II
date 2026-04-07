@@ -1,12 +1,25 @@
 """
-Pipeline 2: Donor Churn Prediction
+Pipeline 2: Donor Churn Prediction (snapshot-based, no target leakage)
+
 Business question: Which donors are at risk of lapsing, and what distinguishes
 engaged from churned donors so we can personalize outreach?
 
+Framing (avoids the target-leakage trap):
+  We pick a SNAPSHOT_DATE in the past. All features describe the donor as of
+  that snapshot — using ONLY donations that happened on or before it. The
+  target is whether the donor made any donation in the 12 months AFTER the
+  snapshot. So features and label are computed from disjoint time windows
+  and recency_days at the snapshot is no longer a deterministic predictor
+  of churn.
+
+  At inference time the model is asked the same question with TODAY as the
+  snapshot: "given this donor's RFM right now, will they donate in the next
+  12 months?" — which is what fundraisers actually want to know.
+
 Target: churned (binary classification)
-  churned = 1 if max(donation_date) < 2025-03-01, else 0
+  churned = 1 if no donations in (SNAPSHOT_DATE, SNAPSHOT_DATE + 12 months]
 Models: LogisticRegression and RandomForestClassifier (best ROC-AUC wins)
-N: ~60 rows x ~25 features (one row per supporter with donation history)
+N: depends on how many donors had at least one donation by the snapshot date
 """
 
 import sys
@@ -36,9 +49,14 @@ from utils.metrics_logger import log_metrics
 
 PIPELINE_NAME = "pipeline_02_donor_churn"
 
-# Reference dates
-DATASET_END = pd.Timestamp("2026-03-01")
-CHURN_CUTOFF = pd.Timestamp("2025-03-01")  # 12 months before end
+# Reference dates — snapshot semantics, NOT same-window semantics.
+#
+# Features are computed using only donations <= SNAPSHOT_DATE.
+# Target is computed from donations in (SNAPSHOT_DATE, PREDICTION_WINDOW_END].
+# These two windows are disjoint, so recency_days at SNAPSHOT_DATE cannot
+# trivially encode the target.
+SNAPSHOT_DATE = pd.Timestamp("2025-03-01")
+PREDICTION_WINDOW_END = pd.Timestamp("2026-03-01")  # SNAPSHOT_DATE + 12 months
 
 
 def load_data(engine) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -50,26 +68,47 @@ def load_data(engine) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 
 def _build_churn_label(donations: pd.DataFrame) -> pd.DataFrame:
     """
-    Compute churned label per supporter.
-    churned = 1 if max(donation_date) < CHURN_CUTOFF, else 0.
+    Compute churned label per supporter using the FUTURE prediction window.
+
+    A donor is "churned" if they made at least one donation on or before the
+    snapshot date, but NO donations in the (SNAPSHOT_DATE, PREDICTION_WINDOW_END]
+    window. Donors with no donations at all by the snapshot date are excluded
+    upstream because they have no features to learn from.
     """
     donations = donations.copy()
     donations["donation_date"] = pd.to_datetime(donations["donation_date"])
 
-    last_donation = (
-        donations.groupby("supporter_id")["donation_date"]
-        .max()
-        .reset_index()
-        .rename(columns={"donation_date": "last_donation_date"})
-    )
-    last_donation["churned"] = (last_donation["last_donation_date"] < CHURN_CUTOFF).astype(int)
-    return last_donation
+    past = donations[donations["donation_date"] <= SNAPSHOT_DATE]
+    future = donations[
+        (donations["donation_date"] > SNAPSHOT_DATE)
+        & (donations["donation_date"] <= PREDICTION_WINDOW_END)
+    ]
+
+    # All donors who existed at the snapshot date
+    eligible = past["supporter_id"].drop_duplicates().reset_index(drop=True)
+    label_df = pd.DataFrame({"supporter_id": eligible})
+
+    # Donors with at least one donation in the future window are NOT churned
+    future_donors = set(future["supporter_id"].unique())
+    label_df["churned"] = (~label_df["supporter_id"].isin(future_donors)).astype(int)
+
+    return label_df
 
 
 def _build_rfm_features(donations: pd.DataFrame) -> pd.DataFrame:
-    """Build RFM and donation-pattern features aggregated per supporter."""
+    """
+    Build RFM and donation-pattern features aggregated per supporter.
+
+    IMPORTANT: features are computed using only donations <= SNAPSHOT_DATE,
+    so recency_days is "days since last donation as of the snapshot" — which
+    cannot trivially encode the future-window churn target.
+    """
     donations = donations.copy()
     donations["donation_date"] = pd.to_datetime(donations["donation_date"])
+
+    # Snapshot semantics: drop everything after the snapshot date so the
+    # features describe the donor's state at SNAPSHOT_DATE.
+    donations = donations[donations["donation_date"] <= SNAPSHOT_DATE]
 
     # Normalize is_recurring to boolean int
     donations["is_recurring_bool"] = (
@@ -91,8 +130,8 @@ def _build_rfm_features(donations: pd.DataFrame) -> pd.DataFrame:
         donation_types_count=("donation_type", "nunique"),
     ).reset_index()
 
-    rfm["recency_days"] = (DATASET_END - rfm["last_donation_date"]).dt.days
-    rfm["days_since_first"] = (DATASET_END - rfm["first_donation_date"]).dt.days
+    rfm["recency_days"] = (SNAPSHOT_DATE - rfm["last_donation_date"]).dt.days
+    rfm["days_since_first"] = (SNAPSHOT_DATE - rfm["first_donation_date"]).dt.days
 
     # Avoid division by zero
     rfm["donation_velocity"] = rfm["frequency"] / rfm["days_since_first"].replace(0, np.nan)
@@ -119,10 +158,15 @@ def _build_rfm_features(donations: pd.DataFrame) -> pd.DataFrame:
 
 
 def _build_allocation_features(donations: pd.DataFrame, donation_allocations: pd.DataFrame) -> pd.DataFrame:
-    """Build program-area funding breakdown features per supporter."""
-    # Join allocations to donations to get supporter_id
+    """Build program-area funding breakdown features per supporter (snapshot-aware)."""
+    donations = donations.copy()
+    donations["donation_date"] = pd.to_datetime(donations["donation_date"])
+    # Only consider donations made on or before the snapshot date
+    past_donations = donations[donations["donation_date"] <= SNAPSHOT_DATE]
+
+    # Join allocations to donations to get supporter_id (and filter to past)
     alloc = donation_allocations.merge(
-        donations[["donation_id", "supporter_id"]], on="donation_id", how="left"
+        past_donations[["donation_id", "supporter_id"]], on="donation_id", how="inner"
     )
     alloc = alloc.dropna(subset=["supporter_id"])
 
@@ -191,7 +235,11 @@ def engineer_features(
     # --- Static supporter features ---
     supporters = supporters.copy()
     supporters["created_at"] = pd.to_datetime(supporters["created_at"])
-    supporters["tenure_days"] = (DATASET_END - supporters["created_at"]).dt.days
+    # Tenure as of the snapshot date (so future-window info doesn't leak in)
+    supporters["tenure_days"] = (SNAPSHOT_DATE - supporters["created_at"]).dt.days
+    # Donors created AFTER the snapshot date can't be predicted from the past
+    # snapshot — drop them from the training set entirely.
+    supporters = supporters[supporters["tenure_days"] >= 0]
 
     # Drop data-leaky and PII columns
     leaky_cols = [
