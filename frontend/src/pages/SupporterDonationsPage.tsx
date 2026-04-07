@@ -5,6 +5,7 @@ import {
   type DonorsContributionsDashboard,
   type SupporterDonation,
 } from '../lib/api';
+import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 
 function formatDate(value: string | null): string {
   if (!value) return '—';
@@ -163,17 +164,24 @@ export function SupporterDonationsPage() {
   };
 
   return (
-    <section className="donors-contributions-page">
-      <header className="donors-page-header">
-        <h1>{supporter?.displayName ?? `Supporter #${supporterId}`}</h1>
-        <p className="auth-lead">Individual donations for this supporter.</p>
+    <section className="donors-contributions-page kateri-landing-section">
+      <header className="kateri-photo-hero">
+        <div
+          className="kateri-photo-hero__media"
+          style={{ backgroundImage: `url(${heroImage})` }}
+          aria-hidden={true}
+        />
+        <div className="kateri-photo-hero__scrim" aria-hidden={true} />
+        <div className="kateri-photo-hero__inner">
+          <h1 className="kateri-photo-hero__title">{supporter?.displayName ?? `Supporter #${supporterId}`}</h1>
+          <p className="kateri-photo-hero__lead">Individual donations for this supporter.</p>
+          <div className="kateri-hero-actions">
+            <Link className="btn-secondary" to="/donors-contributions">
+              Back to Donors &amp; Contributions
+            </Link>
+          </div>
+        </div>
       </header>
-
-      <p>
-        <Link className="btn-secondary" to="/donors-contributions">
-          Back to Donors &amp; Contributions
-        </Link>
-      </p>
 
       {loading && <p className="donor-inline-message">Loading supporter donations...</p>}
       {error && <p className="error-text donor-inline-message">{error}</p>}

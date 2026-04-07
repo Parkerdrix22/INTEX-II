@@ -6,6 +6,7 @@ type MeResponse = {
   firstName?: string | null;
   lastName?: string | null;
   email: string | null;
+  phone?: string | null;
   roles: string[];
   residentId?: string | null;
   supporterId?: string | null;
@@ -341,6 +342,20 @@ export const authApi = {
     apiFetch<Array<{ name: string; displayName: string }>>('/api/auth/providers', { method: 'GET' }),
   externalLoginUrl: (provider: string, returnPath = '/', flow: 'login' | 'signup' = 'login') =>
     `${API_BASE_URL}/api/auth/external-login?provider=${encodeURIComponent(provider)}&returnPath=${encodeURIComponent(returnPath)}&flow=${encodeURIComponent(flow)}`,
+};
+
+export const donorVolunteerApi = {
+  submitVolunteerInterest: (payload: {
+    flexibleOnDays: boolean;
+    days: string[];
+    timesOfDay: string[];
+    focusAreas: string[];
+    notes: string;
+  }) =>
+    apiFetch<{ message: string }>('/api/donor/volunteer-interest', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 };
 
 export const caseloadApi = {

@@ -25,6 +25,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
+builder.Services.AddSingleton<Lighthouse.API.Services.IStaffNotificationEmailService, Lighthouse.API.Services.StaffNotificationEmailService>();
 
 var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
 builder.Services.AddCors(options =>

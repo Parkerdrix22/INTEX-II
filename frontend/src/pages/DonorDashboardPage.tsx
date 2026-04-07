@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { useAuth } from '../auth/useAuth';
-import { donorImpactApi, type DonorImpactReport } from '../lib/api';
-import { donationsApi } from '../lib/api';
+import { donorImpactApi, donationsApi, donorVolunteerApi, type DonorImpactReport } from '../lib/api';
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
@@ -42,8 +41,13 @@ function formatWelcomeName(raw: string | null): string | null {
 }
 
 export function DonorDashboardPage() {
-  const { effectiveDisplayName } = useAuth();
+  const { effectiveDisplayName, firstName, lastName, email, effectivePhone } = useAuth();
   const welcomeName = formatWelcomeName(effectiveDisplayName);
+
+  const accountVolunteerName = useMemo(() => {
+    const full = [firstName?.trim(), lastName?.trim()].filter(Boolean).join(' ').trim();
+    return full || 'user';
+  }, [firstName, lastName]);
 
   const [amount, setAmount] = useState('100');
   const [donationType, setDonationType] = useState<'Monetary' | 'InKind' | 'Time' | 'Skills'>('Monetary');
@@ -52,9 +56,6 @@ export function DonorDashboardPage() {
   const [donationError, setDonationError] = useState<string | null>(null);
   const [donationSubmitting, setDonationSubmitting] = useState(false);
 
-  const [volunteerName, setVolunteerName] = useState('');
-  const [volunteerEmail, setVolunteerEmail] = useState('');
-  const [volunteerPhone, setVolunteerPhone] = useState('');
   const [availDays, setAvailDays] = useState<string[]>([]);
   const [availTimes, setAvailTimes] = useState<string[]>([]);
   const [flexibleOnDays, setFlexibleOnDays] = useState(false);
@@ -62,6 +63,7 @@ export function DonorDashboardPage() {
   const [selectedFocuses, setSelectedFocuses] = useState<string[]>([]);
   const [volunteerSuccess, setVolunteerSuccess] = useState<string | null>(null);
   const [volunteerError, setVolunteerError] = useState<string | null>(null);
+  const [volunteerSubmitting, setVolunteerSubmitting] = useState(false);
 
   // Real per-donor data from /api/donor-impact/me — supporter_id is read
   // server-side from the cookie claim, so we never have to know or pass it.
@@ -133,7 +135,7 @@ export function DonorDashboardPage() {
         currency,
         donationDate: new Date().toISOString(),
         campaignName: 'Donor Portal',
-        donorName: (effectiveDisplayName ?? '').trim(),
+        donorName: accountVolunteerName,
       });
 
       const mealsSupported = Math.max(1, Math.floor(numericAmount / 10));
@@ -142,7 +144,6 @@ export function DonorDashboardPage() {
         `Thank you, ${effectiveDisplayName || 'supporter'}! Your gift was recorded successfully and can fund about ${mealsSupported} meals or ${counselingHours} counseling hour(s).`,
       );
       await loadImpact();
-      setDonorName('');
       setAmount('100');
       setDonationType('Monetary');
       setCurrency('USD');
@@ -153,7 +154,7 @@ export function DonorDashboardPage() {
     }
   };
 
-  const onVolunteerSubmit = (event: FormEvent) => {
+  const onVolunteerSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setVolunteerError(null);
     setVolunteerSuccess(null);
@@ -175,19 +176,30 @@ export function DonorDashboardPage() {
       return;
     }
 
-    const daySummary = flexibleOnDays ? 'flexible on days' : availDays.join(', ');
-    const timeSummary = availTimes.join(', ');
-    setVolunteerSuccess(
-      `Thank you, ${volunteerName}! We recorded your interests (${selectedFocuses.join(', ')}), availability (${daySummary}; ${timeSummary}).`,
-    );
-    setVolunteerName('');
-    setVolunteerEmail('');
-    setVolunteerPhone('');
-    setAvailDays([]);
-    setAvailTimes([]);
-    setFlexibleOnDays(false);
-    setAvailabilityNotes('');
-    setSelectedFocuses([]);
+    setVolunteerSubmitting(true);
+    try {
+      await donorVolunteerApi.submitVolunteerInterest({
+        flexibleOnDays: flexibleOnDays,
+        days: flexibleOnDays ? [] : [...availDays],
+        timesOfDay: [...availTimes],
+        focusAreas: [...selectedFocuses],
+        notes: availabilityNotes.trim(),
+      });
+      const daySummary = flexibleOnDays ? 'flexible on days' : availDays.join(', ');
+      const timeSummary = availTimes.join(', ');
+      setVolunteerSuccess(
+        `Thank you, ${accountVolunteerName}! We recorded your interests (${selectedFocuses.join(', ')}), availability (${daySummary}; ${timeSummary}). Staff will reach out using your account email.`,
+      );
+      setAvailDays([]);
+      setAvailTimes([]);
+      setFlexibleOnDays(false);
+      setAvailabilityNotes('');
+      setSelectedFocuses([]);
+    } catch (err) {
+      setVolunteerError(err instanceof Error ? err.message : 'Could not submit volunteer interest.');
+    } finally {
+      setVolunteerSubmitting(false);
+    }
   };
 
   const toggleFocus = (focus: string) => {
@@ -454,33 +466,25 @@ export function DonorDashboardPage() {
         <article className="auth-card">
           <h2>Volunteer sign-up</h2>
           <p className="auth-lead">Tell us how you would like to help the girls.</p>
-          <form onSubmit={onVolunteerSubmit}>
-            <label>
-              Full name
-              <input
-                required
-                type="text"
-                value={volunteerName}
-                onChange={(event) => setVolunteerName(event.target.value)}
-              />
-            </label>
-            <label>
-              Email
-              <input
-                required
-                type="email"
-                value={volunteerEmail}
-                onChange={(event) => setVolunteerEmail(event.target.value)}
-              />
-            </label>
-            <label>
-              Phone
-              <input
-                type="text"
-                value={volunteerPhone}
-                onChange={(event) => setVolunteerPhone(event.target.value)}
-              />
-            </label>
+          <form onSubmit={(event) => void onVolunteerSubmit(event)}>
+            <div className="volunteer-account-contact" aria-label="Your account contact">
+              <p className="volunteer-account-contact__title">Using your account</p>
+              <p className="volunteer-account-contact__line">
+                <strong>Name</strong>
+                <span>{accountVolunteerName}</span>
+              </p>
+              <p className="volunteer-account-contact__line">
+                <strong>Email</strong>
+                <span>{email?.trim() || '—'}</span>
+              </p>
+              <p className="volunteer-account-contact__line">
+                <strong>Phone</strong>
+                <span>{effectivePhone?.trim() || '—'}</span>
+              </p>
+              <p className="volunteer-account-contact__hint">
+                Phone and display preferences can be updated on your profile when needed.
+              </p>
+            </div>
 
             <fieldset className="donor-focus-fieldset volunteer-availability-fieldset">
               <legend>When are you usually available?</legend>
@@ -561,7 +565,9 @@ export function DonorDashboardPage() {
 
             {volunteerError && <p className="error-text">{volunteerError}</p>}
             {volunteerSuccess && <p className="success-text">{volunteerSuccess}</p>}
-            <button type="submit">Submit volunteer interest</button>
+            <button type="submit" disabled={volunteerSubmitting}>
+              {volunteerSubmitting ? 'Submitting…' : 'Submit volunteer interest'}
+            </button>
           </form>
         </article>
       </div>
