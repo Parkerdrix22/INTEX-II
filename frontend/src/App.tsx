@@ -26,6 +26,7 @@ import { CookiePolicyPage } from './pages/CookiePolicyPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { StaffSidebar } from './components/StaffSidebar';
+import { ChatWidget } from './components/ChatWidget';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 
 function ProfileNavIcon({ className }: { className?: string }) {
@@ -289,6 +290,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+        <ChatWidget />
       </div>
       <CookieConsentBanner />
     </div>

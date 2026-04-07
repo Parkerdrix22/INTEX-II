@@ -429,6 +429,12 @@ export const donationsApi = {
     }),
 };
 
+export const chatApi = {
+  ask: (message: string) =>
+    apiFetch<{ answer: string }>('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    }),
 export const publicApi = {
   homeStats: () => apiFetch<HomeStats>('/api/public/home-stats', { method: 'GET' }),
   impactStats: () => apiFetch<ImpactStats>('/api/public/impact-stats', { method: 'GET' }),
