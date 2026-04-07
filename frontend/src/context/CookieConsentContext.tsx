@@ -62,7 +62,13 @@ export function CookieConsentProvider({ children }: { children: ReactNode }) {
 export function useCookieConsent() {
   const context = useContext(CookieConsentContext);
   if (!context) {
-    throw new Error('useCookieConsent must be used within a CookieConsentProvider.');
+    // Fallback guards against transient provider wiring issues during HMR.
+    return {
+      hasAcknowledgedConsent: true,
+      consentChoice: null,
+      acceptAllCookies: () => {},
+      acceptNecessaryCookies: () => {},
+    } satisfies CookieConsentValue;
   }
 
   return context;

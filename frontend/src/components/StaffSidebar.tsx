@@ -28,19 +28,16 @@ export function StaffSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: ()
           <NavLink to="/caseload-inventory" className={navLinkClass} onClick={onClose}>
             Resident Services
           </NavLink>
+        </div>
+
+        <div className="staff-sidebar__section staff-sidebar__section--secondary">
+          <p className="staff-sidebar__section-label">Reports and Analytics</p>
           <NavLink to="/resident-risk-triage" className={navLinkClass} onClick={onClose}>
             Risk Triage
           </NavLink>
           <NavLink to="/case-resolution" className={navLinkClass} onClick={onClose}>
             Case Resolution
           </NavLink>
-          <NavLink to="/reports-analytics" className={navLinkClass} onClick={onClose}>
-            Reports & Analytics
-          </NavLink>
-        </div>
-
-        <div className="staff-sidebar__section staff-sidebar__section--secondary">
-          <p className="staff-sidebar__section-label">Other tools</p>
           <NavLink to="/post-planner" className={navLinkClass} onClick={onClose}>
             Post Planner
           </NavLink>
@@ -49,6 +46,9 @@ export function StaffSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: ()
           </NavLink>
           <NavLink to="/donor-impact" className={navLinkClass} onClick={onClose}>
             Donor Impact
+          </NavLink>
+          <NavLink to="/donor-archetypes" className={navLinkClass} onClick={onClose}>
+            Donor Archetypes
           </NavLink>
         </div>
       </nav>

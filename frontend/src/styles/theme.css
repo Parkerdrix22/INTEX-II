@@ -781,6 +781,12 @@ a.auth-nav-pill--solo-login:focus-visible {
   gap: 1.3rem;
 }
 
+/* Ensure Impact content is always visible even if reveal observer hiccups */
+.impact-page .scroll-reveal {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 .impact-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
