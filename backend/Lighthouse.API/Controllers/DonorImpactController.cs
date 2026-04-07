@@ -1,4 +1,6 @@
 using Lighthouse.API.Data;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -23,6 +25,7 @@ namespace Lighthouse.API.Controllers;
 
 [ApiController]
 [Route("api/donor-impact")]
+[Authorize]
 public class DonorImpactController : ControllerBase
 {
     private static readonly DateTime ReferenceDate = new(2026, 3, 1);
@@ -42,6 +45,7 @@ public class DonorImpactController : ControllerBase
     // ordered by total contribution descending. Powers the donor selector UI.
     // -------------------------------------------------------------------------
     [HttpGet("donors")]
+    [Authorize(Roles = "Admin,Staff")]
     public async Task<IActionResult> ListDonors([FromServices] AppDbContext dbContext)
     {
         try
@@ -97,10 +101,15 @@ public class DonorImpactController : ControllerBase
     // from the Python pipeline. No ML inference — pure SQL aggregation.
     // -------------------------------------------------------------------------
     [HttpGet("{supporterId:int}")]
+    [Authorize(Roles = "Admin,Staff,Donor")]
     public async Task<IActionResult> GetDonorImpact(
         int supporterId,
         [FromServices] AppDbContext dbContext)
     {
+        if (!CanAccessSupporter(supporterId))
+        {
+            return Forbid();
+        }
         try
         {
             var connectionString = dbContext.Database.GetConnectionString()!;
@@ -301,6 +310,7 @@ public class DonorImpactController : ControllerBase
     // Cached at process startup so it's free to call repeatedly.
     // -------------------------------------------------------------------------
     [HttpGet("research-context")]
+    [Authorize(Roles = "Admin,Staff")]
     public IActionResult GetResearchContext()
     {
         try
@@ -325,6 +335,7 @@ public class DonorImpactController : ControllerBase
     // GET /api/donor-impact/model-info
     // -------------------------------------------------------------------------
     [HttpGet("model-info")]
+    [Authorize(Roles = "Admin,Staff")]
     public async Task<IActionResult> GetModelInfo([FromServices] AppDbContext dbContext)
     {
         var donorCount = await dbContext.Database
@@ -395,6 +406,22 @@ public class DonorImpactController : ControllerBase
 
         // Return the first path as a fallback (used to derive sibling paths even when missing)
         return Path.GetFullPath(searchPaths[0]);
+    }
+
+    private bool CanAccessSupporter(int supporterId)
+    {
+        if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+        {
+            return true;
+        }
+
+        if (!User.IsInRole("Donor"))
+        {
+            return false;
+        }
+
+        return int.TryParse(User.FindFirstValue("supporter_id"), out var claimedSupporterId) &&
+               claimedSupporterId == supporterId;
     }
 }
 

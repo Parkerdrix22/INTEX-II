@@ -112,8 +112,24 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
     let message = fallback;
 
     try {
-      const data = (await response.json()) as { message?: string };
-      message = data.message ?? fallback;
+      const data = (await response.json()) as {
+        message?: string;
+        title?: string;
+        detail?: string;
+        errors?: Record<string, string[]>;
+      };
+
+      if (data.message) {
+        message = data.message;
+      } else if (data.detail) {
+        message = data.detail;
+      } else if (data.errors && Object.keys(data.errors).length > 0) {
+        const firstKey = Object.keys(data.errors)[0];
+        const firstError = data.errors[firstKey]?.[0];
+        message = firstError ?? data.title ?? fallback;
+      } else {
+        message = data.title ?? fallback;
+      }
     } catch {
       message = fallback;
     }
@@ -149,6 +165,10 @@ export const authApi = {
       method: 'POST',
     }),
   me: () => apiFetch<MeResponse>('/api/auth/me', { method: 'GET' }),
+  providers: () =>
+    apiFetch<Array<{ name: string; displayName: string }>>('/api/auth/providers', { method: 'GET' }),
+  externalLoginUrl: (provider: string, returnPath = '/') =>
+    `${API_BASE_URL}/api/auth/external-login?provider=${encodeURIComponent(provider)}&returnPath=${encodeURIComponent(returnPath)}`,
 };
 
 export const caseloadApi = {

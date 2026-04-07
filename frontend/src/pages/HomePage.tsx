@@ -160,6 +160,18 @@ export function HomePage() {
             </span>
             support@kateri.org
           </a>
+          <Link className="contact-link" to="/privacy-policy">
+            <span className="icon-circle" aria-hidden="true">
+              P
+            </span>
+            Privacy Policy
+          </Link>
+          <Link className="contact-link" to="/cookie-policy">
+            <span className="icon-circle" aria-hidden="true">
+              C
+            </span>
+            Cookie Policy
+          </Link>
         </div>
       </footer>
     </section>

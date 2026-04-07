@@ -1,4 +1,5 @@
 using Lighthouse.API.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.ML.OnnxRuntime;
@@ -9,6 +10,7 @@ namespace Lighthouse.API.Controllers;
 
 [ApiController]
 [Route("api/donor-churn")]
+[Authorize(Roles = "Admin,Staff")]
 public class DonorChurnController : ControllerBase
 {
     private static readonly Lazy<InferenceSession> Session = new(() =>
