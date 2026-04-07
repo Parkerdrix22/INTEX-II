@@ -5,6 +5,7 @@ import { useAuth } from './auth/useAuth';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { CaseloadInventoryPage } from './pages/CaseloadInventoryPage';
+import { CaseResolutionPage } from './pages/CaseResolutionPage';
 import { DonorChurnPage } from './pages/DonorChurnPage';
 import { DonorDashboardPage } from './pages/DonorDashboardPage';
 import { DonorImpactPage } from './pages/DonorImpactPage';
@@ -177,6 +178,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
                 <ResidentRiskPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/case-resolution"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <CaseResolutionPage />
               </ProtectedRoute>
             }
           />

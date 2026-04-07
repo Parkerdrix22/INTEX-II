@@ -1,0 +1,28 @@
+{
+  "model_name": "pipeline_06_case_resolution_lr",
+  "version": "2.0",
+  "input_tensor_name": "float_input",
+  "n_features": 8,
+  "feature_order": [
+    "case_cat_Surrendered",
+    "case_cat_Abandoned",
+    "case_cat_Foundling",
+    "case_cat_Neglected",
+    "length_of_stay_days",
+    "has_safety_plan",
+    "achieved_rate",
+    "session_count"
+  ],
+  "output_tensors": [
+    {
+      "name": "output_label",
+      "dtype": "int64",
+      "description": "0 = case still open, 1 = case resolved (closed)"
+    },
+    {
+      "name": "output_probability",
+      "dtype": "seq(map(int64,float))",
+      "description": "Per-class probabilities; key 1 = P(case resolved)"
+    }
+  ]
+}
