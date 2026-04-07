@@ -1,0 +1,135 @@
+{
+  "trained_at_utc": "2026-04-07T18:20:30.271730+00:00",
+  "snapshot_date": "2026-04-07T00:00:00",
+  "n_donors": 61,
+  "n_clusters": 4,
+  "silhouette": 0.3268,
+  "inertia": 137.83,
+  "feature_order": [
+    "frequency",
+    "log_monetary_total",
+    "log_monetary_avg",
+    "recency_days",
+    "tenure_days",
+    "has_recurring"
+  ],
+  "scaler": {
+    "mean": [
+      6.967213,
+      8.1058,
+      6.379238,
+      211.868852,
+      956.459016,
+      0.295082
+    ],
+    "scale": [
+      4.594962,
+      1.172447,
+      0.684601,
+      189.371478,
+      259.598781,
+      0.45608
+    ]
+  },
+  "centroids": [
+    [
+      -0.536939,
+      -0.473781,
+      -0.362308,
+      1.423821,
+      0.168687,
+      -0.281563
+    ],
+    [
+      1.341931,
+      0.870493,
+      0.346177,
+      -0.513288,
+      0.505938,
+      1.545603
+    ],
+    [
+      -0.315799,
+      0.085495,
+      0.282365,
+      -0.336586,
+      -0.057437,
+      -0.576268
+    ],
+    [
+      -1.298642,
+      -3.340783,
+      -3.199425,
+      0.349214,
+      -2.610923,
+      -0.646997
+    ]
+  ],
+  "archetypes": {
+    "0": {
+      "cluster_id": 0,
+      "label": "The Lapsed Faithful",
+      "tagline": "Long-tenured donors who've gone quiet over a year ago",
+      "color": "#a05b3a",
+      "strategy": "Reactivation campaign. These donors gave consistently in the past but have stopped \u2014 maybe a life event, maybe missed communication. A personal phone call or 'we miss you' email with a fresh impact story has the highest reactivation rate. Don't waste a generic appeal on them.",
+      "size": 12,
+      "characteristics": {
+        "mean_frequency": 4.5,
+        "mean_monetary_total": 2233.61,
+        "mean_monetary_avg": 505.4,
+        "mean_recency_days": 482.0,
+        "mean_tenure_days": 1000.0,
+        "recurring_pct": 0.167
+      }
+    },
+    "1": {
+      "cluster_id": 1,
+      "label": "The Loyal Sustainers",
+      "tagline": "Recurring monthly donors \u2014 the org's bread and butter",
+      "color": "#385f82",
+      "strategy": "Steward fiercely. These donors are your most reliable income. Send personalized impact updates and recognize their consistency. Avoid asking them to upgrade until they're highly engaged \u2014 they already give regularly.",
+      "size": 15,
+      "characteristics": {
+        "mean_frequency": 13.13,
+        "mean_monetary_total": 10243.03,
+        "mean_monetary_avg": 798.94,
+        "mean_recency_days": 115.0,
+        "mean_tenure_days": 1088.0,
+        "recurring_pct": 1.0
+      }
+    },
+    "2": {
+      "cluster_id": 2,
+      "label": "The Active Engaged",
+      "tagline": "Frequent one-time donors \u2014 your largest segment",
+      "color": "#5f8448",
+      "strategy": "Upgrade pathway. These donors give regularly but not on a recurring schedule. Test a 'become a sustainer' ask \u2014 converting even 20% of this segment to monthly recurring would meaningfully stabilize cash flow.",
+      "size": 31,
+      "characteristics": {
+        "mean_frequency": 5.52,
+        "mean_monetary_total": 4303.61,
+        "mean_monetary_avg": 799.84,
+        "mean_recency_days": 148.0,
+        "mean_tenure_days": 942.0,
+        "recurring_pct": 0.032
+      }
+    },
+    "3": {
+      "cluster_id": 3,
+      "label": "The New Sparks",
+      "tagline": "First-time donors who recently entered the funnel",
+      "color": "#c9983f",
+      "strategy": "Make them feel welcome. Send a thank-you within 24 hours, share an impact story within 2 weeks, and invite them to a recurring gift after their second donation. The goal is to convert sparks into sustainers.",
+      "size": 3,
+      "characteristics": {
+        "mean_frequency": 1.0,
+        "mean_monetary_total": 75.71,
+        "mean_monetary_avg": 75.71,
+        "mean_recency_days": 278.0,
+        "mean_tenure_days": 279.0,
+        "recurring_pct": 0.0
+      }
+    }
+  },
+  "interpretation": "K-means on standardized RFM + tenure + recurring flag. To assign a donor to an archetype, compute features in the order shown, standardize using (x - mean) / scale, then find the centroid with the smallest Euclidean distance."
+}

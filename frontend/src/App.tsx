@@ -6,6 +6,7 @@ import { ProtectedRoute } from './auth/ProtectedRoute';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { CaseloadInventoryPage } from './pages/CaseloadInventoryPage';
 import { CaseResolutionPage } from './pages/CaseResolutionPage';
+import { DonorArchetypePage } from './pages/DonorArchetypePage';
 import { DonorChurnPage } from './pages/DonorChurnPage';
 import { DonorDashboardPage } from './pages/DonorDashboardPage';
 import { DonorImpactPage } from './pages/DonorImpactPage';
@@ -194,6 +195,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Donor']}>
                 <DonorImpactPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/donor-archetypes"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <DonorArchetypePage />
               </ProtectedRoute>
             }
           />
