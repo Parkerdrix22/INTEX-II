@@ -109,17 +109,28 @@ public class DonorImpactController : ControllerBase
     // -------------------------------------------------------------------------
     [HttpGet("me")]
     [Authorize]
-    public Task<IActionResult> GetMyImpact([FromServices] AppDbContext dbContext)
+    public async Task<IActionResult> GetMyImpact([FromServices] AppDbContext dbContext)
     {
-        var supporterIdClaim = User.FindFirst("supporter_id")?.Value;
-        if (string.IsNullOrWhiteSpace(supporterIdClaim) || !int.TryParse(supporterIdClaim, out var supporterId))
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        if (!string.IsNullOrWhiteSpace(email))
         {
-            return Task.FromResult<IActionResult>(NotFound(new
+            var connectionString = dbContext.Database.GetConnectionString()!;
+            await using var conn = new NpgsqlConnection(connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new NpgsqlCommand(
+                "SELECT supporter_id FROM lighthouse.supporters WHERE LOWER(email) = LOWER(@email) LIMIT 1", conn);
+            cmd.Parameters.AddWithValue("email", email);
+            var result = await cmd.ExecuteScalarAsync();
+            if (result is long lighthouseId)
             {
-                error = "Your account isn't linked to a donor profile yet. Contact staff to connect them."
-            }));
+                return await GetDonorImpact((int)lighthouseId, dbContext);
+            }
         }
-        return GetDonorImpact(supporterId, dbContext);
+
+        return NotFound(new
+        {
+            error = "Your account isn't linked to a donor profile yet. Contact staff to connect them."
+        });
     }
 
     [HttpGet("{supporterId:int}")]
