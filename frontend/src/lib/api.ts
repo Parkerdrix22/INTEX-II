@@ -10,6 +10,93 @@ type MeResponse = {
   staffMemberId?: string | null;
 };
 
+export type CaseloadResident = {
+  id: number;
+  displayName: string;
+  caseControlNo: string;
+  caseStatus: string;
+  safehouseId: number | null;
+  safehouseName: string | null;
+  assignedSocialWorker: string | null;
+  dateAdmitted: string | null;
+  dateClosed: string | null;
+};
+
+export type ResidentDetail = {
+  id: number;
+  displayName: string;
+  caseControlNo: string;
+  caseStatus: string;
+  safehouseId: number | null;
+  safehouseName: string | null;
+  sex: string | null;
+  dateOfBirth: string | null;
+  placeOfBirth: string | null;
+  religion: string | null;
+  caseCategory: string | null;
+  assignedSocialWorker: string | null;
+  referralSource: string | null;
+  dateAdmitted: string | null;
+  dateClosed: string | null;
+  reintegrationType: string | null;
+  reintegrationStatus: string | null;
+  notesRestricted: string | null;
+};
+
+export type ProcessRecording = {
+  id: number;
+  residentId: number;
+  sessionDate: string;
+  sessionType: string;
+  emotionalState: string | null;
+  narrativeSummary: string | null;
+};
+
+export type HomeVisitation = {
+  id: number;
+  residentId: number;
+  visitDate: string;
+  visitType: string;
+  observations: string | null;
+};
+
+export type DonorsContributionsDashboard = {
+  summary: {
+    activeSupporters: number;
+    newThisMonth: number;
+    contributionsMtd: number;
+    totalContributions: number;
+  };
+  supporters: Array<{
+    id: number;
+    displayName: string;
+    supporterType: string;
+    status: string;
+    createdAt: string | null;
+    lastDonationAt: string | null;
+  }>;
+  contributions: Array<{
+    id: number;
+    supporterId: number | null;
+    supporterName: string;
+    donationType: string;
+    donationDate: string | null;
+    estimatedValue: number | null;
+    campaignName: string | null;
+  }>;
+  allocations: Array<{
+    area: string;
+    caringPct: number;
+    healingPct: number;
+    teachingPct: number;
+  }>;
+  activity: Array<{
+    at: string | null;
+    action: string;
+    details: string;
+  }>;
+};
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
@@ -62,4 +149,50 @@ export const authApi = {
       method: 'POST',
     }),
   me: () => apiFetch<MeResponse>('/api/auth/me', { method: 'GET' }),
+};
+
+export const caseloadApi = {
+  residents: () => apiFetch<CaseloadResident[]>('/api/caseload/residents', { method: 'GET' }),
+  residentDetail: (residentId: number) =>
+    apiFetch<ResidentDetail>(`/api/caseload/residents/${residentId}`, { method: 'GET' }),
+  processRecordings: (residentId: number) =>
+    apiFetch<ProcessRecording[]>(`/api/caseload/residents/${residentId}/process-recordings`, { method: 'GET' }),
+  addProcessRecording: (
+    residentId: number,
+    payload: {
+      sessionDate: string;
+      sessionType: string;
+      socialWorker?: string;
+      emotionalState?: string;
+      narrativeSummary?: string;
+      interventionsApplied?: string;
+      followUpActions?: string;
+    },
+  ) =>
+    apiFetch<{ message: string }>(`/api/caseload/residents/${residentId}/process-recordings`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  homeVisitations: (residentId: number) =>
+    apiFetch<HomeVisitation[]>(`/api/caseload/residents/${residentId}/home-visitations`, { method: 'GET' }),
+  addHomeVisitation: (
+    residentId: number,
+    payload: {
+      visitDate: string;
+      visitType: string;
+      observations?: string;
+      familyCooperationLevel?: string;
+      safetyConcerns?: string;
+      followUpActions?: string;
+    },
+  ) =>
+    apiFetch<{ message: string }>(`/api/caseload/residents/${residentId}/home-visitations`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+};
+
+export const donorsContributionsApi = {
+  dashboard: () =>
+    apiFetch<DonorsContributionsDashboard>('/api/donors-contributions/dashboard', { method: 'GET' }),
 };

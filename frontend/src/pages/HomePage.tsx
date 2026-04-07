@@ -1,10 +1,25 @@
 import { Link } from 'react-router-dom';
-import { useEffect } from 'react';
-import backgroundImage from '../background.jpg';
-import threeSistersImage from '../Three sisters in a sunlit field.png';
-import kateriPortraitImage from '../Kateri Tekakwitha in golden grasses.png';
+import { useEffect, useLayoutEffect } from 'react';
+import backgroundImage from '../background.jpg?format=webp&quality=82&w=1920';
+import threeSistersImage from '../Three sisters in a sunlit field.png?format=webp&quality=82&w=960';
+import kateriPortraitImage from '../Kateri Tekakwitha in golden grasses.png?format=webp&quality=82&w=960';
 
 export function HomePage() {
+  useLayoutEffect(() => {
+    const id = 'preload-kateri-home-bg';
+    if (document.getElementById(id)) return;
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = backgroundImage;
+    link.setAttribute('fetchpriority', 'high');
+    document.head.appendChild(link);
+    return () => {
+      link.remove();
+    };
+  }, [backgroundImage]);
+
   useEffect(() => {
     document.body.classList.add('home-background');
     document.documentElement.style.setProperty('--home-bg-image', `url(${backgroundImage})`);
@@ -65,9 +80,23 @@ export function HomePage() {
               engagement and reintegration planning.
             </li>
           </ul>
+          <div className="hero-actions">
+            <Link className="btn-primary" to="/impact">
+              View Our Impact
+            </Link>
+          </div>
         </article>
         <figure className="sisters-figure">
-          <img src={threeSistersImage} alt="Three sisters sitting together in a sunlit field." />
+          <img
+            src={threeSistersImage}
+            alt="Three sisters sitting together in a sunlit field."
+            width={960}
+            height={540}
+            loading="lazy"
+            decoding="async"
+            sizes="(max-width: 800px) 100vw, min(532px, 50vw)"
+            fetchPriority="low"
+          />
         </figure>
       </div>
 
@@ -75,7 +104,16 @@ export function HomePage() {
 
       <div className="name-grid">
         <figure className="name-figure">
-          <img src={kateriPortraitImage} alt="Portrait of Kateri Tekakwitha in golden grasses." />
+          <img
+            src={kateriPortraitImage}
+            alt="Portrait of Kateri Tekakwitha in golden grasses."
+            width={960}
+            height={540}
+            loading="lazy"
+            decoding="async"
+            sizes="(max-width: 800px) 100vw, min(532px, 50vw)"
+            fetchPriority="low"
+          />
         </figure>
         <article className="feature-slab">
           <h2>Why the name Kateri?</h2>

@@ -1,4 +1,6 @@
-import { Link, Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { useScrollReveal } from './hooks/useScrollReveal';
 import { useAuth } from './auth/useAuth';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
@@ -7,102 +9,140 @@ import { DonorChurnPage } from './pages/DonorChurnPage';
 import { DonorDashboardPage } from './pages/DonorDashboardPage';
 import { DonorsContributionsPage } from './pages/DonorsContributionsPage';
 import { HomePage } from './pages/HomePage';
+import { HomeVisitationPage } from './pages/HomeVisitationPage';
 import { ImpactDashboardPage } from './pages/ImpactDashboardPage';
 import { LoginPage } from './pages/LoginPage';
+import { ProcessRecordingPage } from './pages/ProcessRecordingPage';
 import { ResidentDashboardPage } from './pages/ResidentDashboardPage';
+import { ResidentCasePage } from './pages/ResidentCasePage';
 import { PostPlannerPage } from './pages/PostPlannerPage';
 import { ReportsAnalyticsPage } from './pages/ReportsAnalyticsPage';
-import { SignupPage } from './pages/SignupPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
+import { StaffSidebar } from './components/StaffSidebar';
+
+function ProfileNavIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        fill="currentColor"
+        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+      />
+    </svg>
+  );
+}
 
 function App() {
+  const mainRef = useRef<HTMLElement>(null);
+  const location = useLocation();
+  useScrollReveal(mainRef, location.pathname);
   const { isAuthenticated, logout, roles } = useAuth();
+  const accentNavRoutes = ['/impact', '/donor-dashboard', '/profile'];
+  const useAccentNav = accentNavRoutes.includes(location.pathname);
   const isStaffLike = roles.includes('Admin') || roles.includes('Staff');
   const isDonor = roles.includes('Donor');
   const isResident = roles.includes('Resident');
+  const showStaffSidebar = isAuthenticated && isStaffLike;
+  const [staffSidebarOpen, setStaffSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!showStaffSidebar) {
+      setStaffSidebarOpen(false);
+    }
+  }, [showStaffSidebar]);
+
+  useEffect(() => {
+    setStaffSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!staffSidebarOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setStaffSidebarOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [staffSidebarOpen]);
 
   return (
     <div className="app-shell">
-      <header className="site-header">
+      <header className={`site-header${useAccentNav ? ' site-header--accent-nav' : ''}`}>
         <nav className="top-nav">
           <div className="nav-left">
             <Link className="brand-mark" to="/">
               Kateri
             </Link>
+            {showStaffSidebar && (
+              <button
+                type="button"
+                className="staff-sidebar-toggle"
+                onClick={() => setStaffSidebarOpen((open) => !open)}
+                aria-expanded={staffSidebarOpen}
+                aria-controls="staff-sidebar-panel"
+                title={staffSidebarOpen ? 'Close staff menu' : 'Open staff menu'}
+              >
+                Staff menu
+              </button>
+            )}
           </div>
 
           <div className="nav-right">
             <Link className="nav-link" to="/impact">
-              Impact
+              Our Impact
             </Link>
-            {isStaffLike && (
-              <Link className="nav-link" to="/post-planner">
-                Post Planner
+            {(isDonor || isStaffLike) && (
+              <Link className="nav-link" to="/donor-dashboard">
+                Donor Portal
               </Link>
             )}
-            {isStaffLike && (
-              <Link className="nav-link" to="/donor-churn">
-                Donor Retention
+            {isAuthenticated && isResident && !isStaffLike && (
+              <Link className="nav-link" to="/resident-dashboard">
+                Resident Dashboard
               </Link>
-            )}
-            {isAuthenticated && (
-              <>
-                {roles.includes('Admin') && (
-                  <>
-                    <Link className="nav-link" to="/signup">
-                      Create Accounts
-                    </Link>
-                  </>
-                )}
-                {isStaffLike && (
-                  <>
-                    <Link className="nav-link" to="/admin-dashboard">
-                      Admin Dashboard
-                    </Link>
-                    <Link className="nav-link" to="/donors-contributions">
-                      Donors & Contributions
-                    </Link>
-                    <Link className="nav-link" to="/caseload-inventory">
-                      Caseload Inventory
-                    </Link>
-                    <Link className="nav-link" to="/reports-analytics">
-                      Reports & Analytics
-                    </Link>
-                  </>
-                )}
-                {isDonor && (
-                  <Link className="nav-link" to="/donor-dashboard">
-                    Donor Dashboard
-                  </Link>
-                )}
-                {isResident && (
-                  <Link className="nav-link" to="/resident-dashboard">
-                    Resident Dashboard
-                  </Link>
-                )}
-              </>
             )}
             {!isAuthenticated && (
-              <>
-                <Link className="nav-link signup-link" to="/signup">
-                  Sign Up
-                </Link>
-                <Link className="login-pill" to="/login">
-                  Login
-                </Link>
-              </>
+              <Link className="auth-nav-pill auth-nav-pill--solo-login" to="/login">
+                Login
+              </Link>
             )}
             {isAuthenticated && (
-              <button className="logout-button" onClick={logout}>
-                Logout
-              </button>
+              <div className="auth-nav-pill auth-nav-pill--session" role="group" aria-label="Account menu">
+                <Link className="auth-nav-pill__icon-link" to="/profile" aria-label="Profile settings" title="Profile">
+                  <ProfileNavIcon />
+                </Link>
+                <span className="auth-nav-pill__sep" aria-hidden="true">
+                  |
+                </span>
+                <button type="button" className="auth-nav-pill__logout" onClick={() => void logout()}>
+                  Logout
+                </button>
+              </div>
             )}
           </div>
         </nav>
       </header>
 
-      <main className="page-container">
-        <Routes>
+      <div className="app-body">
+        {showStaffSidebar && (
+          <>
+            <div
+              className={`staff-sidebar-backdrop${staffSidebarOpen ? ' staff-sidebar-backdrop--visible' : ''}`}
+              aria-hidden={!staffSidebarOpen}
+              onClick={() => setStaffSidebarOpen(false)}
+            />
+            <StaffSidebar isOpen={staffSidebarOpen} onClose={() => setStaffSidebarOpen(false)} />
+          </>
+        )}
+        <main ref={mainRef} className="page-container">
+          <Routes>
           <Route path="/" element={<HomePage />} />
           <Route
             path="/post-planner"
@@ -122,12 +162,20 @@ function App() {
             }
           />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/signup" element={<Navigate to="/login" replace />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route
             path="/donor-dashboard"
             element={
-              <ProtectedRoute allowedRoles={['Donor']}>
+              <ProtectedRoute allowedRoles={['Donor', 'Admin', 'Staff']}>
                 <DonorDashboardPage />
               </ProtectedRoute>
             }
@@ -165,6 +213,30 @@ function App() {
             }
           />
           <Route
+            path="/caseload-inventory/:residentId"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <ResidentCasePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/process-recording"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <ProcessRecordingPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/home-visitation"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+                <HomeVisitationPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/reports-analytics"
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
@@ -174,8 +246,9 @@ function App() {
           />
 
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
+          </Routes>
+        </main>
+      </div>
     </div>
   );
 }
