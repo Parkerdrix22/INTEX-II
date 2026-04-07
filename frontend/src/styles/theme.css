@@ -2508,8 +2508,6 @@ input[type='reset']:disabled {
 /* Floating website chat widget */
 .chat-widget {
   position: fixed;
-  right: 1.1rem;
-  bottom: 12rem;
   z-index: 40;
 }
 
@@ -2531,8 +2529,10 @@ input[type='reset']:disabled {
 }
 
 .chat-widget__panel {
-  width: min(380px, calc(100vw - 2.2rem));
-  height: min(520px, calc(100vh - (var(--site-header-height) + 2.2rem)));
+  width: 380px;
+  height: 520px;
+  min-width: 260px;
+  min-height: 300px;
   display: grid;
   grid-template-rows: auto 1fr auto auto;
   border: 1px solid rgba(170, 190, 208, 0.62);
@@ -2542,6 +2542,7 @@ input[type='reset']:disabled {
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 16px 40px rgba(12, 22, 34, 0.26);
   overflow: hidden;
+  resize: both;
 }
 
 .chat-widget__header {
@@ -2550,6 +2551,8 @@ input[type='reset']:disabled {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.85rem 0.9rem 0.75rem;
+  cursor: move;
+  user-select: none;
   border-bottom: 1px solid rgba(170, 190, 208, 0.55);
   background: rgba(56, 95, 130, 0.08);
 }
@@ -2574,6 +2577,7 @@ input[type='reset']:disabled {
   color: var(--text);
   font-size: 1.4rem;
   line-height: 1;
+  cursor: pointer;
   cursor: pointer;
 }
 
