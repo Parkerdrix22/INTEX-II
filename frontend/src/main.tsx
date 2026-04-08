@@ -10,13 +10,13 @@ import './styles/theme.css';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <LanguageProvider>
-        <CookieConsentProvider>
+      <CookieConsentProvider>
+        <LanguageProvider>
           <AuthProvider>
             <App />
           </AuthProvider>
-        </CookieConsentProvider>
-      </LanguageProvider>
+        </LanguageProvider>
+      </CookieConsentProvider>
     </BrowserRouter>
   </StrictMode>,
 );

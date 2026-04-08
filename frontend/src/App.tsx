@@ -34,9 +34,9 @@ import { StaffSidebar } from './components/StaffSidebar';
 import { ChatWidget } from './components/ChatWidget';
 import { LanguageToggle } from './components/LanguageToggle';
 import { useLanguage } from './i18n/LanguageContext';
+import { useCookieConsent } from './context/CookieConsentContext';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { NonBlockingErrorBoundary } from './components/NonBlockingErrorBoundary';
-import { useCookieConsent } from './context/CookieConsentContext';
 
 function ProfileNavIcon({ className }: { className?: string }) {
   return (
@@ -72,6 +72,7 @@ function App() {
   const [staffSidebarOpen, setStaffSidebarOpen] = useState(false);
   const { themePreference, toggleThemePreference, consentChoice } = useCookieConsent();
   const { lang, t } = useLanguage();
+  const canShowLanguageToggle = consentChoice === 'all';
 
   useEffect(() => {
     if (!staffSidebarOpen || !showStaffSidebar) return;
@@ -123,7 +124,7 @@ function App() {
                 {t('nav.residentDashboard')}
               </Link>
             )}
-            <LanguageToggle />
+            {canShowLanguageToggle && <LanguageToggle />}
             {!isAuthenticated && (
               <div className="auth-nav-pill" role="group" aria-label="Authentication">
                 <Link className="auth-nav-pill__link" to="/signup">

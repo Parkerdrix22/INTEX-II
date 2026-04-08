@@ -1,9 +1,8 @@
 import { useLanguage, type Lang } from '../i18n/LanguageContext';
 
-// Two-button segmented control that flips the active language cookie and
-// triggers a re-render of the whole tree via LanguageContext. Lives in the
-// top nav right next to the auth pill. The Diné option carries an unobtrusive
-// "MT" badge as an honest disclosure that translations are machine-generated.
+// Cream pill container with two buttons, active language filled with navy.
+// Modeled after the EN/SPA toggle on intex1.nathanblatter.com but themed
+// with Kateri colors (cream container + navy active state).
 
 export function LanguageToggle() {
   const { lang, setLang, t } = useLanguage();
@@ -13,27 +12,23 @@ export function LanguageToggle() {
   };
 
   return (
-    <div
-      className="lang-toggle"
-      role="group"
-      aria-label={t('common.language.toggleLabel')}
-    >
+    <div className="lang-toggle" role="group" aria-label={t('common.language.toggleLabel')}>
       <button
         type="button"
-        className={`lang-toggle__btn${lang === 'en' ? ' lang-toggle__btn--active' : ''}`}
+        className={`lang-button${lang === 'en' ? ' active' : ''}`}
         aria-pressed={lang === 'en'}
         onClick={() => choose('en')}
       >
-        EN
+        ENG
       </button>
       <button
         type="button"
-        className={`lang-toggle__btn${lang === 'nv' ? ' lang-toggle__btn--active' : ''}`}
+        className={`lang-button${lang === 'nv' ? ' active' : ''}`}
         aria-pressed={lang === 'nv'}
         onClick={() => choose('nv')}
         title={t('common.language.mtDisclaimer')}
       >
-        Diné
+        DIN
       </button>
     </div>
   );

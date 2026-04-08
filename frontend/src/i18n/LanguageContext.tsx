@@ -1,6 +1,7 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import enDict from './en.json';
 import nvDict from './nv.json';
+import { useCookieConsent } from '../context/CookieConsentContext';
 
 // =============================================================================
 // LanguageContext
@@ -12,6 +13,14 @@ import nvDict from './nv.json';
 // IS414 security rubric requirement for a browser-accessible cookie that
 // React reads to change what is rendered. Authentication cookies remain
 // HttpOnly + Secure; only this non-sensitive UI preference is JS-readable.
+//
+// GDPR: the language cookie is classified as an *optional* preference cookie.
+// It is ONLY persisted after the user chooses "Accept all cookies" in the
+// consent banner. Until then the toggle still works in-memory for the
+// current session, but nothing hits document.cookie. Once the user accepts
+// all cookies, the current selection is persisted and read on future visits.
+// If the user later changes consent to "necessary only", the cookie is
+// deleted and the language falls back to the default on next load.
 //
 // Dictionaries are static JSON imported at build time. A Claude-backed script
 // (scripts/translate-nv.mjs) regenerates nv.json from en.json offline.
@@ -59,6 +68,11 @@ function writeLangCookie(lang: Lang) {
   document.cookie = `${LANG_COOKIE_NAME}=${lang}; Max-Age=${LANG_COOKIE_MAX_AGE}; Path=/; SameSite=Lax`;
 }
 
+function deleteLangCookie() {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${LANG_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`;
+}
+
 function readInitialLang(): Lang {
   const fromCookie = readCookieValue(LANG_COOKIE_NAME);
   if (fromCookie && SUPPORTED.includes(fromCookie as Lang)) {
@@ -102,6 +116,20 @@ function interpolate(template: string, vars?: Record<string, string | number>): 
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(readInitialLang);
+  const { consentChoice } = useCookieConsent();
+  const allowPersist = consentChoice === 'all';
+
+  // When the user's consent state changes, reconcile the cookie:
+  //   - Upgraded to "all" → persist the current in-memory language
+  //   - Downgraded or revoked → delete the cookie (optional data should
+  //     not linger after the user says "necessary only")
+  useEffect(() => {
+    if (allowPersist) {
+      writeLangCookie(lang);
+    } else {
+      deleteLangCookie();
+    }
+  }, [allowPersist, lang]);
 
   const value = useMemo<LanguageValue>(
     () => ({
@@ -109,7 +137,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       isMachineTranslated: lang === 'nv',
       setLang: (next: Lang) => {
         if (!SUPPORTED.includes(next)) return;
-        writeLangCookie(next);
+        // Only write the cookie if the user has accepted optional cookies.
+        // Otherwise the preference lives in memory for the current session
+        // only, which is the GDPR-compliant default.
+        if (allowPersist) {
+          writeLangCookie(next);
+        }
         setLangState(next);
       },
       t: (key: string, vars?: Record<string, string | number>) => {
@@ -130,7 +163,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         return key;
       },
     }),
-    [lang],
+    [lang, allowPersist],
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
