@@ -288,7 +288,7 @@ export function DonorArchetypePage() {
             <p>How the donor base breaks down by archetype</p>
           </header>
           <div className="archetype-chart-wrap">
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" debounce={1} height={260}>
               <PieChart>
                 <Pie
                   data={distributionData}
@@ -580,6 +580,7 @@ function DonorRow({
                 <div className="archetype-chart-wrap archetype-chart-wrap--bar">
                   <ResponsiveContainer
                     width="100%"
+                    debounce={1}
                     height={Math.max(160, detail.distanceToOtherCentroids.length * 42)}
                   >
                     <BarChart

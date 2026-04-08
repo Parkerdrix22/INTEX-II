@@ -368,7 +368,7 @@ export function CaseResolutionPage() {
         <div className="cres-distribution-card">
           <h3 className="cres-distribution-title">Resolution distribution</h3>
           {distribution.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" debounce={1} height={200}>
               <PieChart>
                 <Pie
                   data={distribution}
@@ -721,7 +721,7 @@ function ResidentDetail({
         <div className="cres-detail-chart">
           <h4 className="cres-detail-chart-title">Feature contributions</h4>
           {contributionData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" debounce={1} height={220}>
               <BarChart
                 data={contributionData}
                 layout="vertical"
