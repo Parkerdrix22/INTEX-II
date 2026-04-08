@@ -2118,50 +2118,60 @@ a.auth-nav-pill--solo-login:focus-visible {
   text-align: center;
 }
 
-/* ── Language toggle (EN / Diné) ──────────────────────────────────────
-   Reuses the .auth-nav-pill chrome so it sits flush next to the
-   Sign up | Login (or Profile | Logout) pill in the nav bar — same
-   navy background, white text, "|" separator. The active language
-   is full opacity; the inactive is dimmed. Uses underline to make
-   the active state unambiguous. */
-.lang-toggle-pill {
-  gap: 0.5rem;
-  padding: 0.38rem 0.85rem;
+/* ── Language toggle (ENG / DIN) ──────────────────────────────────────
+   Cream container + navy active state, modeled after the EN/SPA toggle
+   on intex1.nathanblatter.com but themed with Kateri colors. */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  background: #fdf8ec;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 4px rgba(31, 47, 63, 0.1);
+  border: 1px solid rgba(56, 95, 130, 0.18);
 }
 
-.lang-toggle-pill__btn {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  opacity: 0.55;
-  transition: opacity 0.15s ease;
-  padding: 0;
+.lang-button {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: #1e2c3a;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.4rem 0.65rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  line-height: 1;
 }
 
-.lang-toggle-pill__btn:hover {
-  opacity: 0.85;
+.lang-button:hover:not(.active) {
+  background: rgba(56, 95, 130, 0.08);
+  transform: scale(1.05);
 }
 
-.lang-toggle-pill__btn--active {
-  opacity: 1;
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
-  text-decoration-color: rgba(253, 248, 236, 0.9);
+.lang-button.active {
+  background: #385f82;
+  color: #fdf8ec;
+  box-shadow: 0 0 0 2px rgba(56, 95, 130, 0.25);
 }
 
-.lang-toggle-pill__btn:focus-visible {
-  outline: 2px solid currentColor;
+.lang-button:focus-visible {
+  outline: 2px solid #c9983f;
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
 @media (max-width: 640px) {
-  .lang-toggle-pill {
-    padding: 0.3rem 0.7rem;
-    gap: 0.4rem;
+  .lang-toggle {
+    padding: 0.2rem;
+    gap: 0.25rem;
   }
-  .lang-toggle-pill__btn {
-    font-size: 0.85rem;
+  .lang-button {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.72rem;
   }
 }
 
