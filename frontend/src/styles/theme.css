@@ -2126,11 +2126,8 @@ a.auth-nav-pill--solo-login:focus-visible {
   border: none;
   border-radius: 999px;
   padding: 3px;
-  background: rgba(255, 253, 247, 0.9);
-  box-shadow:
-    0 1px 4px rgba(31, 47, 63, 0.13),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(4px);
+  background: transparent;
+  box-shadow: none;
 }
 
 .lang-toggle__btn {
