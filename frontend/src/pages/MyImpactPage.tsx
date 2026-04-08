@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import './DonorImpactPage.css';
 import './MyImpactPage.css';
+import { useAuth } from '../auth/useAuth';
 
 // =============================================================================
 // API types — match the C# DonorImpactController DTOs
@@ -137,6 +138,8 @@ function prettyVar(v: string): string {
 // =============================================================================
 
 export function MyImpactPage() {
+  const { isLoading: authLoading, roles } = useAuth();
+  const canViewModelContext = roles.includes('Admin') || roles.includes('Staff');
   const [report, setReport] = useState<DonorImpactReport | null>(null);
   const [research, setResearch] = useState<ResearchContext | null>(null);
   const [modelInfo, setModelInfo] = useState<ImpactModelInfo | null>(null);
@@ -145,13 +148,13 @@ export function MyImpactPage() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     const load = async () => {
       try {
-        const [reportRes, researchRes, infoRes] = await Promise.all([
-          fetch('/api/donor-impact/me', { credentials: 'include' }),
-          fetch('/api/donor-impact/research-context', { credentials: 'include' }),
-          fetch('/api/donor-impact/model-info', { credentials: 'include' }),
-        ]);
+        const reportRes = await fetch('/api/donor-impact/me', { credentials: 'include' });
         if (!reportRes.ok) {
           const text = await reportRes.text().catch(() => '');
           throw new Error(
@@ -162,15 +165,31 @@ export function MyImpactPage() {
         }
         const data: DonorImpactReport = await reportRes.json();
         setReport(data);
-        if (researchRes.ok) {
-          const researchData = await researchRes.json();
-          if (!researchData?.available || researchData.health) {
-            setResearch(researchData);
+
+        if (canViewModelContext) {
+          const [researchRes, infoRes] = await Promise.all([
+            fetch('/api/donor-impact/research-context', { credentials: 'include' }),
+            fetch('/api/donor-impact/model-info', { credentials: 'include' }),
+          ]);
+
+          if (researchRes.ok) {
+            const researchData = await researchRes.json();
+            if (!researchData?.available || researchData.health) {
+              setResearch(researchData);
+            }
+          } else {
+            setResearch(null);
           }
-        }
-        if (infoRes.ok) {
-          const info: ImpactModelInfo = await infoRes.json();
-          setModelInfo(info);
+
+          if (infoRes.ok) {
+            const info: ImpactModelInfo = await infoRes.json();
+            setModelInfo(info);
+          } else {
+            setModelInfo(null);
+          }
+        } else {
+          setResearch(null);
+          setModelInfo(null);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
@@ -180,7 +199,7 @@ export function MyImpactPage() {
       }
     };
     load();
-  }, []);
+  }, [authLoading, canViewModelContext]);
 
   const significantHealthFindings = useMemo(() => {
     if (!research?.health) return [];
