@@ -1963,6 +1963,22 @@ a.auth-nav-pill--solo-login:focus-visible {
   border-left: 3px solid rgba(56, 95, 130, 0.35);
 }
 
+/* Large-gift confirmation modal (donor dashboard) */
+.large-gift-modal {
+  max-width: 34rem;
+}
+
+.large-gift-modal__list {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.2rem;
+  color: rgba(30, 44, 58, 0.85);
+  line-height: 1.55;
+}
+
+.large-gift-modal__list li {
+  margin-bottom: 0.35rem;
+}
+
 .caseload-pagination {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

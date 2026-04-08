@@ -142,6 +142,23 @@ export function DonorDashboardPage() {
   const [donationError, setDonationError] = useState<string | null>(null);
   const [allocationPlan, setAllocationPlan] = useState<AllocationPlan | null>(null);
   const [valuation, setValuation] = useState<DonationValuation | null>(null);
+  const [showLargeGiftModal, setShowLargeGiftModal] = useState(false);
+
+  // Per-donation cap. Anything over this requires a human conversation because
+  // the allocation logic and tax/compliance paperwork work differently for
+  // gifts at that scale. The values below are tuned so that in every donation
+  // type the cap represents roughly \$5M of estimated value:
+  //   Monetary / InKind: 5,000,000 USD directly
+  //   Time:              149,299 hours × $33.49/hr ≈ $5M
+  //   Skills:            500,000 hours (median skills rate ≈ $11.51 ≈ $5.75M)
+  //   SocialMedia:       100,000 campaigns (any higher clearly warrants review)
+  const LARGE_GIFT_CAPS: Record<DonationTypeKey, number> = {
+    Monetary: 5_000_000,
+    InKind: 5_000_000,
+    Time: 149_299,
+    Skills: 500_000,
+    SocialMedia: 100_000,
+  };
 
   // Pre-fill the amount with a sensible default whenever the type changes
   // (e.g. switching to Time pre-fills "5", switching to Monetary pre-fills "100").
@@ -228,6 +245,15 @@ export function DonorDashboardPage() {
     const numericAmount = Number.parseFloat(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       setDonationError('Please enter a valid donation amount.');
+      setDonationSubmitting(false);
+      return;
+    }
+
+    // Cap individual gifts at roughly $5M of estimated value. Anything
+    // bigger needs a staff conversation (tax paperwork, compliance review,
+    // custom allocation decisions).
+    if (numericAmount > LARGE_GIFT_CAPS[donationType]) {
+      setShowLargeGiftModal(true);
       setDonationSubmitting(false);
       return;
     }
@@ -629,6 +655,7 @@ export function DonorDashboardPage() {
                 <input
                   required
                   min={1}
+                  max={LARGE_GIFT_CAPS[donationType]}
                   step={donationType === 'Monetary' ? '0.01' : '1'}
                   type="number"
                   value={amount}
@@ -895,6 +922,66 @@ export function DonorDashboardPage() {
           </form>
         </article>
       </div>
+
+      {showLargeGiftModal && (
+        <div
+          className="resident-modal-backdrop"
+          role="presentation"
+          onClick={() => setShowLargeGiftModal(false)}
+        >
+          <article
+            className="resident-modal-card large-gift-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="large-gift-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="record-detail-card__header">
+              <p className="record-detail-card__eyebrow">Let&apos;s talk — this is a big gift</p>
+              <h2 id="large-gift-modal-title">Please contact a staff member</h2>
+            </header>
+
+            <p className="auth-lead">
+              Thank you for your extraordinary generosity. Individual donations above{' '}
+              <strong>
+                {donationType === 'Monetary' || donationType === 'InKind'
+                  ? money.format(LARGE_GIFT_CAPS[donationType])
+                  : `${LARGE_GIFT_CAPS[donationType].toLocaleString()} ${typeConfig.unitNoun}`}
+              </strong>{' '}
+              need a quick conversation with our team first. This lets us:
+            </p>
+            <ul className="large-gift-modal__list">
+              <li>Handle the tax-deduction paperwork correctly for a gift of this size</li>
+              <li>
+                Discuss which program areas or safehouses you&apos;d like your gift to support,
+                rather than relying on the automatic allocation
+              </li>
+              <li>
+                Ensure the gift clears our compliance review — required for all gifts above the
+                federal reporting threshold
+              </li>
+            </ul>
+
+            <p className="auth-lead">
+              Please email us at{' '}
+              <a href="mailto:giving@kateri.byuisresearch.com">giving@kateri.byuisresearch.com</a>{' '}
+              and we&apos;ll be in touch within one business day. If you&apos;d rather not wait,
+              you can also submit a smaller gift now and we&apos;ll handle the remainder after we
+              talk.
+            </p>
+
+            <div className="resident-modal-actions">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => setShowLargeGiftModal(false)}
+              >
+                Got it, I&apos;ll reach out
+              </button>
+            </div>
+          </article>
+        </div>
+      )}
     </section>
   );
 }
