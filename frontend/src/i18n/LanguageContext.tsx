@@ -124,7 +124,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         if (fallback !== undefined) return interpolate(fallback, vars);
 
         if (import.meta.env.DEV) {
-          // eslint-disable-next-line no-console
           console.warn(`[i18n] missing key: ${key}`);
           return `⟨${key}⟩`;
         }

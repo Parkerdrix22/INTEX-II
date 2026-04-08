@@ -198,7 +198,7 @@ export function DonorImpactPage() {
       }
     };
     load();
-  }, []);
+  }, [t]);
 
   // ── Load report when donor selection changes ──────────────────────────
   useEffect(() => {
@@ -219,7 +219,7 @@ export function DonorImpactPage() {
       }
     };
     loadReport();
-  }, [selectedId]);
+  }, [selectedId, t]);
 
   const filteredDonors = useMemo(
     () =>

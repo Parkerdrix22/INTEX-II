@@ -3,8 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 const consentCookieName = 'kateri_cookie_consent';
 const themeCookieName = 'kateri_theme_pref';
 const consentMaxAgeSeconds = 60 * 60 * 24 * 365;
-const themeOptions = ['light', 'dark'] as const;
-type ThemePreference = (typeof themeOptions)[number];
+type ThemePreference = 'light' | 'dark';
 
 type CookieConsentValue = {
   hasAcknowledgedConsent: boolean;
