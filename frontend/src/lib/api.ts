@@ -420,6 +420,11 @@ export const authApi = {
     apiFetch<TwoFactorRegenerateResponse>('/api/auth/2fa/recovery-codes/regenerate', {
       method: 'POST',
     }),
+  changeEmail: (newEmail: string, currentPassword: string) =>
+    apiFetch<{ message: string; email: string }>('/api/auth/change-email', {
+      method: 'POST',
+      body: JSON.stringify({ newEmail, currentPassword }),
+    }),
 };
 
 export type DonorAccountRow = {

@@ -255,6 +255,76 @@ public class AuthController(
             });
     }
 
+    [HttpPost("change-email")]
+    [Authorize]
+    public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest request)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user is null)
+        {
+            return Unauthorized(new { message = "User session is invalid." });
+        }
+
+        var newEmail = request.NewEmail.Trim();
+
+        var passwordCheck = await signInManager.CheckPasswordSignInAsync(user, request.CurrentPassword, lockoutOnFailure: false);
+        if (!passwordCheck.Succeeded)
+        {
+            return BadRequest(new { message = "Current password is incorrect." });
+        }
+
+        var normalizedNew = newEmail.ToLowerInvariant();
+        var duplicate = await userManager.Users.AnyAsync(u => u.Id != user.Id && u.Email != null && u.Email.ToLower() == normalizedNew);
+        if (duplicate)
+        {
+            return Conflict(new { message = "Another account already uses this email address." });
+        }
+
+        // If the login id (UserName) was set to the old email, update it to match.
+        var oldEmail = user.Email ?? string.Empty;
+        if (string.Equals(user.UserName, oldEmail, StringComparison.OrdinalIgnoreCase))
+        {
+            user.UserName = newEmail;
+        }
+
+        user.Email = newEmail;
+
+        // Sync linked profile rows.
+        if (user.SupporterId.HasValue)
+        {
+            var supporter = await dbContext.Supporters.FindAsync(user.SupporterId.Value);
+            if (supporter is not null)
+            {
+                supporter.Email = newEmail;
+            }
+        }
+
+        if (user.StaffMemberId.HasValue)
+        {
+            var staffMember = await dbContext.StaffMembers.FindAsync(user.StaffMemberId.Value);
+            if (staffMember is not null)
+            {
+                staffMember.Email = newEmail;
+            }
+        }
+
+        await dbContext.SaveChangesAsync();
+
+        UserAccountIdentityHelper.EnsureIdentityStamps(user);
+        var updateResult = await userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            return BadRequest(new { message = string.Join(" ", updateResult.Errors.Select(e => e.Description)) });
+        }
+
+        // Re-issue the cookie so the email claim is immediately up to date.
+        var auth = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        var persistent = auth.Properties?.IsPersistent == true;
+        await SignInWithAppCookieAsync(user, persistent);
+
+        return Ok(new { message = "Email updated successfully.", email = newEmail });
+    }
+
     /// <summary>Re-issues the auth cookie from the database so role and 2FA claims match current user rows.</summary>
     [HttpPost("reissue-session")]
     [Authorize]
@@ -880,6 +950,16 @@ public class AuthController(
 }
 
 public readonly record struct TwoFactorChallengeState(int UserId, bool RememberMe, DateTimeOffset ExpiresAt);
+
+public class ChangeEmailRequest
+{
+    [Required]
+    [EmailAddress]
+    public string NewEmail { get; set; } = string.Empty;
+
+    [Required]
+    public string CurrentPassword { get; set; } = string.Empty;
+}
 
 public class LoginRequest
 {
