@@ -11,6 +11,7 @@ import { DonorArchetypePage } from './pages/DonorArchetypePage';
 import { DonorChurnPage } from './pages/DonorChurnPage';
 import { DonorDashboardPage } from './pages/DonorDashboardPage';
 import { DonorImpactPage } from './pages/DonorImpactPage';
+import { MyImpactPage } from './pages/MyImpactPage';
 import { DonorsContributionsPage } from './pages/DonorsContributionsPage';
 import { SupporterDonationsPage } from './pages/SupporterDonationsPage';
 import { HomePage } from './pages/HomePage';
@@ -61,8 +62,6 @@ function App() {
     !isLoading &&
     (roles.includes('Admin') || roles.includes('Staff')) &&
     !twoFactorEnabled;
-  const accentNavRoutes = ['/impact', '/donor-dashboard', '/profile'];
-  const useAccentNav = accentNavRoutes.includes(location.pathname);
   const isStaffLike = roles.includes('Admin') || roles.includes('Staff');
   const isDonor = roles.includes('Donor');
   const isResident = roles.includes('Resident');
@@ -82,7 +81,7 @@ function App() {
 
   return (
     <div className="app-shell">
-      <header className={`site-header${useAccentNav ? ' site-header--accent-nav' : ''}`}>
+      <header className="site-header">
         <nav className="top-nav">
           <div className="nav-left">
             <Link className="brand-mark" to="/">
@@ -205,6 +204,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Donor']}>
                 <DonorImpactPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-impact"
+            element={
+              <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Donor']}>
+                <MyImpactPage />
               </ProtectedRoute>
             }
           />

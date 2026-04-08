@@ -30,6 +30,13 @@ export function ProfilePage() {
   const [phone, setPhone] = useState(profile.phone);
   const [notes, setNotes] = useState(profile.notes);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [usernameDraft, setUsernameDraft] = useState(username ?? '');
+  const [usernamePassword, setUsernamePassword] = useState('');
+  const usernameChanged = usernameDraft.trim() !== (username ?? '');
+  const [emailDraft, setEmailDraft] = useState(email ?? '');
+  const [emailPassword, setEmailPassword] = useState('');
+  const emailChanged = emailDraft.trim() !== (email ?? '');
   const [setupKey, setSetupKey] = useState<string | null>(null);
   const [setupUri, setSetupUri] = useState<string | null>(null);
   const [setupCode, setSetupCode] = useState('');
@@ -46,6 +53,14 @@ export function ProfilePage() {
     });
     return () => window.cancelAnimationFrame(raf);
   }, [profile.displayName, profile.phone, profile.notes]);
+
+  useEffect(() => {
+    setUsernameDraft(username ?? '');
+  }, [username]);
+
+  useEffect(() => {
+    setEmailDraft(email ?? '');
+  }, [email]);
 
   useEffect(() => {
     if (setupHintFromUrl.current) {
@@ -101,8 +116,32 @@ export function ProfilePage() {
     };
   }, [setupUri, twoFactorEnabled]);
 
-  const onSubmit = (event: FormEvent) => {
+  const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    setSaveError(null);
+
+    if (usernameChanged) {
+      try {
+        await authApi.changeUsername(usernameDraft.trim(), usernamePassword);
+        await refreshSession();
+        setUsernamePassword('');
+      } catch (err) {
+        setSaveError(err instanceof Error ? err.message : 'Failed to update username.');
+        return;
+      }
+    }
+
+    if (emailChanged) {
+      try {
+        await authApi.changeEmail(emailDraft.trim(), emailPassword);
+        await refreshSession();
+        setEmailPassword('');
+      } catch (err) {
+        setSaveError(err instanceof Error ? err.message : 'Failed to update email.');
+        return;
+      }
+    }
+
     updateProfile({ displayName: displayName.trim(), phone: phone.trim(), notes: notes.trim() });
     setSaved(true);
     window.setTimeout(() => setSaved(false), 3200);
@@ -202,10 +241,10 @@ export function ProfilePage() {
       <article className="auth-card profile-form-card" id="profile-form">
         <h2>Profile information</h2>
         <p className="auth-lead">
-          Changes are saved on this device and applied across the app for your account. Your account name and
-          email come from your login and are not editable here yet.
+          Changes are saved on this device and applied across the app for your account. Your first name and last name
+          come from your login and are not editable here.
         </p>
-        <form onSubmit={onSubmit}>
+        <form onSubmit={(e) => void onSubmit(e)}>
           <label>
             Display name
             <input
@@ -237,19 +276,52 @@ export function ProfilePage() {
             />
           </label>
           <label>
-            Email (read-only)
-            <input type="email" value={email ?? ''} readOnly disabled className="profile-field--readonly" />
-          </label>
-          <label>
-            Sign-in id (read-only)
+            Sign-in ID (username)
             <input
               type="text"
-              value={username ?? ''}
-              readOnly
-              disabled
-              className="profile-field--readonly"
+              autoComplete="username"
+              placeholder="username or email"
+              value={usernameDraft}
+              onChange={(e) => setUsernameDraft(e.target.value)}
+            />
+            <span className="field-helper-text">Letters, numbers, and . _ @ + - only. You can also sign in with your email.</span>
+          </label>
+          {usernameChanged && (
+            <label>
+              Current password (required to change sign-in ID)
+              <input
+                type="password"
+                required
+                autoComplete="current-password"
+                placeholder="Your current password"
+                value={usernamePassword}
+                onChange={(e) => setUsernamePassword(e.target.value)}
+              />
+            </label>
+          )}
+          <label>
+            Email
+            <input
+              type="email"
+              autoComplete="email"
+              placeholder="your@email.com"
+              value={emailDraft}
+              onChange={(e) => setEmailDraft(e.target.value)}
             />
           </label>
+          {emailChanged && (
+            <label>
+              Current password (required to change email)
+              <input
+                type="password"
+                required
+                autoComplete="current-password"
+                placeholder="Your current password"
+                value={emailPassword}
+                onChange={(e) => setEmailPassword(e.target.value)}
+              />
+            </label>
+          )}
           <label>
             Phone
             <input
@@ -275,7 +347,12 @@ export function ProfilePage() {
             />
           </label>
           <button type="submit">Save profile</button>
-          {saved && <p className="profile-save-hint">Profile saved.</p>}
+          {saved && (
+            <p className="profile-save-hint">
+              {usernameChanged || emailChanged ? 'Profile and account details saved.' : 'Profile saved.'}
+            </p>
+          )}
+          {saveError && <p className="error-text">{saveError}</p>}
         </form>
       </article>
 

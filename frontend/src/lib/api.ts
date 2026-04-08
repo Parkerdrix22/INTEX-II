@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL?.trim() ?? '').replace(/\/+$/, '');
 
 type MeResponse = {
   isAuthenticated: boolean;
@@ -108,6 +108,37 @@ export type HomeVisitation = {
   followUpNeeded: boolean | null;
   followUpNotes: string | null;
   visitOutcome: string | null;
+};
+
+// Lean summary rows returned by the cross-resident list endpoints. Used by
+// the standalone /process-recording and /home-visitation staff pages.
+export type ProcessRecordingSummary = {
+  recordKey: string;
+  residentId: number;
+  residentLabel: string;
+  caseStatus: string | null;
+  sessionDate: string;
+  socialWorker: string | null;
+  sessionType: string;
+  emotionalStateObserved: string | null;
+  concernsFlagged: boolean | null;
+  progressNoted: boolean | null;
+  narrativePreview: string | null;
+};
+
+export type HomeVisitationSummary = {
+  recordKey: string;
+  residentId: number;
+  residentLabel: string;
+  caseStatus: string | null;
+  visitDate: string;
+  socialWorker: string | null;
+  visitType: string;
+  familyCooperationLevel: string | null;
+  safetyConcernsNoted: boolean | null;
+  followUpNeeded: boolean | null;
+  visitOutcome: string | null;
+  observationsPreview: string | null;
 };
 
 export type IncidentReport = {
@@ -284,14 +315,28 @@ export type ReportsAnalyticsDashboard = {
 };
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers ?? {}),
-    },
-  });
+  const requestUrl = `${API_BASE_URL}${path}`;
+  let response: Response;
+
+  try {
+    response = await fetch(requestUrl, {
+      ...init,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(init?.headers ?? {}),
+      },
+    });
+  } catch (error) {
+    if (error instanceof TypeError) {
+      const endpointHint = API_BASE_URL.length > 0 ? API_BASE_URL : 'this website';
+      throw new Error(
+        `Unable to reach the server at ${endpointHint}. If you are running locally, start the API and try again.`,
+      );
+    }
+
+    throw error;
+  }
 
   if (!response.ok) {
     const fallback = `Request failed with status ${response.status}`;
@@ -340,6 +385,42 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   } catch {
     throw new Error('Received invalid JSON response from server.');
   }
+}
+
+async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
+  const requestUrl = `${API_BASE_URL}${path}`;
+  let response: Response;
+  try {
+    response = await fetch(requestUrl, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+  } catch (error) {
+    if (error instanceof TypeError) {
+      const endpointHint = API_BASE_URL.length > 0 ? API_BASE_URL : 'this website';
+      throw new Error(
+        `Unable to reach the server at ${endpointHint}. If you are running locally, start the API and try again.`,
+      );
+    }
+    throw error;
+  }
+
+  if (!response.ok) {
+    const fallback = `Request failed with status ${response.status}`;
+    let message = fallback;
+    try {
+      const data = (await response.json()) as { message?: string; title?: string; detail?: string };
+      message = data.message ?? data.detail ?? data.title ?? fallback;
+    } catch {
+      message = fallback;
+    }
+    throw new Error(message);
+  }
+
+  const raw = await response.text();
+  if (!raw.trim()) return {} as T;
+  return JSON.parse(raw) as T;
 }
 
 export const authApi = {
@@ -405,6 +486,16 @@ export const authApi = {
   twoFactorRecoveryCodesRegenerate: () =>
     apiFetch<TwoFactorRegenerateResponse>('/api/auth/2fa/recovery-codes/regenerate', {
       method: 'POST',
+    }),
+  changeUsername: (newUsername: string, currentPassword: string) =>
+    apiFetch<{ message: string; username: string }>('/api/auth/change-username', {
+      method: 'POST',
+      body: JSON.stringify({ newUsername, currentPassword }),
+    }),
+  changeEmail: (newEmail: string, currentPassword: string) =>
+    apiFetch<{ message: string; email: string }>('/api/auth/change-email', {
+      method: 'POST',
+      body: JSON.stringify({ newEmail, currentPassword }),
     }),
 };
 
@@ -539,6 +630,12 @@ export const caseloadApi = {
     apiFetch<{ message: string }>(`/api/caseload/residents/${residentId}`, {
       method: 'DELETE',
     }),
+  // Cross-resident list — powers the standalone /process-recording page.
+  listAllProcessRecordings: () =>
+    apiFetch<ProcessRecordingSummary[]>(`/api/caseload/process-recordings`, { method: 'GET' }),
+  // Cross-resident list — powers the standalone /home-visitation page.
+  listAllHomeVisitations: () =>
+    apiFetch<HomeVisitationSummary[]>(`/api/caseload/home-visitations`, { method: 'GET' }),
   processRecordings: (residentId: number) =>
     apiFetch<ProcessRecording[]>(`/api/caseload/residents/${residentId}/process-recordings`, { method: 'GET' }),
   addProcessRecording: (
@@ -836,9 +933,19 @@ export type AllocationPlan = {
   safehouseAllocations: SafehouseAllocation[];
 };
 
+export type DonationValuation = {
+  canonicalType: string;   // Monetary | Time | Skills | InKind | SocialMedia
+  impactUnit: string;      // hours | items | campaigns | USD
+  rawAmount: number;       // what the donor typed
+  estimatedValue: number;  // computed dollar equivalent
+  ratePerUnit: number;     // multiplier used
+  rateSource: string;      // human-readable source
+};
+
 export type CreateDonationResponse = {
   message: string;
   donationId: number;
+  valuation: DonationValuation;
   allocation: AllocationPlan;
 };
 
@@ -947,6 +1054,23 @@ export const donorImpactApi = {
 export const reportsAnalyticsApi = {
   dashboard: () =>
     apiFetch<ReportsAnalyticsDashboard>('/api/reports-analytics/dashboard', { method: 'GET' }),
+  annualReportInfo: () =>
+    apiFetch<{
+      exists: boolean;
+      downloadUrl: string | null;
+      updatedAtUtc: string | null;
+      fileSizeBytes: number;
+    }>('/api/reports-analytics/annual-report', { method: 'GET' }),
+  uploadAnnualReport: (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return apiUpload<{
+      message: string;
+      downloadUrl: string;
+      updatedAtUtc: string;
+      fileSizeBytes: number;
+    }>('/api/reports-analytics/annual-report', form);
+  },
 };
 
 export const publicApi = {

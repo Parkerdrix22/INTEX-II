@@ -8,9 +8,53 @@ import {
   donorVolunteerApi,
   PROGRAM_AREAS,
   type AllocationPlan,
+  type DonationValuation,
   type DonorImpactReport,
   type ProgramArea,
 } from '../lib/api';
+
+type DonationTypeKey = 'Monetary' | 'InKind' | 'Time' | 'Skills' | 'SocialMedia';
+
+// Per-type form configuration. Drives the Amount field label, the inline
+// helper text, and the conversion footnote in the success card. Backend
+// applies the same rates server-side; this is purely for the donor's UX.
+const DONATION_TYPE_CONFIG: Record<DonationTypeKey, {
+  amountLabel: string;
+  helperText: string;
+  unitNoun: string;
+  defaultAmount: string;
+}> = {
+  Monetary: {
+    amountLabel: 'Amount (USD)',
+    helperText: 'Enter the dollar amount you\u2019d like to give.',
+    unitNoun: 'dollars',
+    defaultAmount: '100',
+  },
+  Time: {
+    amountLabel: 'Hours volunteered',
+    helperText: 'Each volunteer hour is valued at $33.49 (Independent Sector\u2019s 2024 standard rate).',
+    unitNoun: 'hours',
+    defaultAmount: '5',
+  },
+  Skills: {
+    amountLabel: 'Hours of skilled volunteer work',
+    helperText: 'Skilled hours (accounting, legal, design, IT) are valued at the median historical rate from our records.',
+    unitNoun: 'hours',
+    defaultAmount: '3',
+  },
+  InKind: {
+    amountLabel: 'Estimated value of donated items (USD)',
+    helperText: 'Enter the fair market value of what you\u2019re donating (e.g. $200 for $200 worth of school supplies).',
+    unitNoun: 'dollars',
+    defaultAmount: '250',
+  },
+  SocialMedia: {
+    amountLabel: 'Number of campaigns or posts',
+    helperText: 'Each social media campaign is valued at the median historical rate from our records.',
+    unitNoun: 'campaigns',
+    defaultAmount: '1',
+  },
+};
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
@@ -82,7 +126,7 @@ function formatWelcomeName(raw: string | null): string | null {
 }
 
 export function DonorDashboardPage() {
-  const { effectiveDisplayName, firstName, lastName, email, effectivePhone } = useAuth();
+  const { effectiveDisplayName, firstName, lastName } = useAuth();
   const welcomeName = formatWelcomeName(effectiveDisplayName);
 
   const accountVolunteerName = useMemo(() => {
@@ -91,11 +135,42 @@ export function DonorDashboardPage() {
   }, [firstName, lastName]);
 
   const [amount, setAmount] = useState('100');
-  const [currency, setCurrency] = useState<'USD' | 'PHP'>('USD');
+  const [donationType, setDonationType] = useState<DonationTypeKey>('Monetary');
+  const currency = 'USD';
   const [programArea, setProgramArea] = useState<ProgramArea>('Education');
   const [donationSuccess, setDonationSuccess] = useState<string | null>(null);
   const [donationError, setDonationError] = useState<string | null>(null);
   const [allocationPlan, setAllocationPlan] = useState<AllocationPlan | null>(null);
+  const [valuation, setValuation] = useState<DonationValuation | null>(null);
+  const [showLargeGiftModal, setShowLargeGiftModal] = useState(false);
+
+  // Per-donation cap. Anything over this requires a human conversation because
+  // the allocation logic and tax/compliance paperwork work differently for
+  // gifts at that scale. The values below are tuned so that in every donation
+  // type the cap represents roughly \$5M of estimated value:
+  //   Monetary / InKind: 5,000,000 USD directly
+  //   Time:              149,299 hours × $33.49/hr ≈ $5M
+  //   Skills:            500,000 hours (median skills rate ≈ $11.51 ≈ $5.75M)
+  //   SocialMedia:       100,000 campaigns (any higher clearly warrants review)
+  const LARGE_GIFT_CAPS: Record<DonationTypeKey, number> = {
+    Monetary: 5_000_000,
+    InKind: 5_000_000,
+    Time: 149_299,
+    Skills: 500_000,
+    SocialMedia: 100_000,
+  };
+
+  // Pre-fill the amount with a sensible default whenever the type changes
+  // (e.g. switching to Time pre-fills "5", switching to Monetary pre-fills "100").
+  // Skipped if the donor has already typed something custom.
+  const lastAutoFilledType = useMemo(() => ({ value: donationType }), []);
+  useEffect(() => {
+    if (lastAutoFilledType.value === donationType) return;
+    setAmount(DONATION_TYPE_CONFIG[donationType].defaultAmount);
+    lastAutoFilledType.value = donationType;
+  }, [donationType, lastAutoFilledType]);
+
+  const typeConfig = DONATION_TYPE_CONFIG[donationType];
   const [donationSubmitting, setDonationSubmitting] = useState(false);
 
   const [goodsItemName, setGoodsItemName] = useState('');
@@ -164,6 +239,7 @@ export function DonorDashboardPage() {
     setDonationError(null);
     setDonationSuccess(null);
     setAllocationPlan(null);
+    setValuation(null);
     setDonationSubmitting(true);
 
     const numericAmount = Number.parseFloat(amount);
@@ -173,8 +249,17 @@ export function DonorDashboardPage() {
       return;
     }
 
+    // Cap individual gifts at roughly $5M of estimated value. Anything
+    // bigger needs a staff conversation (tax paperwork, compliance review,
+    // custom allocation decisions).
+    if (numericAmount > LARGE_GIFT_CAPS[donationType]) {
+      setShowLargeGiftModal(true);
+      setDonationSubmitting(false);
+      return;
+    }
+
     const confirmed = window.confirm(
-      `Confirm monetary donation of ${money.format(numericAmount)} (${currency})?`,
+      `Confirm ${donationType} donation of ${numericAmount} ${typeConfig.unitNoun}?`,
     );
     if (!confirmed) {
       setDonationSubmitting(false);
@@ -184,7 +269,7 @@ export function DonorDashboardPage() {
     try {
       const response = await donationsApi.create({
         amount: numericAmount,
-        donationType: 'Monetary',
+        donationType,
         frequency: 'one-time',
         currency,
         donationDate: new Date().toISOString(),
@@ -194,12 +279,17 @@ export function DonorDashboardPage() {
       });
 
       setAllocationPlan(response.allocation);
+      setValuation(response.valuation);
+
+      const v = response.valuation;
+      const conversionLine = v.canonicalType === 'Monetary' || v.canonicalType === 'InKind'
+        ? `Your gift of ${money.format(v.estimatedValue)}`
+        : `Your ${v.rawAmount} ${v.impactUnit} (valued at ${money.format(v.estimatedValue)})`;
       setDonationSuccess(
-        `Thank you, ${effectiveDisplayName || 'supporter'}! Your ${money.format(numericAmount)} gift has been allocated based on current safehouse needs.`,
+        `Thank you, ${effectiveDisplayName || 'supporter'}! ${conversionLine} has been allocated based on current safehouse needs.`,
       );
       await loadImpact();
-      setAmount('100');
-      setCurrency('USD');
+      setAmount(DONATION_TYPE_CONFIG[donationType].defaultAmount);
     } catch (err) {
       setDonationError(err instanceof Error ? err.message : 'Could not save donation.');
     } finally {
@@ -371,7 +461,7 @@ export function DonorDashboardPage() {
       <article className="auth-card donor-history-overview" id="donor-history">
         <div className="donor-overview-head">
           <h2>Your giving overview</h2>
-          <Link className="donor-overview-cta" to="/donor-impact">
+          <Link className="donor-overview-cta" to="/my-impact">
             See full impact report →
           </Link>
         </div>
@@ -541,33 +631,39 @@ export function DonorDashboardPage() {
       <div id="donate-forms" className="donor-forms-stack">
         <div className="donor-donate-row">
           <article className="auth-card">
-            <h2>Donate (monetary)</h2>
+            <h2>Donate</h2>
             <p className="auth-lead">
-              Your gift is recorded as a monetary donation. Choose a program area; we route funds to
-              safehouses with the greatest current need in that area.
+              Choose how you'd like to give. Cash, volunteer time, or skilled work — all are
+              automatically routed to safehouses with the greatest current need in your chosen
+              program area. (To donate physical goods, use the In-kind form on the right.)
             </p>
             <form onSubmit={onDonationSubmit}>
               <label>
-                Amount
+                Donation type
+                <select
+                  value={donationType}
+                  onChange={(event) => setDonationType(event.target.value as DonationTypeKey)}
+                >
+                  <option value="Monetary">Monetary</option>
+                  <option value="Time">Volunteer Time</option>
+                  <option value="Skills">Skilled Volunteer Time</option>
+                  <option value="SocialMedia">Social Media</option>
+                </select>
+              </label>
+              <label>
+                {typeConfig.amountLabel}
                 <input
                   required
                   min={1}
-                  step="0.01"
+                  max={LARGE_GIFT_CAPS[donationType]}
+                  step={donationType === 'Monetary' ? '0.01' : '1'}
                   type="number"
                   value={amount}
                   onChange={(event) => setAmount(event.target.value)}
                 />
               </label>
-              <label>
-                Currency
-                <select
-                  value={currency}
-                  onChange={(event) => setCurrency(event.target.value as 'USD' | 'PHP')}
-                >
-                  <option value="USD">USD</option>
-                  <option value="PHP">PHP</option>
-                </select>
-              </label>
+              <p className="donation-type-helper">{typeConfig.helperText}</p>
+              <p className="donation-type-helper">Currency: USD</p>
               <label>
                 Where should your gift go?
                 <select
@@ -595,6 +691,13 @@ export function DonorDashboardPage() {
                   <h3 className="allocation-plan-card__title">
                     Where your {money.format(allocationPlan.totalAmount)} went
                   </h3>
+                  {valuation && valuation.canonicalType !== 'Monetary' && valuation.canonicalType !== 'InKind' && (
+                    <p className="allocation-plan-card__conversion">
+                      {valuation.rawAmount} {valuation.impactUnit} × ${valuation.ratePerUnit.toFixed(2)} =
+                      {' '}{money.format(valuation.estimatedValue)}{' '}
+                      <span className="allocation-plan-card__conversion-source">— {valuation.rateSource}</span>
+                    </p>
+                  )}
                   <ul className="allocation-plan-card__list">
                     {allocationPlan.safehouseAllocations.map((sa) => (
                       <li key={sa.safehouseId}>
@@ -734,25 +837,6 @@ export function DonorDashboardPage() {
           <h2>Volunteer sign-up</h2>
           <p className="auth-lead">Tell us how you would like to help the girls.</p>
           <form onSubmit={(event) => void onVolunteerSubmit(event)}>
-            <div className="volunteer-account-contact" aria-label="Your account contact">
-              <p className="volunteer-account-contact__title">Using your account</p>
-              <p className="volunteer-account-contact__line">
-                <strong>Name</strong>
-                <span>{accountVolunteerName}</span>
-              </p>
-              <p className="volunteer-account-contact__line">
-                <strong>Email</strong>
-                <span>{email?.trim() || '—'}</span>
-              </p>
-              <p className="volunteer-account-contact__line">
-                <strong>Phone</strong>
-                <span>{effectivePhone?.trim() || '—'}</span>
-              </p>
-              <p className="volunteer-account-contact__hint">
-                Phone and display preferences can be updated on your profile when needed.
-              </p>
-            </div>
-
             <fieldset className="donor-focus-fieldset volunteer-availability-fieldset">
               <legend>When are you usually available?</legend>
               <p className="volunteer-availability-hint">
@@ -838,6 +922,66 @@ export function DonorDashboardPage() {
           </form>
         </article>
       </div>
+
+      {showLargeGiftModal && (
+        <div
+          className="resident-modal-backdrop"
+          role="presentation"
+          onClick={() => setShowLargeGiftModal(false)}
+        >
+          <article
+            className="resident-modal-card large-gift-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="large-gift-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="record-detail-card__header">
+              <p className="record-detail-card__eyebrow">Let&apos;s talk — this is a big gift</p>
+              <h2 id="large-gift-modal-title">Please contact a staff member</h2>
+            </header>
+
+            <p className="auth-lead">
+              Thank you for your extraordinary generosity. Individual donations above{' '}
+              <strong>
+                {donationType === 'Monetary' || donationType === 'InKind'
+                  ? money.format(LARGE_GIFT_CAPS[donationType])
+                  : `${LARGE_GIFT_CAPS[donationType].toLocaleString()} ${typeConfig.unitNoun}`}
+              </strong>{' '}
+              need a quick conversation with our team first. This lets us:
+            </p>
+            <ul className="large-gift-modal__list">
+              <li>Handle the tax-deduction paperwork correctly for a gift of this size</li>
+              <li>
+                Discuss which program areas or safehouses you&apos;d like your gift to support,
+                rather than relying on the automatic allocation
+              </li>
+              <li>
+                Ensure the gift clears our compliance review — required for all gifts above the
+                federal reporting threshold
+              </li>
+            </ul>
+
+            <p className="auth-lead">
+              Please email us at{' '}
+              <a href="mailto:giving@kateri.byuisresearch.com">giving@kateri.byuisresearch.com</a>{' '}
+              and we&apos;ll be in touch within one business day. If you&apos;d rather not wait,
+              you can also submit a smaller gift now and we&apos;ll handle the remainder after we
+              talk.
+            </p>
+
+            <div className="resident-modal-actions">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => setShowLargeGiftModal(false)}
+              >
+                Got it, I&apos;ll reach out
+              </button>
+            </div>
+          </article>
+        </div>
+      )}
     </section>
   );
 }

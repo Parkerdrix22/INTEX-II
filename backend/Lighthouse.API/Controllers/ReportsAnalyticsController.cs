@@ -2,14 +2,81 @@ using Lighthouse.API.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Lighthouse.API.Controllers;
 
 [ApiController]
 [Route("api/reports-analytics")]
 [Authorize(Roles = "Admin,Staff")]
-public class ReportsAnalyticsController(AppDbContext dbContext) : ControllerBase
+public class ReportsAnalyticsController(AppDbContext dbContext, IWebHostEnvironment env) : ControllerBase
 {
+    private const string AnnualReportRelativePath = "reports/annual-report.pdf";
+    private const long MaxAnnualReportBytes = 10 * 1024 * 1024; // 10 MB
+
+    [HttpGet("annual-report")]
+    public IActionResult GetAnnualReportInfo()
+    {
+        var fullPath = GetAnnualReportFullPath();
+        var exists = System.IO.File.Exists(fullPath);
+        if (!exists)
+        {
+            return Ok(new
+            {
+                exists = false,
+                downloadUrl = (string?)null,
+                updatedAtUtc = (DateTime?)null,
+                fileSizeBytes = 0L,
+            });
+        }
+
+        var fileInfo = new FileInfo(fullPath);
+        var updatedAtUtc = fileInfo.LastWriteTimeUtc;
+        return Ok(new
+        {
+            exists = true,
+            downloadUrl = $"/{AnnualReportRelativePath.Replace("\\", "/")}?v={updatedAtUtc.Ticks}",
+            updatedAtUtc,
+            fileSizeBytes = fileInfo.Length,
+        });
+    }
+
+    [HttpPost("annual-report")]
+    [RequestSizeLimit(MaxAnnualReportBytes)]
+    public async Task<IActionResult> UploadAnnualReport([FromForm] IFormFile? file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length <= 0)
+            return BadRequest(new { message = "Please select a PDF file to upload." });
+        if (file.Length > MaxAnnualReportBytes)
+            return BadRequest(new { message = "Annual report must be 10 MB or smaller." });
+
+        var extension = Path.GetExtension(file.FileName);
+        if (!string.Equals(extension, ".pdf", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { message = "Only PDF files are allowed." });
+
+        var fullPath = GetAnnualReportFullPath();
+        var directory = Path.GetDirectoryName(fullPath);
+        if (string.IsNullOrWhiteSpace(directory))
+            return Problem("Unable to resolve annual report storage path.");
+
+        Directory.CreateDirectory(directory);
+
+        await using (var stream = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None))
+        {
+            await file.CopyToAsync(stream, cancellationToken);
+        }
+
+        var info = new FileInfo(fullPath);
+        var updatedAtUtc = info.LastWriteTimeUtc;
+        return Ok(new
+        {
+            message = "Annual report uploaded successfully.",
+            downloadUrl = $"/{AnnualReportRelativePath.Replace("\\", "/")}?v={updatedAtUtc.Ticks}",
+            updatedAtUtc,
+            fileSizeBytes = info.Length,
+        });
+    }
+
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashboard()
     {
@@ -279,6 +346,14 @@ public class ReportsAnalyticsController(AppDbContext dbContext) : ControllerBase
     {
         public int Upcoming { get; set; }
         public int Past { get; set; }
+    }
+
+    private string GetAnnualReportFullPath()
+    {
+        var webRoot = env.WebRootPath;
+        if (string.IsNullOrWhiteSpace(webRoot))
+            webRoot = Path.Combine(env.ContentRootPath, "wwwroot");
+        return Path.Combine(webRoot, AnnualReportRelativePath);
     }
 }
 

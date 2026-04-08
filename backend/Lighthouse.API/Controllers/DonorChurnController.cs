@@ -89,7 +89,7 @@ public class DonorChurnController : ControllerBase
                     {
                         supporters.Add(new SupporterRow
                         {
-                            SupporterId = reader.GetInt32(0),
+                            SupporterId = (int)reader.GetInt64(0),
                             SupporterType = reader.IsDBNull(1) ? "" : reader.GetString(1),
                             DisplayName = reader.IsDBNull(2) ? "" : reader.GetString(2),
                             RelationshipType = reader.IsDBNull(3) ? "" : reader.GetString(3),
@@ -105,15 +105,15 @@ public class DonorChurnController : ControllerBase
                 // Load donations
                 donations = new List<DonationRow>();
                 await using (var cmd = new NpgsqlCommand(
-                    "SELECT donation_id, supporter_id, donation_type, donation_date, is_recurring, campaign_name, estimated_value FROM lighthouse.donations", conn))
+                    "SELECT donation_id, supporter_id, donation_type, donation_date, is_recurring, campaign_name, estimated_value FROM lighthouse.donations WHERE supporter_id IS NOT NULL", conn))
                 await using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
                     {
                         donations.Add(new DonationRow
                         {
-                            DonationId = reader.GetInt32(0),
-                            SupporterId = reader.GetInt32(1),
+                            DonationId = (int)reader.GetInt64(0),
+                            SupporterId = (int)reader.GetInt64(1),
                             DonationType = reader.IsDBNull(2) ? "" : reader.GetString(2),
                             DonationDate = reader.IsDBNull(3) ? ReferenceDate : reader.GetDateTime(3),
                             IsRecurring = !reader.IsDBNull(4) && reader.GetBoolean(4),
@@ -126,16 +126,16 @@ public class DonorChurnController : ControllerBase
                 // Load allocations
                 allocations = new List<AllocationRow>();
                 await using (var cmd = new NpgsqlCommand(
-                    "SELECT da.donation_id, d.supporter_id, da.safehouse_id, da.program_area, da.amount_allocated FROM lighthouse.donation_allocations da JOIN lighthouse.donations d ON da.donation_id = d.donation_id", conn))
+                    "SELECT da.donation_id, d.supporter_id, da.safehouse_id, da.program_area, da.amount_allocated FROM lighthouse.donation_allocations da JOIN lighthouse.donations d ON da.donation_id = d.donation_id WHERE d.supporter_id IS NOT NULL", conn))
                 await using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
                     {
                         allocations.Add(new AllocationRow
                         {
-                            DonationId = reader.GetInt32(0),
-                            SupporterId = reader.GetInt32(1),
-                            SafehouseId = reader.IsDBNull(2) ? 0 : reader.GetInt32(2),
+                            DonationId = (int)reader.GetInt64(0),
+                            SupporterId = (int)reader.GetInt64(1),
+                            SafehouseId = reader.IsDBNull(2) ? 0 : (int)reader.GetInt64(2),
                             ProgramArea = reader.IsDBNull(3) ? "" : reader.GetString(3),
                             AmountAllocated = reader.IsDBNull(4) ? 0 : reader.GetDouble(4),
                         });

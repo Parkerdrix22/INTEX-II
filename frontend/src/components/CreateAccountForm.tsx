@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/useAuth';
 import { authApi } from '../lib/api';
 
 export type CreateAccountRole = 'Resident' | 'Donor' | 'Staff';
@@ -9,11 +11,14 @@ type CreateAccountFormProps = {
 };
 
 export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account' }: CreateAccountFormProps) {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [loginUsername, setLoginUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<CreateAccountRole>('Resident');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -26,10 +31,21 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
     setError(null);
 
     try {
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.');
+        return;
+      }
+
       if (role === 'Staff') {
         await authApi.registerStaff(firstName, lastName, email, password, loginUsername.trim() || undefined);
       } else {
         await authApi.register(firstName, lastName, email, password, role);
+      }
+
+      if (!isAdmin) {
+        await login(email, password, true);
+        navigate('/', { replace: true });
+        return;
       }
 
       setFirstName('');
@@ -37,11 +53,10 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
       setEmail('');
       setLoginUsername('');
       setPassword('');
+      setConfirmPassword('');
       setRole('Resident');
       setSuccess(
-        isAdmin
-          ? 'Account created. They can sign in with this email (or the custom login id if you set one) and the password you chose. If they use Google with the same email, they can link that after signing in once.'
-          : 'Account created. You can now sign in.',
+        'Account created. They can sign in with this email (or the custom login id if you set one) and the password you chose. If they use Google with the same email, they can link that after signing in once.',
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Signup failed.';
@@ -115,6 +130,17 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
           title="At least 14 characters, including one uppercase letter and one special character."
           value={password}
           onChange={(event) => setPassword(event.target.value)}
+        />
+      </label>
+      <label>
+        Confirm password
+        <input
+          required
+          minLength={14}
+          type="password"
+          autoComplete="new-password"
+          value={confirmPassword}
+          onChange={(event) => setConfirmPassword(event.target.value)}
         />
       </label>
       <p className="auth-lead profile-create-account-hint">

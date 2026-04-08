@@ -356,7 +356,7 @@ a.btn-kateri-gold {
   border-radius: 6px;
   border: 1px solid var(--primary-2);
   background: var(--primary-2);
-  color: #fff !important;
+  color: #1f2f3f !important;
   font-weight: 600;
   font-size: 0.98rem;
   text-decoration: none;
@@ -370,7 +370,7 @@ a.btn-kateri-gold {
 .btn-kateri-gold:hover {
   background: var(--accent-warm);
   border-color: var(--accent-warm);
-  color: #fff !important;
+  color: #1f2f3f !important;
 }
 
 .btn-kateri-ghost,
@@ -750,6 +750,13 @@ a.auth-nav-pill--solo-login:focus-visible {
 .admin-dashboard-summary-grid .stat-card {
   text-align: center;
   align-items: center;
+}
+
+.reports-summary-grid .stat-card {
+  min-height: 128px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .admin-dashboard-charts-grid {
@@ -1329,6 +1336,36 @@ a.auth-nav-pill--solo-login:focus-visible {
   color: var(--text-muted);
 }
 
+.donation-type-helper {
+  margin: -0.35rem 0 0.85rem;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 0 0.1rem;
+}
+
+.allocation-plan-card__conversion {
+  margin: 0 0 0.7rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text);
+  background: rgba(201, 152, 63, 0.10);
+  border: 1px solid rgba(201, 152, 63, 0.25);
+  border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.allocation-plan-card__conversion-source {
+  display: block;
+  margin-top: 0.18rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-style: italic;
+  font-variant-numeric: normal;
+}
+
 .donor-history-table-wrap {
   overflow-x: auto;
   margin: 0 -0.15rem;
@@ -1836,6 +1873,110 @@ a.auth-nav-pill--solo-login:focus-visible {
 
 .caseload-inline-message {
   margin: 0.7rem 0 0;
+}
+
+/* Narrative/observation preview cells in the standalone process-recording
+   and home-visitation list pages. Keeps long text from blowing up row
+   height — the full text lives on the resident detail page anyway. */
+.caseload-narrative-cell {
+  max-width: 24rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(30, 44, 58, 0.75);
+  font-size: 0.9rem;
+}
+
+/* Read-only detail card shown when a staff member clicks a row on the
+   standalone Process Recording / Home Visitation list pages. Shares the
+   modal chrome but renders a nicely formatted presentation instead of
+   an edit form. */
+.record-detail-card {
+  max-width: 42rem;
+}
+
+.record-detail-card__header {
+  border-bottom: 1px solid rgba(56, 95, 130, 0.15);
+  padding-bottom: 0.9rem;
+  margin-bottom: 1.1rem;
+}
+
+.record-detail-card__header h2 {
+  margin: 0.15rem 0 0.35rem;
+}
+
+.record-detail-card__eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  color: #a05b3a;
+  font-weight: 600;
+}
+
+.record-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.9rem 1.5rem;
+  margin: 0 0 1.2rem;
+}
+
+.record-detail-grid > div {
+  margin: 0;
+}
+
+.record-detail-grid dt {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  color: rgba(30, 44, 58, 0.6);
+  font-weight: 600;
+}
+
+.record-detail-grid dd {
+  margin: 0.2rem 0 0;
+  color: #1e2c3a;
+  font-size: 0.95rem;
+}
+
+.record-detail-card__section {
+  margin: 1.1rem 0;
+}
+
+.record-detail-card__section h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  color: #385f82;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.record-detail-card__prose {
+  margin: 0;
+  white-space: pre-wrap;
+  color: rgba(30, 44, 58, 0.88);
+  line-height: 1.55;
+  background: rgba(56, 95, 130, 0.05);
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border-left: 3px solid rgba(56, 95, 130, 0.35);
+}
+
+/* Large-gift confirmation modal (donor dashboard) */
+.large-gift-modal {
+  max-width: 34rem;
+}
+
+.large-gift-modal__list {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.2rem;
+  color: rgba(30, 44, 58, 0.85);
+  line-height: 1.55;
+}
+
+.large-gift-modal__list li {
+  margin-bottom: 0.35rem;
 }
 
 .caseload-pagination {
@@ -2587,7 +2728,9 @@ a.auth-nav-pill--solo-login:focus-visible {
 
 .auth-card input[type="email"],
 .auth-card input[type="password"],
+.auth-card input[type="search"],
 .auth-card input[type="text"],
+.auth-card input[type="tel"],
 .auth-card input[type="number"],
 .auth-card select,
 .auth-card textarea {
@@ -2597,6 +2740,18 @@ a.auth-nav-pill--solo-login:focus-visible {
   padding: 0.55rem 0.65rem;
   background: rgba(255, 255, 255, 0.86);
   font: inherit;
+}
+
+.auth-card input[type='search'] {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.auth-card input[type='search']::-webkit-search-decoration,
+.auth-card input[type='search']::-webkit-search-cancel-button,
+.auth-card input[type='search']::-webkit-search-results-button,
+.auth-card input[type='search']::-webkit-search-results-decoration {
+  -webkit-appearance: none;
 }
 
 .auth-card textarea {
@@ -3042,6 +3197,8 @@ input[type='reset']:disabled {
 /* Floating website chat widget */
 .chat-widget {
   position: fixed;
+  right: 1.1rem;
+  bottom: 1.1rem;
   z-index: 40;
 }
 

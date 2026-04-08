@@ -427,53 +427,86 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     [HttpPost("residents/{residentId:int}/intervention-plans")]
     public async Task<IActionResult> AddInterventionPlan(int residentId, [FromBody] CreateInterventionPlanRequest request)
     {
-        var (idColumn, idIsGenerated) = await GetLighthousePrimaryKeyInfoAsync("intervention_plans");
-        if (!string.IsNullOrWhiteSpace(idColumn) && !idIsGenerated)
+        var targetDateUtc = request.TargetDate.HasValue ? NormalizeToUtc(request.TargetDate.Value) : (DateTime?)null;
+        var caseConferenceDateUtc = request.CaseConferenceDate.HasValue
+            ? NormalizeToUtc(request.CaseConferenceDate.Value)
+            : (DateTime?)null;
+
+        try
         {
-            var newId = await NextLighthouseIdAsync("intervention_plans", idColumn);
-            var insertSql =
-                "INSERT INTO lighthouse.intervention_plans " +
-                $"({idColumn}, resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date, created_at, updated_at) " +
-                "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10})";
-            await dbContext.Database.ExecuteSqlRawAsync(
-                insertSql,
-                newId,
-                residentId,
-                request.PlanCategory,
-                request.PlanDescription,
-                request.ServicesProvided,
-                request.TargetValue,
-                request.TargetDate,
-                request.Status,
-                request.CaseConferenceDate,
-                DateTime.UtcNow,
-                DateTime.UtcNow);
+            var (idColumn, idIsGenerated) = await GetLighthousePrimaryKeyInfoAsync("intervention_plans");
+            if (!string.IsNullOrWhiteSpace(idColumn) && !idIsGenerated)
+            {
+                var newId = await NextLighthouseIdAsync("intervention_plans", idColumn);
+                var insertSql =
+                    "INSERT INTO lighthouse.intervention_plans " +
+                    $"({idColumn}, resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date, created_at, updated_at) " +
+                    "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10})";
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    insertSql,
+                    newId,
+                    residentId,
+                    request.PlanCategory,
+                    request.PlanDescription,
+                    request.ServicesProvided,
+                    request.TargetValue,
+                    targetDateUtc,
+                    request.Status,
+                    caseConferenceDateUtc,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow);
+            }
+            else
+            {
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    """
+                    INSERT INTO lighthouse.intervention_plans
+                        (resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date, created_at, updated_at)
+                    VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})
+                    """,
+                    residentId,
+                    request.PlanCategory,
+                    request.PlanDescription,
+                    request.ServicesProvided,
+                    request.TargetValue,
+                    targetDateUtc,
+                    request.Status,
+                    caseConferenceDateUtc,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow);
+            }
+            return Ok(new { message = "Intervention plan saved." });
         }
-        else
+        catch
         {
+            // Compatibility fallback for environments where intervention_plans
+            // does not include created_at/updated_at columns.
             await dbContext.Database.ExecuteSqlRawAsync(
                 """
                 INSERT INTO lighthouse.intervention_plans
-                    (resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date, created_at, updated_at)
-                VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})
+                    (resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date)
+                VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})
                 """,
                 residentId,
                 request.PlanCategory,
                 request.PlanDescription,
                 request.ServicesProvided,
                 request.TargetValue,
-                request.TargetDate,
+                targetDateUtc,
                 request.Status,
-                request.CaseConferenceDate,
-                DateTime.UtcNow,
-                DateTime.UtcNow);
+                caseConferenceDateUtc);
+            return Ok(new { message = "Intervention plan saved." });
         }
-        return Ok(new { message = "Intervention plan saved." });
     }
 
     [HttpPut("residents/{residentId:int}/intervention-plans/{recordKey}")]
     public async Task<IActionResult> UpdateInterventionPlan(int residentId, string recordKey, [FromBody] UpdateInterventionPlanRequest request)
     {
+        var targetDateUtc = request.TargetDate.HasValue ? NormalizeToUtc(request.TargetDate.Value) : (DateTime?)null;
+        var caseConferenceDateUtc = request.CaseConferenceDate.HasValue
+            ? NormalizeToUtc(request.CaseConferenceDate.Value)
+            : (DateTime?)null;
+
         var affected = await dbContext.Database.ExecuteSqlRawAsync(
             """
             UPDATE lighthouse.intervention_plans
@@ -492,9 +525,9 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
             request.PlanDescription,
             request.ServicesProvided,
             request.TargetValue,
-            request.TargetDate,
+            targetDateUtc,
             request.Status,
-            request.CaseConferenceDate,
+            caseConferenceDateUtc,
             DateTime.UtcNow,
             residentId,
             recordKey);
@@ -631,6 +664,82 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
             recordKey);
         if (affected == 0) return NotFound(new { message = "Incident report not found." });
         return Ok(new { message = "Incident report deleted." });
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /api/caseload/process-recordings
+    //   Cross-resident list of every process recording in the system, joined
+    //   with the residents table so the UI can show who each record belongs
+    //   to. Used by the standalone /process-recording staff page.
+    // -------------------------------------------------------------------------
+    [HttpGet("process-recordings")]
+    public async Task<IActionResult> GetAllProcessRecordings()
+    {
+        try
+        {
+            var rows = await dbContext.Database.SqlQueryRaw<ProcessRecordingSummaryRow>(
+                """
+                SELECT
+                    pr.ctid::text AS "RecordKey",
+                    pr.resident_id AS "ResidentId",
+                    COALESCE(r.case_control_no, 'R-' || pr.resident_id::text) AS "ResidentLabel",
+                    r.case_status AS "CaseStatus",
+                    pr.session_date AS "SessionDate",
+                    pr.social_worker AS "SocialWorker",
+                    pr.session_type AS "SessionType",
+                    pr.emotional_state_observed AS "EmotionalStateObserved",
+                    pr.concerns_flagged AS "ConcernsFlagged",
+                    pr.progress_noted AS "ProgressNoted",
+                    LEFT(COALESCE(pr.session_narrative, ''), 240) AS "NarrativePreview"
+                FROM lighthouse.process_recordings pr
+                LEFT JOIN lighthouse.residents r ON r.resident_id = pr.resident_id
+                ORDER BY pr.session_date DESC
+                """)
+                .ToListAsync();
+            return Ok(rows);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /api/caseload/home-visitations
+    //   Cross-resident list of every home visitation. Powers the standalone
+    //   /home-visitation staff page.
+    // -------------------------------------------------------------------------
+    [HttpGet("home-visitations")]
+    public async Task<IActionResult> GetAllHomeVisitations()
+    {
+        try
+        {
+            var rows = await dbContext.Database.SqlQueryRaw<HomeVisitationSummaryRow>(
+                """
+                SELECT
+                    hv.ctid::text AS "RecordKey",
+                    hv.resident_id AS "ResidentId",
+                    COALESCE(r.case_control_no, 'R-' || hv.resident_id::text) AS "ResidentLabel",
+                    r.case_status AS "CaseStatus",
+                    hv.visit_date AS "VisitDate",
+                    hv.social_worker AS "SocialWorker",
+                    hv.visit_type AS "VisitType",
+                    hv.family_cooperation_level AS "FamilyCooperationLevel",
+                    hv.safety_concerns_noted AS "SafetyConcernsNoted",
+                    hv.follow_up_needed AS "FollowUpNeeded",
+                    hv.visit_outcome AS "VisitOutcome",
+                    LEFT(COALESCE(hv.observations, ''), 240) AS "ObservationsPreview"
+                FROM lighthouse.home_visitations hv
+                LEFT JOIN lighthouse.residents r ON r.resident_id = hv.resident_id
+                ORDER BY hv.visit_date DESC
+                """)
+                .ToListAsync();
+            return Ok(rows);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
     }
 
     [HttpGet("residents/{residentId:int}/process-recordings")]
@@ -1246,6 +1355,41 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         public bool? FollowUpNeeded { get; set; }
         public string? FollowUpNotes { get; set; }
         public string? VisitOutcome { get; set; }
+    }
+
+    // DTOs for the cross-resident summary list endpoints. Deliberately leaner
+    // than the per-resident Row DTOs — the list views only need enough to
+    // identify the record, show a short preview, and link back to the
+    // resident detail page for the full form.
+    private sealed class ProcessRecordingSummaryRow
+    {
+        public string RecordKey { get; set; } = string.Empty;
+        public int ResidentId { get; set; }
+        public string ResidentLabel { get; set; } = string.Empty;
+        public string? CaseStatus { get; set; }
+        public DateTime SessionDate { get; set; }
+        public string? SocialWorker { get; set; }
+        public string SessionType { get; set; } = string.Empty;
+        public string? EmotionalStateObserved { get; set; }
+        public bool? ConcernsFlagged { get; set; }
+        public bool? ProgressNoted { get; set; }
+        public string? NarrativePreview { get; set; }
+    }
+
+    private sealed class HomeVisitationSummaryRow
+    {
+        public string RecordKey { get; set; } = string.Empty;
+        public int ResidentId { get; set; }
+        public string ResidentLabel { get; set; } = string.Empty;
+        public string? CaseStatus { get; set; }
+        public DateTime VisitDate { get; set; }
+        public string? SocialWorker { get; set; }
+        public string VisitType { get; set; } = string.Empty;
+        public string? FamilyCooperationLevel { get; set; }
+        public bool? SafetyConcernsNoted { get; set; }
+        public bool? FollowUpNeeded { get; set; }
+        public string? VisitOutcome { get; set; }
+        public string? ObservationsPreview { get; set; }
     }
 
     private sealed class IncidentReportRow

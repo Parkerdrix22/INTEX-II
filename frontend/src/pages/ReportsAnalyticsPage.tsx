@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import {
   Bar,
   BarChart,
@@ -42,6 +42,9 @@ function safeNumber(value: number): string {
 
 export function ReportsAnalyticsPage() {
   const [data, setData] = useState<ReportsAnalyticsDashboard | null>(null);
+  const [annualReportUrl, setAnnualReportUrl] = useState<string | null>(null);
+  const [uploadingReport, setUploadingReport] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,6 +62,18 @@ export function ReportsAnalyticsPage() {
       }
     };
     void load();
+  }, []);
+
+  useEffect(() => {
+    const loadAnnualReportInfo = async () => {
+      try {
+        const info = await reportsAnalyticsApi.annualReportInfo();
+        setAnnualReportUrl(info.exists ? info.downloadUrl : null);
+      } catch {
+        setAnnualReportUrl(null);
+      }
+    };
+    void loadAnnualReportInfo();
   }, []);
 
   const serviceTrend = useMemo(
@@ -93,6 +108,13 @@ export function ReportsAnalyticsPage() {
 
   const openAnnualReportPdf = () => {
     if (!data) return;
+    if (annualReportUrl) {
+      const href = annualReportUrl.startsWith('http')
+        ? annualReportUrl
+        : `${window.location.origin}${annualReportUrl}`;
+      window.open(href, '_blank', 'noopener,noreferrer');
+      return;
+    }
 
     const currentYear = new Date().getFullYear();
     const doc = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
@@ -312,6 +334,24 @@ export function ReportsAnalyticsPage() {
     window.open(blobUrl, '_blank', 'noopener,noreferrer');
   };
 
+  const onAnnualReportFileSelected = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadMessage(null);
+    setUploadingReport(true);
+    try {
+      const response = await reportsAnalyticsApi.uploadAnnualReport(file);
+      setAnnualReportUrl(response.downloadUrl);
+      setUploadMessage('Annual report uploaded.');
+    } catch (err) {
+      setUploadMessage(err instanceof Error ? err.message : 'Could not upload annual report.');
+    } finally {
+      setUploadingReport(false);
+      event.currentTarget.value = '';
+    }
+  };
+
   return (
     <section className="admin-dashboard-page kateri-landing-section">
       <header className="kateri-photo-hero">
@@ -335,7 +375,18 @@ export function ReportsAnalyticsPage() {
             >
               View annual report
             </button>
+            <label className="btn-kateri-ghost" style={{ cursor: uploadingReport ? 'wait' : 'pointer' }}>
+              {uploadingReport ? 'Uploading...' : 'Upload annual report (PDF)'}
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={(event) => void onAnnualReportFileSelected(event)}
+                disabled={uploadingReport}
+                style={{ display: 'none' }}
+              />
+            </label>
           </div>
+          {uploadMessage && <p className="auth-lead" style={{ marginTop: '0.6rem' }}>{uploadMessage}</p>}
         </div>
       </header>
 
@@ -344,28 +395,31 @@ export function ReportsAnalyticsPage() {
 
       {!loading && !error && data && (
         <>
-          <section className="admin-dashboard-summary-grid" aria-label="Reports summary metrics">
+          <section className="admin-dashboard-summary-grid reports-summary-grid" aria-label="Reports summary metrics">
             <article className="stat-card">
               <p className="metric-label">Total process recordings</p>
-              <p className="metric-value">{data.residentOutcomes.totalProcessRecordings}</p>
+              <p className="metric-value">{data.residentOutcomes.totalProcessRecordings}+</p>
             </article>
             <article className="stat-card">
               <p className="metric-label">Total home visitations</p>
-              <p className="metric-value">{data.residentOutcomes.totalHomeVisitations}</p>
+              <p className="metric-value">{data.residentOutcomes.totalHomeVisitations}+</p>
             </article>
             <article className="stat-card">
               <p className="metric-label">Upcoming case conferences</p>
-              <p className="metric-value">{data.conferenceSummary.upcoming}</p>
+              <p className="metric-value">{data.conferenceSummary.upcoming}+</p>
             </article>
             <article className="stat-card">
               <p className="metric-label">Past case conferences</p>
-              <p className="metric-value">{data.conferenceSummary.past}</p>
+              <p className="metric-value">{data.conferenceSummary.past}+</p>
             </article>
           </section>
 
           <section className="admin-dashboard-charts-grid">
             <article className="auth-card admin-chart-card">
               <h2>Service delivery intensity (monthly)</h2>
+              <p className="auth-lead" style={{ marginTop: '0.2rem', marginBottom: '0.6rem' }}>
+                Monthly volume of services. Taller bars mean busier service months.
+              </p>
               <div className="admin-chart-wrap">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={serviceTrend}>
@@ -383,6 +437,9 @@ export function ReportsAnalyticsPage() {
 
             <article className="auth-card admin-chart-card">
               <h2>Incident type distribution</h2>
+              <p className="auth-lead" style={{ marginTop: '0.2rem', marginBottom: '0.6rem' }}>
+                Which incident categories appear most often in records.
+              </p>
               <div className="admin-chart-wrap">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data.incidentTypeBreakdown}>
@@ -402,6 +459,9 @@ export function ReportsAnalyticsPage() {
 
             <article className="auth-card admin-chart-card admin-chart-card--wide">
               <h2>Intervention planning + reintegration health</h2>
+              <p className="auth-lead" style={{ marginTop: '0.2rem', marginBottom: '0.6rem' }}>
+                Snapshot of overall resident outcomes and reintegration progress.
+              </p>
               <div className="admin-dashboard-summary-grid" aria-label="planning and reintegration metrics">
                 <article className="stat-card">
                   <p className="metric-label">Avg health score</p>
@@ -424,6 +484,9 @@ export function ReportsAnalyticsPage() {
 
             <article className="auth-card admin-chart-card">
               <h2>Intervention plan status</h2>
+              <p className="auth-lead" style={{ marginTop: '0.2rem', marginBottom: '0.6rem' }}>
+                Count of plans by current stage (open, in progress, closed, etc.).
+              </p>
               <div className="admin-chart-wrap">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data.interventionPlanStatus}>
@@ -465,6 +528,9 @@ export function ReportsAnalyticsPage() {
 
             <article className="auth-card admin-chart-card admin-chart-card--wide">
               <h2>Reintegration status breakdown</h2>
+              <p className="auth-lead" style={{ marginTop: '0.2rem', marginBottom: '0.6rem' }}>
+                How many residents are in each reintegration stage right now.
+              </p>
               <div className="donor-table-wrap">
                 <table className="donor-table">
                   <thead>
@@ -487,6 +553,9 @@ export function ReportsAnalyticsPage() {
 
             <article className="auth-card admin-chart-card admin-chart-card--wide">
               <h2>Safehouse outcomes and incidents</h2>
+              <p className="auth-lead" style={{ marginTop: '0.2rem', marginBottom: '0.6rem' }}>
+                Side-by-side safehouse comparison for health, education progress, and incident counts.
+              </p>
               <div className="donor-table-wrap">
                 <table className="donor-table">
                   <thead>

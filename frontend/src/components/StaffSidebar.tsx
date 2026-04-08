@@ -4,12 +4,13 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `staff-sidebar__link${isActive ? ' staff-sidebar__link--active' : ''}`;
 
 export function StaffSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  if (!isOpen) return null;
+
   return (
     <aside
       id="staff-sidebar-panel"
       className={`staff-sidebar${isOpen ? ' staff-sidebar--open' : ''}`}
       aria-label="Staff navigation"
-      aria-hidden={!isOpen}
     >
       <div className="staff-sidebar__header">
         <div className="staff-sidebar__heading">Staff</div>
@@ -27,6 +28,12 @@ export function StaffSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: ()
           </NavLink>
           <NavLink to="/caseload-inventory" className={navLinkClass} onClick={onClose}>
             Resident Services
+          </NavLink>
+          <NavLink to="/process-recording" className={navLinkClass} onClick={onClose}>
+            Process Recordings
+          </NavLink>
+          <NavLink to="/home-visitation" className={navLinkClass} onClick={onClose}>
+            Home Visitations
           </NavLink>
           <NavLink to="/reports-analytics" className={navLinkClass} onClick={onClose}>
             Reports & Analytics

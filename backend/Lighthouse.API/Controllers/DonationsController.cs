@@ -17,15 +17,20 @@ public class DonationsController(
     AppDbContext dbContext,
     UserManager<AppUser> userManager,
     IStaffNotificationEmailService staffNotificationEmail,
-    INeedBasedAllocationService allocationService) : ControllerBase
+    INeedBasedAllocationService allocationService,
+    IDonationValuationService valuationService) : ControllerBase
 {
+    // Server-side cap mirroring the donor-portal UI. Anything larger than this
+    // requires a human conversation (tax paperwork, compliance review, custom
+    // allocation). The UI blocks it first with a modal; this is the backstop.
+    private const decimal LargeGiftCapUsd = 5_000_000m;
+
     [HttpPost]
     public async Task<IActionResult> CreateDonation([FromBody] CreateDonationRequest request)
     {
         if (request.Amount <= 0)
             return BadRequest(new { message = "Donation amount must be greater than zero." });
 
-        var donationType = NormalizeDonationType(request.DonationType);
         var frequency = string.IsNullOrWhiteSpace(request.Frequency)
             ? "one-time"
             : request.Frequency.Trim().ToLowerInvariant();
@@ -36,7 +41,33 @@ public class DonationsController(
         var donationDate = request.DonationDate?.ToUniversalTime() ?? DateTime.UtcNow;
         var currency = string.IsNullOrWhiteSpace(request.Currency) ? "USD" : request.Currency.Trim().ToUpperInvariant();
 
-        int? supporterId = donationType == "Monetary"
+        // Convert raw donor input → canonical type, impact_unit, and estimated $ value.
+        // Time → hours × $33.49; Skills/SocialMedia → hours × empirical median rate;
+        // InKind → 1:1 fair-market USD; Monetary → 1:1.
+        var valuation = await valuationService.ValueDonationAsync(
+            request.DonationType,
+            request.Amount,
+            dbContext);
+
+        // Server-side cap on the estimated dollar value (post-valuation). This
+        // catches any gift that slips past the UI, including Time/Skills where
+        // a huge hour count could translate into millions of dollars.
+        if (valuation.EstimatedValue > LargeGiftCapUsd)
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                new
+                {
+                    message =
+                        $"Donations above {LargeGiftCapUsd:C0} (USD estimated value) require a staff " +
+                        "conversation. Please contact giving@kateri.byuisresearch.com and we will be in " +
+                        "touch within one business day.",
+                    capUsd = LargeGiftCapUsd,
+                    estimatedValue = valuation.EstimatedValue,
+                });
+        }
+
+        int? supporterId = valuation.CanonicalType == "Monetary"
             ? await ResolveSupporterForLighthouseAsync(request.DonorName)
             : null;
 
@@ -46,48 +77,54 @@ public class DonationsController(
             var insertedRows = await dbContext.Database.SqlQueryRaw<InsertedDonationIdRow>(
                 """
                 INSERT INTO lighthouse.donations
-                    (donation_id, supporter_id, donation_type, donation_date, estimated_value, campaign_name)
-                VALUES ({0}, {1}, {2}, {3}, {4}, {5})
+                    (donation_id, supporter_id, donation_type, donation_date,
+                     amount, estimated_value, currency_code, impact_unit, campaign_name)
+                VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})
                 RETURNING donation_id AS "Id"
                 """,
                 newDonationId,
                 supporterId,
-                donationType,
+                valuation.CanonicalType,
                 donationDate,
-                request.Amount,
+                valuation.RawAmount,        // raw quantity (hours, items, campaigns, USD)
+                valuation.EstimatedValue,   // dollar equivalent
+                currency,
+                valuation.ImpactUnit,       // hours / items / campaigns / USD
                 campaignName)
                 .ToListAsync();
             var insertedId = insertedRows.FirstOrDefault()?.Id ?? 0;
 
             // ---- Pipeline 8: Need-Based Donation Routing -----------------------
-            // Decide where the dollars actually go and write the allocation rows.
+            // Allocate based on the DOLLAR value, not the raw count.
             var allocationPlan = await allocationService.AllocateAsync(
-                request.Amount,
+                valuation.EstimatedValue,
                 request.ProgramArea ?? "Operations",
                 dbContext);
             await WriteAllocationRowsAsync(insertedId, donationDate, allocationPlan);
 
-            await NotifyStaffDonationAsync(request, currency, donationDate);
+            await NotifyDonationEmailsAsync(request, currency, donationDate);
             return Ok(new
             {
                 message = "Donation recorded successfully.",
                 donationId = insertedId,
+                valuation,
                 allocation = allocationPlan
             });
         }
         catch
         {
+            // EF fallback path: use the dollar-equivalent value, not the raw count.
             var donation = new Donation
             {
                 SupporterId = supporterId,
-                Amount = request.Amount,
+                Amount = valuation.EstimatedValue,
                 Currency = currency,
                 DonatedAt = donationDate,
                 CampaignName = campaignName,
             };
             dbContext.Donations.Add(donation);
             await dbContext.SaveChangesAsync();
-            await NotifyStaffDonationAsync(request, currency, donationDate);
+            await NotifyDonationEmailsAsync(request, currency, donationDate);
             return Ok(new { message = "Donation recorded successfully.", donationId = donation.Id });
         }
     }
@@ -101,6 +138,22 @@ public class DonationsController(
             return BadRequest(new { message = "Quantity must be at least 1." });
         if (request.EstimatedTotalValue <= 0)
             return BadRequest(new { message = "Estimated value must be greater than zero." });
+
+        // Same large-gift backstop as the monetary endpoint.
+        if (request.EstimatedTotalValue > LargeGiftCapUsd)
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                new
+                {
+                    message =
+                        $"In-kind donations above {LargeGiftCapUsd:C0} (USD estimated value) require a " +
+                        "staff conversation. Please contact giving@kateri.byuisresearch.com and we will " +
+                        "be in touch within one business day.",
+                    capUsd = LargeGiftCapUsd,
+                    estimatedValue = request.EstimatedTotalValue,
+                });
+        }
 
         var itemName = request.ItemName.Trim();
         if (string.IsNullOrWhiteSpace(itemName))
@@ -189,6 +242,8 @@ public class DonationsController(
         if (!string.IsNullOrWhiteSpace(userId))
         {
             var user = await userManager.FindByIdAsync(userId);
+            if (string.IsNullOrWhiteSpace(donorEmail))
+                donorEmail = user?.Email?.Trim() ?? string.Empty;
             donorPhone = user?.PhoneNumber;
         }
 
@@ -207,18 +262,32 @@ public class DonationsController(
             details,
             cancellationToken);
 
+        await staffNotificationEmail.SendDonationReceiptAsync(
+            donorName,
+            donorEmail,
+            request.EstimatedTotalValue,
+            currency,
+            "In-kind (goods)",
+            campaignName,
+            donationDate,
+            details,
+            cancellationToken);
+
         return Ok(new { message = "In-kind donation recorded successfully.", donationId = recordedDonationId });
     }
 
-    private async Task NotifyStaffDonationAsync(CreateDonationRequest request, string currency, DateTime donationDateUtc)
+    private async Task NotifyDonationEmailsAsync(CreateDonationRequest request, string currency, DateTime donationDateUtc)
     {
         var donorEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
         var donorName = string.IsNullOrWhiteSpace(request.DonorName) ? "Donor" : request.DonorName.Trim();
+        var donationType = NormalizeDonationType(request.DonationType);
         string? donorPhone = null;
         var userId = User.FindFirstValue("user_id");
         if (!string.IsNullOrWhiteSpace(userId))
         {
             var user = await userManager.FindByIdAsync(userId);
+            if (string.IsNullOrWhiteSpace(donorEmail))
+                donorEmail = user?.Email?.Trim() ?? string.Empty;
             donorPhone = user?.PhoneNumber;
         }
 
@@ -228,7 +297,16 @@ public class DonationsController(
             donorPhone,
             request.Amount,
             currency,
-            NormalizeDonationType(request.DonationType),
+            donationType,
+            string.IsNullOrWhiteSpace(request.CampaignName) ? "Donor Portal" : request.CampaignName.Trim(),
+            donationDateUtc);
+
+        await staffNotificationEmail.SendDonationReceiptAsync(
+            donorName,
+            donorEmail,
+            request.Amount,
+            currency,
+            donationType,
             string.IsNullOrWhiteSpace(request.CampaignName) ? "Donor Portal" : request.CampaignName.Trim(),
             donationDateUtc);
     }

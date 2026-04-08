@@ -2,9 +2,12 @@
 # ml_retrain.yml — Nightly ML Model Retraining Workflow
 #
 # Purpose:
-#   Pulls fresh data from the AWS RDS PostgreSQL database, retrains all 5
-#   ML pipelines, and commits the updated .onnx model files back to the repo.
-#   The committed models are then picked up by the C# Azure deployment.
+#   Pulls fresh data from the AWS RDS PostgreSQL database, retrains every
+#   ML pipeline discovered in ml-pipelines/scripts/, and commits the updated
+#   .onnx / .json model artifacts back to the repo. The committed models are
+#   then picked up by the C# Azure deployment. Note: Pipeline 8 (need-based
+#   donation routing) is a deterministic algorithm served live by the C#
+#   NeedBasedAllocationService — it has no trained model to retrain here.
 #
 # Required GitHub Secrets (Settings → Secrets and variables → Actions):
 #   PGHOST       — AWS RDS endpoint
