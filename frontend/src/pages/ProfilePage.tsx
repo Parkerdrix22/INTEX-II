@@ -202,8 +202,8 @@ export function ProfilePage() {
       <article className="auth-card profile-form-card" id="profile-form">
         <h2>Profile information</h2>
         <p className="auth-lead">
-          Changes are saved on this device and applied across the app for your account. Your account name and
-          email come from your login and are not editable here yet.
+          Changes are saved on this device and applied across the app for your account. Your first name, last name,
+          and email come from your login and are not editable here yet.
         </p>
         <form onSubmit={onSubmit}>
           <label>
@@ -239,16 +239,6 @@ export function ProfilePage() {
           <label>
             Email (read-only)
             <input type="email" value={email ?? ''} readOnly disabled className="profile-field--readonly" />
-          </label>
-          <label>
-            Sign-in id (read-only)
-            <input
-              type="text"
-              value={username ?? ''}
-              readOnly
-              disabled
-              className="profile-field--readonly"
-            />
           </label>
           <label>
             Phone
