@@ -1,0 +1,171 @@
+{
+  "nav": {
+    "brand": "Kateri",
+    "staffMenu": "Staff menu",
+    "ourImpact": "Our Impact",
+    "safehouseTour": "See the Safehouse",
+    "donorPortal": "Donor Portal",
+    "residentDashboard": "Resident Dashboard",
+    "login": "Login",
+    "signup": "Sign up",
+    "logout": "Logout",
+    "profile": "Profile"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong.",
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "back": "Back",
+    "language.en": "English",
+    "language.nv": "Diné",
+    "language.toggleLabel": "Language",
+    "language.mtDisclaimer": "Diné bizaad translations are machine-generated and pending native-speaker review."
+  },
+  "home": {
+    "heroTitle": "Safety, healing, and a path forward for every girl we serve.",
+    "heroCopy": "Kateri provides safe housing, counseling, and reintegration support for girls, with a focused commitment to Native American communities.",
+    "cta": {
+      "support": "Support Kateri",
+      "viewImpact": "View Our Impact"
+    },
+    "stat": {
+      "safehomes": "Safehomes Supported",
+      "activeCases": "Active Resident Cases",
+      "partners": "Community Partners"
+    },
+    "serve": {
+      "heading": "How Kateri serves",
+      "protect": {
+        "title": "Protect:",
+        "body": "Provide immediate safety through secure housing and coordinated case management."
+      },
+      "restore": {
+        "title": "Restore:",
+        "body": "Support healing through counseling, education, and individualized interventions."
+      },
+      "reintegrate": {
+        "title": "Reintegrate:",
+        "body": "Prepare residents for long-term success through family engagement and reintegration planning."
+      }
+    },
+    "sistersAlt": "Three sisters sitting together in a sunlit field.",
+    "name": {
+      "heading": "Why the name Kateri?",
+      "body": "The organization is named in honor of Saint Kateri Tekakwitha, widely recognized as the first Native American saint. The name reflects a commitment to dignity, resilience, and culturally respectful care for the communities Kateri serves.",
+      "portraitAlt": "Portrait of Kateri Tekakwitha in golden grasses."
+    },
+    "contact": {
+      "heading": "Contact Us",
+      "body": "Reach out to learn more about Kateri, partnership opportunities, and ways to support our mission.",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "privacyPolicy": "Privacy Policy",
+      "cookiePolicy": "Cookie Policy"
+    }
+  },
+  "login": {
+    "title": "Sign in",
+    "lead": "Welcome back to Kateri. Donor and Resident users can sign up directly. Staff and Admin accounts are created by an administrator.",
+    "form": {
+      "usernameOrEmailLabel": "Username or Email",
+      "passwordLabel": "Password",
+      "showPassword": "Show",
+      "hidePassword": "Hide",
+      "showPasswordAria": "Show password",
+      "hidePasswordAria": "Hide password",
+      "rememberMe": "Keep me signed in",
+      "submit": "Sign in",
+      "submitting": "Signing in..."
+    },
+    "twoFactor": {
+      "requiresSetupNotice": "Admin and Staff accounts must enable two-factor authentication. After you sign in with your password, you will be taken to Profile to finish setup.",
+      "successHeading": "Success, one more step",
+      "successLead": "Enter your 6-digit authenticator code, or a one-time recovery code (format XXXXX-XXXXX). Use this same field for both.",
+      "codeLabel": "Authenticator or recovery code",
+      "codePlaceholder": "123456 or XXXXX-XXXXX",
+      "verifySubmit": "Verify and sign in",
+      "verifying": "Verifying...",
+      "backToPassword": "Back to password login",
+      "infoMessage": "Success, one more step: enter your authenticator code to finish signing in."
+    },
+    "errors": {
+      "loginFailed": "Login failed.",
+      "twoFactorFailed": "Two-factor verification failed."
+    },
+    "external": {
+      "heading": "Or continue with",
+      "google": "Sign in with Google",
+      "generic": "Sign in with {provider}"
+    }
+  },
+  "signup": {
+    "title": "Create account",
+    "lead": "New users can sign up as Donor or Resident. Staff and Admin accounts are created by administrators.",
+    "submitLabel": "Create account",
+    "external": {
+      "heading": "Or continue with",
+      "google": "Create account with Google",
+      "generic": "Create account with {provider}"
+    }
+  },
+  "privacy": {
+    "heading": "Privacy Policy",
+    "body": "Kateri collects personal data needed to operate resident support workflows, donor reporting, and secure account access. This includes account identifiers, contact details, donation records, and authorized operational case information.\n\nWe process data for service delivery, safeguarding, recordkeeping, and security. We do not sell personal data. Access is limited through role-based permissions and authenticated sessions.\n\nData may be retained only as long as needed for operational, legal, and safeguarding requirements. When retention periods expire, records are deleted or anonymized where feasible.\n\nYou may request access, correction, or deletion of your personal data, and you may ask questions about processing or consent choices. Contact support to submit requests so the team can respond according to applicable privacy obligations.\n\nCookie and consent details are documented in the Cookie Policy. Essential security cookies are required for protected areas, while optional preferences can be managed through the cookie banner.\n\nLast updated: April 2026."
+  },
+  "cookiePolicy": {
+    "heading": "Cookie Policy",
+    "body": "Kateri uses essential cookies to keep users signed in, protect account sessions, and maintain secure site behavior. These cookies are required for authentication and cannot be disabled while using protected features.\n\nYou can choose between accepting all cookies or accepting necessary cookies only. Necessary cookies support login, session continuity, and security controls. Optional cookies will only be enabled when accepted.\n\nLast updated: April 2026."
+  },
+  "cookieBanner": {
+    "ariaLabel": "Cookie consent",
+    "messageBefore": "Kateri uses essential cookies for authentication and security. You can review details in our ",
+    "messageLinkText": "Cookie Policy",
+    "messageAfter": ".",
+    "acceptNecessary": "Accept necessary only",
+    "acceptAll": "Accept all cookies"
+  },
+  "unauthorized": {
+    "heading": "Unauthorized",
+    "body": "You do not have permission to view this page."
+  },
+  "impact": {
+    "heading": "Our Impact",
+    "lead": "Kateri measures impact through protection, recovery, justice support, and long-term empowerment for girls and their families.",
+    "cta": {
+      "support": "Support Kateri",
+      "backHome": "Back to home"
+    },
+    "kpi": {
+      "activeResidents": "Active Residents",
+      "counselingSessions": "Counseling Sessions Funded",
+      "reintegrationRate": "School Reintegration Rate"
+    },
+    "health": {
+      "heading": "Health & Well-being Impact",
+      "subtitle": "Residents showing score improvement over time",
+      "improvedSummary": "{percent}% improved from first to latest check.",
+      "basis": "Based on residents with 2+ health records.",
+      "progressAria": "{percent} percent of residents improved"
+    },
+    "pillars": {
+      "safety": {
+        "title": "Safety",
+        "description": "Safety is the first step of healing. Kateri focuses on immediate protection and stable support so every girl can begin recovery in a secure environment."
+      },
+      "healing": {
+        "title": "Healing",
+        "description": "After safety is established, healing can begin. We support emotional recovery through counseling, mentorship, and consistent care."
+      },
+      "justice": {
+        "title": "Justice",
+        "description": "Kateri does not pressure decisions about legal action. We support each girl in pursuing the path of justice that is right for her."
+      },
+      "empowerment": {
+        "title": "Empowerment",
+        "description": "Our goal is to help girls move from victimhood to leadership and advocacy through life skills, education, and confidence-building opportunities."
+      }
+    }
+  }
+}

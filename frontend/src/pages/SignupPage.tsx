@@ -4,8 +4,10 @@ import { useAuth } from '../auth/useAuth';
 import { CreateAccountForm } from '../components/CreateAccountForm';
 import { authApi } from '../lib/api';
 import backgroundImage from '../background.jpg?format=webp&quality=82&w=1920';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export function SignupPage() {
+  const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
   const [providers, setProviders] = useState<Array<{ name: string; displayName: string }>>([]);
 
@@ -47,14 +49,12 @@ export function SignupPage() {
   return (
     <section className="auth-page kateri-landing-section">
       <article className="auth-card">
-        <h1>Create account</h1>
-        <p className="auth-lead">
-          New users can sign up as Donor or Resident. Staff and Admin accounts are created by administrators.
-        </p>
-        <CreateAccountForm isAdmin={false} submitButtonLabel="Create account" />
+        <h1>{t('signup.title')}</h1>
+        <p className="auth-lead">{t('signup.lead')}</p>
+        <CreateAccountForm isAdmin={false} submitButtonLabel={t('signup.submitLabel')} />
         {providers.length > 0 && (
           <div className="external-login-group">
-            <p>Or continue with</p>
+            <p>{t('signup.external.heading')}</p>
             {providers.map((provider) => (
               <button
                 key={provider.name}
@@ -96,8 +96,8 @@ export function SignupPage() {
                   )}
                   <span>
                     {provider.name.toLowerCase() === 'google'
-                      ? 'Create account with Google'
-                      : `Create account with ${provider.displayName}`}
+                      ? t('signup.external.google')
+                      : t('signup.external.generic', { provider: provider.displayName })}
                   </span>
                 </span>
               </button>

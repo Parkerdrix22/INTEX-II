@@ -1,8 +1,11 @@
+import { useLanguage } from '../i18n/LanguageContext';
+
 export function UnauthorizedPage() {
+  const { t } = useLanguage();
   return (
     <section className="blank-page">
-      <h1>Unauthorized</h1>
-      <p>You do not have permission to view this page.</p>
+      <h1>{t('unauthorized.heading')}</h1>
+      <p>{t('unauthorized.body')}</p>
     </section>
   );
 }

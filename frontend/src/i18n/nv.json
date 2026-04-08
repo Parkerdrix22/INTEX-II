@@ -1,0 +1,714 @@
+{
+  "__meta": {
+    "nav.brand": {
+      "hash": "a1463dd05b1b",
+      "model": "denylist",
+      "mt": false
+    },
+    "common.language.en": {
+      "hash": "649df08a448e",
+      "model": "denylist",
+      "mt": false
+    },
+    "common.language.nv": {
+      "hash": "252acf81c457",
+      "model": "denylist",
+      "mt": false
+    },
+    "cookieBanner.messageAfter": {
+      "hash": "3a52ce780950",
+      "model": "denylist",
+      "mt": false
+    },
+    "nav.staffMenu": {
+      "hash": "477594a54cae",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.ourImpact": {
+      "hash": "69b246d68c1f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.safehouseTour": {
+      "hash": "97092e2b8978",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.donorPortal": {
+      "hash": "b2aa126cd5cc",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.residentDashboard": {
+      "hash": "fe272ed0493e",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.login": {
+      "hash": "4e5a2893bdcc",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.signup": {
+      "hash": "0b81497c8589",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.logout": {
+      "hash": "e43d612e11f1",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.profile": {
+      "hash": "ff4fc0276e96",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "common.loading": {
+      "hash": "33ce417454bf",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "common.error": {
+      "hash": "bee54c9cc30c",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "common.close": {
+      "hash": "bbfa773e5a63",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "common.cancel": {
+      "hash": "77dfd2135f4d",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "common.save": {
+      "hash": "efc007a393f6",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "common.back": {
+      "hash": "b52b36b7269f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "common.language.toggleLabel": {
+      "hash": "89b86ab0e66f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "common.language.mtDisclaimer": {
+      "hash": "b4b81243e526",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.heroTitle": {
+      "hash": "b176b5bb3bd8",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.heroCopy": {
+      "hash": "2691711a335b",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.cta.support": {
+      "hash": "e6684a2ed2a7",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.cta.viewImpact": {
+      "hash": "d37b82c4d56f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.stat.safehomes": {
+      "hash": "d6ace9f08c30",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.stat.activeCases": {
+      "hash": "4b63dc6a043d",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.stat.partners": {
+      "hash": "bc49fd4fba8c",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.serve.heading": {
+      "hash": "dfdad43c87d1",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.serve.protect.title": {
+      "hash": "9790af30636d",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.serve.protect.body": {
+      "hash": "da60cd3fd974",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.serve.restore.title": {
+      "hash": "7e5830648bba",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.serve.restore.body": {
+      "hash": "d9b5e949e8bf",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.serve.reintegrate.title": {
+      "hash": "50539ffcf6bb",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.serve.reintegrate.body": {
+      "hash": "1a323280998a",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.sistersAlt": {
+      "hash": "859bb9c3f663",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.name.heading": {
+      "hash": "e9959fff3066",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.name.body": {
+      "hash": "30215dd9be80",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.name.portraitAlt": {
+      "hash": "c72e82374403",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.contact.heading": {
+      "hash": "9ad0ccff7c60",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.contact.body": {
+      "hash": "e09c087b565b",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.contact.instagram": {
+      "hash": "5721bbef40b2",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.contact.facebook": {
+      "hash": "82da67b21124",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.contact.privacyPolicy": {
+      "hash": "9db108ba6b7f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.contact.cookiePolicy": {
+      "hash": "e6e178ccc822",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.title": {
+      "hash": "ada2e9e96fa9",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.lead": {
+      "hash": "dccc7c9cce8b",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.form.usernameOrEmailLabel": {
+      "hash": "728ae04e6724",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.form.passwordLabel": {
+      "hash": "8be3c943b160",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.form.showPassword": {
+      "hash": "d97d1ee339e4",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.form.hidePassword": {
+      "hash": "34d8b60fe253",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.form.showPasswordAria": {
+      "hash": "044b852f30b6",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.form.hidePasswordAria": {
+      "hash": "e40123b4e787",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.form.rememberMe": {
+      "hash": "5955c1a56d96",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.form.submit": {
+      "hash": "ada2e9e96fa9",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.form.submitting": {
+      "hash": "6ca8910ee61b",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.requiresSetupNotice": {
+      "hash": "7e07b94ca5cd",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.successHeading": {
+      "hash": "e6a52e9de512",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.successLead": {
+      "hash": "0290bdb637b7",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.codeLabel": {
+      "hash": "68ccfb13bcc0",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.codePlaceholder": {
+      "hash": "63269fc2ba5a",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.verifySubmit": {
+      "hash": "abaf519a5b7f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.verifying": {
+      "hash": "bf6ea5406002",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.backToPassword": {
+      "hash": "907924762a9b",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.infoMessage": {
+      "hash": "a67e08d5e891",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.errors.loginFailed": {
+      "hash": "244ad57ba82f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.errors.twoFactorFailed": {
+      "hash": "db572bf7b730",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.external.heading": {
+      "hash": "ef46e9b63cb1",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.external.google": {
+      "hash": "4a0b7281397f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.external.generic": {
+      "hash": "ce6eb3e50f9e",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "signup.title": {
+      "hash": "aaf374479756",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "signup.lead": {
+      "hash": "633f9d93e066",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "signup.submitLabel": {
+      "hash": "aaf374479756",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "signup.external.heading": {
+      "hash": "ef46e9b63cb1",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "signup.external.google": {
+      "hash": "a57badfc2c37",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "signup.external.generic": {
+      "hash": "b3a17c5ff002",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "privacy.heading": {
+      "hash": "9db108ba6b7f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "privacy.body": {
+      "hash": "b115136ba0db",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "cookiePolicy.heading": {
+      "hash": "e6e178ccc822",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "cookiePolicy.body": {
+      "hash": "bc282b84ff4d",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "cookieBanner.ariaLabel": {
+      "hash": "1a9a0aef35c9",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "cookieBanner.messageBefore": {
+      "hash": "77d9f081f514",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "cookieBanner.messageLinkText": {
+      "hash": "e6e178ccc822",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "cookieBanner.acceptNecessary": {
+      "hash": "bbbe7f00e339",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "cookieBanner.acceptAll": {
+      "hash": "e3032376223e",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "unauthorized.heading": {
+      "hash": "740b83150add",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "unauthorized.body": {
+      "hash": "7467cc7a6206",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.heading": {
+      "hash": "69b246d68c1f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.lead": {
+      "hash": "d13627e15b83",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.cta.support": {
+      "hash": "e6684a2ed2a7",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.cta.backHome": {
+      "hash": "34ac37f56e14",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.kpi.activeResidents": {
+      "hash": "71df03f00654",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.kpi.counselingSessions": {
+      "hash": "2ef3d72db9cd",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.kpi.reintegrationRate": {
+      "hash": "72a0080bdfff",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.health.heading": {
+      "hash": "2d64460f6799",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.health.subtitle": {
+      "hash": "50fa2283ff8e",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.health.improvedSummary": {
+      "hash": "01ba822b9927",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.health.basis": {
+      "hash": "bcf7791bdc4d",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.health.progressAria": {
+      "hash": "65233157fb5c",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.pillars.safety.title": {
+      "hash": "db6e7e410412",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.pillars.safety.description": {
+      "hash": "216ee298de78",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.pillars.healing.title": {
+      "hash": "87272fae497d",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.pillars.healing.description": {
+      "hash": "996261e94bff",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.pillars.justice.title": {
+      "hash": "75951c6bcb94",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.pillars.justice.description": {
+      "hash": "6ab17d23444e",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.pillars.empowerment.title": {
+      "hash": "8e587196edce",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.pillars.empowerment.description": {
+      "hash": "cb3c1c9f9d5c",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    }
+  },
+  "nav": {
+    "brand": "Kateri",
+    "staffMenu": "Kin yá'át'ééh bá hólǫ́",
+    "ourImpact": "Nihí Bá Ałhidadiidzin",
+    "safehouseTour": "Diné Bikéyah Hózhǫ́ǫ́ Yee Háwǫ́",
+    "donorPortal": "Náltsooígíí Yee Háwǫ́",
+    "residentDashboard": "Hózhǫ́ Yee Háwǫ́",
+    "login": "Yee Háwǫ́",
+    "signup": "Yee Háwǫ́",
+    "logout": "Yee Háwǫ́",
+    "profile": "Asdzą́ą́ Bá Hólǫ́"
+  },
+  "common": {
+    "loading": "Yee Háwǫ́…",
+    "error": "Tó Ałhidadiidzin.",
+    "close": "Yee Háwǫ́",
+    "cancel": "Yee Háwǫ́",
+    "save": "Yee Háwǫ́",
+    "back": "Yee Háwǫ́",
+    "language.en": "English",
+    "language.nv": "Diné",
+    "language.toggleLabel": "Language",
+    "language.mtDisclaimer": "Diné bizaad translations are machine-generated and pending native-speaker review.",
+    "language": {
+      "en": "English",
+      "nv": "Diné",
+      "toggleLabel": "Saad",
+      "mtDisclaimer": "Diné bizaad translations are machine-generated and pending native-speaker review."
+    }
+  },
+  "home": {
+    "heroTitle": "Diné Bikéyah Hózhǫ́ǫ́, Yee Háwǫ́, dóó Ałhidadiidzin.",
+    "heroCopy": "Kateri provides safe housing, counseling, and reintegration support for girls, with a focused commitment to Native American communities.",
+    "cta": {
+      "support": "Kateri Yee Háwǫ́",
+      "viewImpact": "Hweʼéhgo Baa Nitsékesgo Biniiyé"
+    },
+    "stat": {
+      "safehomes": "Diné Bikéyah Nitsékesgo",
+      "activeCases": "Kin Yee Haʼołniihii Dine'é",
+      "partners": "Kin Yee Haʼołniihii Dibe Nitsékesgo"
+    },
+    "serve": {
+      "heading": "Kateri Baa Nitsékesgo Biniiyé",
+      "protect": {
+        "title": "Nitsékesgo:",
+        "body": "Diné Bikéyah Nitsékesgo Biniiyé Dine'é Yee Haʼołniihii Baa Nitsékesgo."
+      },
+      "restore": {
+        "title": "Naʼałkaah:",
+        "body": "Dine'é Yee Haʼołniihii Baa Nitsékesgo Biniiyé Naʼałkaah Dine'é Yee Haʼołniihii."
+      },
+      "reintegrate": {
+        "title": "Kin Yee Haʼołniihii:",
+        "body": "Dine'é Yee Haʼołniihii Baa Nitsékesgo Biniiyé Kin Yee Haʼołniihii Dine'é Yee Haʼołniihii."
+      }
+    },
+    "sistersAlt": "Asdzą Nádleehé Tááʼ Tsékooh Baa Nitsékesgo.",
+    "name": {
+      "heading": "Kateri Baa Yáʼátʼéeh?",
+      "body": "Kateri Tekakwitha Baa Yáʼátʼéeh Diné Bikéyah Nitsékesgo Biniiyé. Kateri Baa Yáʼátʼéeh Dine'é Yee Haʼołniihii Baa Nitsékesgo.",
+      "portraitAlt": "Kateri Tekakwitha Baa Yáʼátʼéeh Tsékooh Baa Nitsékesgo."
+    },
+    "contact": {
+      "heading": "Hweʼéhgo Baa Nitsékesgo",
+      "body": "Kateri Baa Yáʼátʼéeh Dine'é Yee Haʼołniihii Baa Nitsékesgo Biniiyé.",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "privacyPolicy": "Dine'é Yee Haʼołniihii Baa Nitsékesgo",
+      "cookiePolicy": "Cookie Policy"
+    }
+  },
+  "login": {
+    "title": "Haad",
+    "lead": "Kateri doo ayóó nihá. Donor and Resident users can sign up directly. Staff and Admin accounts are created by an administrator.",
+    "form": {
+      "usernameOrEmailLabel": "Asdzą́ą́ Naat'aanii Yee o Email",
+      "passwordLabel": "Iiná Doo Baa Hózhǫ́",
+      "showPassword": "Yee'",
+      "hidePassword": "Nitsxá",
+      "showPasswordAria": "Iiná Doo Baa Hózhǫ́ yee'",
+      "hidePasswordAria": "Iiná Doo Baa Hózhǫ́ nitsxá",
+      "rememberMe": "Shił haad nitsxá",
+      "submit": "Haad",
+      "submitting": "Haad..."
+    },
+    "twoFactor": {
+      "requiresSetupNotice": "Admin and Staff accounts must enable two-factor authentication. After you sign in with your password, you will be taken to Profile to finish setup.",
+      "successHeading": "Yáʼátʼéeh, t'áá łá",
+      "successLead": "Enter your 6-digit authenticator code, or a one-time recovery code (format XXXXX-XXXXX). Use this same field for both.",
+      "codeLabel": "Authenticator or recovery code",
+      "codePlaceholder": "123456 or XXXXX-XXXXX",
+      "verifySubmit": "Verify and sign in",
+      "verifying": "Verifying...",
+      "backToPassword": "Back to password login",
+      "infoMessage": "Yéʼ, diné naaznilgo: kin ílʼínígo naalkaah code nideiłkah."
+    },
+    "errors": {
+      "loginFailed": "Login doo yéʼ da.",
+      "twoFactorFailed": "Naaki factor verification doo yéʼ da."
+    },
+    "external": {
+      "heading": "Doodaii",
+      "google": "Google ílʼínígo naalkaah",
+      "generic": "{provider} ílʼínígo naalkaah"
+    }
+  },
+  "signup": {
+    "title": "Akʼe ílʼínígo naalkaah",
+    "lead": "Atsʼí diné akʼe ílʼínígo naalkaah Donor doodaii Resident ílʼínígo. Staff doodaii Admin akʼe ílʼínígo naalkaah administrators ílʼínígo.",
+    "submitLabel": "Akʼe ílʼínígo naalkaah",
+    "external": {
+      "heading": "Doodaii",
+      "google": "Google ílʼínígo akʼe ílʼínígo naalkaah",
+      "generic": "{provider} ílʼínígo akʼe ílʼínígo naalkaah"
+    }
+  },
+  "privacy": {
+    "heading": "Privacy Policy",
+    "body": "Kateri personal data nideiłkah Diné bináʼ ílʼínígo. Kin ílʼínígo naalkaah, donation records, doodaii case information nideiłkah.\n\nData nideiłkah service delivery, safeguarding, recordkeeping, doodaii security ílʼínígo. Personal data doo yoołkah da. Access role-based permissions doodaii authenticated sessions ílʼínígo.\n\nData retention operational, legal, doodaii safeguarding requirements ílʼínígo. Retention periods doo yéʼ da, records deleted doodaii anonymized.\n\nAccess, correction, doodaii deletion nideiłkah personal data ílʼínígo. Support nideiłkah requests ílʼínígo.\n\nCookie doodaii consent details Cookie Policy ílʼínígo. Essential security cookies required protected areas ílʼínígo.\n\nLast updated: April 2026."
+  },
+  "cookiePolicy": {
+    "heading": "Cookie Policy",
+    "body": "Kateri essential cookies nideiłkah users signed in, account sessions protect, doodaii secure site behavior ílʼínígo. Cookies required authentication ílʼínígo doodaii disabled doo kin da.\n\nAccept all cookies doodaii necessary cookies only. Necessary cookies login, session continuity, doodaii security controls support. Optional cookies accepted ílʼínígo.\n\nLast updated: April 2026."
+  },
+  "cookieBanner": {
+    "ariaLabel": "Cookie consent",
+    "messageBefore": "Kateri essential cookies authentication doodaii security ílʼínígo nideiłkah. Details review kin ",
+    "messageLinkText": "Cookie Policy",
+    "messageAfter": ".",
+    "acceptNecessary": "Necessary only accept",
+    "acceptAll": "Cookies Ólta'"
+  },
+  "unauthorized": {
+    "heading": "Doo Baa Hózhǫ́",
+    "body": "Dii página baa nínáhwiinígíí doo baa ahéhee da."
+  },
+  "impact": {
+    "heading": "Nihí Bííghaʼ",
+    "lead": "Kateri bííghaʼ nitsáhákees diné yázhí dóó bitsílí baa nitsáhákees: diné baa nitsáhákees, ałhidadiidzą́, justice baa nitsáhákees, dóó azlą́ʼ baa nitsáhákees.",
+    "cta": {
+      "support": "Kateri Baa Nitsáhákees",
+      "backHome": "Hogan Góyaa"
+    },
+    "kpi": {
+      "activeResidents": "Ałhidadiidzą́ Diné",
+      "counselingSessions": "Counseling Sessions Baa Nitsáhákees",
+      "reintegrationRate": "Ólta' Góyaa Rate"
+    },
+    "health": {
+      "heading": "Diné Bííghaʼ Dóó Ałhidadiidzą́",
+      "subtitle": "Residents score nitsáhákees azlą́ʼ",
+      "improvedSummary": "{percent}% nitsáhákees azlą́ʼ.",
+      "basis": "Residents 2+ health records baa.",
+      "progressAria": "{percent} percent residents nitsáhákees"
+    },
+    "pillars": {
+      "safety": {
+        "title": "Diné Baa Nitsáhákees",
+        "description": "Diné baa nitsáhákees azlą́ʼ ałhidadiidzą́ yee nitsáhákees. Kateri baa nitsáhákees diné yázhí baa nitsáhákees dóó azlą́ʼ baa nitsáhákees."
+      },
+      "healing": {
+        "title": "Ałhidadiidzą́",
+        "description": "Diné baa nitsáhákees azlą́ʼ, ałhidadiidzą́ yee nitsáhákees. Nihí baa nitsáhákees ałhidadiidzą́, counseling, mentorship, dóó azlą́ʼ baa nitsáhákees."
+      },
+      "justice": {
+        "title": "Justice",
+        "description": "Kateri doo ájíltą́ da bee naaltsoos ałhidadiilyéé baa nanitin. Asdzą́ yázhí kéé yee naaltsoos ałhidadiilyéé baa nanitin yee baa hózhǫ́ǫ́ da."
+      },
+      "empowerment": {
+        "title": "Nitsékees Bee Hózhǫ́",
+        "description": "Nihintah yee asdzą́ yázhí baa hózhǫ́ǫ́ doo yee nitsékees bee hózhǫ́ bee nanitin yee baa hózhǫ́ǫ́ da, ałhidadiilyéé, diné bizaad, bee nitsékees bee hózhǫ́ǫ́ da."
+      }
+    }
+  }
+}
