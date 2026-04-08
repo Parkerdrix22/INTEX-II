@@ -1,4 +1,5 @@
 using Lighthouse.API.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -23,6 +24,7 @@ namespace Lighthouse.API.Controllers;
 
 [ApiController]
 [Route("api/donor-archetypes")]
+[Authorize(Roles = "Admin,Staff")]
 public class DonorArchetypeController : ControllerBase
 {
     private static readonly DateTime SnapshotDate = new(2026, 4, 7);

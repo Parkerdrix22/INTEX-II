@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Lighthouse.API.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.ML.OnnxRuntime;
@@ -11,6 +12,7 @@ namespace Lighthouse.API.Controllers;
 
 [ApiController]
 [Route("api/resident-risk")]
+[Authorize(Roles = "Admin,Staff")]
 public class ResidentRiskController : ControllerBase
 {
     private static readonly Lazy<InferenceSession> Session = new(() =>
