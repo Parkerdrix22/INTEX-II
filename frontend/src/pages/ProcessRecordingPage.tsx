@@ -82,6 +82,15 @@ function residentDisplayName(row: CaseloadResident): string {
   return row.caseControlNo || `Resident #${row.id}`;
 }
 
+/** Short preview for the list table; full text is in the row-detail modal. */
+function truncateNarrativePreview(text: string | null | undefined, maxWords = 8): string {
+  const s = text?.trim();
+  if (!s) return '—';
+  const words = s.split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return s;
+  return `${words.slice(0, maxWords).join(' ')}…`;
+}
+
 export function ProcessRecordingPage() {
   const [rows, setRows] = useState<ProcessRecordingSummary[]>([]);
   const [residents, setResidents] = useState<CaseloadResident[]>([]);
@@ -389,7 +398,7 @@ export function ProcessRecordingPage() {
           </select>
         </div>
 
-        <div className="caseload-table-wrap">
+        <div className="caseload-table-wrap process-recording-table-wrap">
           <table className="caseload-table">
             <thead>
               <tr>
@@ -433,8 +442,15 @@ export function ProcessRecordingPage() {
                       )}
                       {row.concernsFlagged !== true && row.progressNoted !== true && '—'}
                     </td>
-                    <td className="caseload-narrative-cell">
-                      {row.narrativePreview?.trim() ? row.narrativePreview : '—'}
+                    <td
+                      className="caseload-narrative-cell process-recording-narrative-preview"
+                      title={
+                        row.narrativePreview?.trim()
+                          ? `${row.narrativePreview.trim()} — Click the row for the full record.`
+                          : undefined
+                      }
+                    >
+                      {truncateNarrativePreview(row.narrativePreview)}
                     </td>
                   </tr>
                 ))}
