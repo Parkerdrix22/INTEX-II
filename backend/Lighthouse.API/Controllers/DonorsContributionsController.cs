@@ -46,7 +46,7 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
             {
                 SupporterId = supporterId,
                 Amount = request.EstimatedValue,
-                Currency = "PHP",
+                Currency = "USD",
                 DonatedAt = donationDate,
                 CampaignName = CleanString(request.CampaignName),
             };
@@ -131,15 +131,47 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
     [HttpDelete("donations/{donationId:int}")]
     public async Task<IActionResult> DeleteDonation(int donationId)
     {
-        var affected = await dbContext.Database.ExecuteSqlRawAsync(
-            """
-            DELETE FROM lighthouse.donations
-            WHERE donation_id = {0}
-            """,
-            donationId);
+        try
+        {
+            await using var tx = await dbContext.Database.BeginTransactionAsync();
 
-        if (affected == 0) return NotFound(new { message = "Donation not found." });
-        return Ok(new { message = "Donation deleted successfully." });
+            // Delete dependent rows first to avoid FK violations.
+            await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                DELETE FROM lighthouse.donation_allocations
+                WHERE donation_id = {0}
+                """,
+                donationId);
+
+            await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                DELETE FROM lighthouse.in_kind_donation_items
+                WHERE donation_id = {0}
+                """,
+                donationId);
+
+            var affected = await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                DELETE FROM lighthouse.donations
+                WHERE donation_id = {0}
+                """,
+                donationId);
+
+            await tx.CommitAsync();
+
+            if (affected == 0) return NotFound(new { message = "Donation not found." });
+            return Ok(new { message = "Donation deleted successfully." });
+        }
+        catch
+        {
+            // Fallback for local/non-lighthouse DB shape.
+            var donation = await dbContext.Donations.FirstOrDefaultAsync(d => d.Id == donationId);
+            if (donation is null) return NotFound(new { message = "Donation not found." });
+
+            dbContext.Donations.Remove(donation);
+            await dbContext.SaveChangesAsync();
+            return Ok(new { message = "Donation deleted successfully." });
+        }
     }
 
     [HttpPost("supporters")]

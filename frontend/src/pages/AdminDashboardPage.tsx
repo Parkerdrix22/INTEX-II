@@ -20,9 +20,9 @@ import {
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-PH', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'PHP',
+    currency: 'USD',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);

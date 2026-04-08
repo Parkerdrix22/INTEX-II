@@ -14,8 +14,8 @@ function formatDate(value: string | null): string {
   return date.toLocaleDateString();
 }
 
-function formatPhp(value: number): string {
-  return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value);
+function formatUsd(value: number): string {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 }
 
 export function SupporterDonationsPage() {
@@ -210,7 +210,7 @@ export function SupporterDonationsPage() {
                   <tr key={row.id}>
                     <td>{formatDate(row.donationDate)}</td>
                     <td>{row.donationType}</td>
-                    <td>{formatPhp(row.estimatedValue ?? 0)}</td>
+                    <td>{formatUsd(row.estimatedValue ?? 0)}</td>
                     <td>{row.campaignName ?? '—'}</td>
                     <td>
                       <button type="button" className="btn-secondary" onClick={() => startEdit(row)}>

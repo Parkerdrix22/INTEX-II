@@ -427,53 +427,86 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     [HttpPost("residents/{residentId:int}/intervention-plans")]
     public async Task<IActionResult> AddInterventionPlan(int residentId, [FromBody] CreateInterventionPlanRequest request)
     {
-        var (idColumn, idIsGenerated) = await GetLighthousePrimaryKeyInfoAsync("intervention_plans");
-        if (!string.IsNullOrWhiteSpace(idColumn) && !idIsGenerated)
+        var targetDateUtc = request.TargetDate.HasValue ? NormalizeToUtc(request.TargetDate.Value) : (DateTime?)null;
+        var caseConferenceDateUtc = request.CaseConferenceDate.HasValue
+            ? NormalizeToUtc(request.CaseConferenceDate.Value)
+            : (DateTime?)null;
+
+        try
         {
-            var newId = await NextLighthouseIdAsync("intervention_plans", idColumn);
-            var insertSql =
-                "INSERT INTO lighthouse.intervention_plans " +
-                $"({idColumn}, resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date, created_at, updated_at) " +
-                "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10})";
-            await dbContext.Database.ExecuteSqlRawAsync(
-                insertSql,
-                newId,
-                residentId,
-                request.PlanCategory,
-                request.PlanDescription,
-                request.ServicesProvided,
-                request.TargetValue,
-                request.TargetDate,
-                request.Status,
-                request.CaseConferenceDate,
-                DateTime.UtcNow,
-                DateTime.UtcNow);
+            var (idColumn, idIsGenerated) = await GetLighthousePrimaryKeyInfoAsync("intervention_plans");
+            if (!string.IsNullOrWhiteSpace(idColumn) && !idIsGenerated)
+            {
+                var newId = await NextLighthouseIdAsync("intervention_plans", idColumn);
+                var insertSql =
+                    "INSERT INTO lighthouse.intervention_plans " +
+                    $"({idColumn}, resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date, created_at, updated_at) " +
+                    "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10})";
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    insertSql,
+                    newId,
+                    residentId,
+                    request.PlanCategory,
+                    request.PlanDescription,
+                    request.ServicesProvided,
+                    request.TargetValue,
+                    targetDateUtc,
+                    request.Status,
+                    caseConferenceDateUtc,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow);
+            }
+            else
+            {
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    """
+                    INSERT INTO lighthouse.intervention_plans
+                        (resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date, created_at, updated_at)
+                    VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})
+                    """,
+                    residentId,
+                    request.PlanCategory,
+                    request.PlanDescription,
+                    request.ServicesProvided,
+                    request.TargetValue,
+                    targetDateUtc,
+                    request.Status,
+                    caseConferenceDateUtc,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow);
+            }
+            return Ok(new { message = "Intervention plan saved." });
         }
-        else
+        catch
         {
+            // Compatibility fallback for environments where intervention_plans
+            // does not include created_at/updated_at columns.
             await dbContext.Database.ExecuteSqlRawAsync(
                 """
                 INSERT INTO lighthouse.intervention_plans
-                    (resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date, created_at, updated_at)
-                VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})
+                    (resident_id, plan_category, plan_description, services_provided, target_value, target_date, status, case_conference_date)
+                VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})
                 """,
                 residentId,
                 request.PlanCategory,
                 request.PlanDescription,
                 request.ServicesProvided,
                 request.TargetValue,
-                request.TargetDate,
+                targetDateUtc,
                 request.Status,
-                request.CaseConferenceDate,
-                DateTime.UtcNow,
-                DateTime.UtcNow);
+                caseConferenceDateUtc);
+            return Ok(new { message = "Intervention plan saved." });
         }
-        return Ok(new { message = "Intervention plan saved." });
     }
 
     [HttpPut("residents/{residentId:int}/intervention-plans/{recordKey}")]
     public async Task<IActionResult> UpdateInterventionPlan(int residentId, string recordKey, [FromBody] UpdateInterventionPlanRequest request)
     {
+        var targetDateUtc = request.TargetDate.HasValue ? NormalizeToUtc(request.TargetDate.Value) : (DateTime?)null;
+        var caseConferenceDateUtc = request.CaseConferenceDate.HasValue
+            ? NormalizeToUtc(request.CaseConferenceDate.Value)
+            : (DateTime?)null;
+
         var affected = await dbContext.Database.ExecuteSqlRawAsync(
             """
             UPDATE lighthouse.intervention_plans
@@ -492,9 +525,9 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
             request.PlanDescription,
             request.ServicesProvided,
             request.TargetValue,
-            request.TargetDate,
+            targetDateUtc,
             request.Status,
-            request.CaseConferenceDate,
+            caseConferenceDateUtc,
             DateTime.UtcNow,
             residentId,
             recordKey);
