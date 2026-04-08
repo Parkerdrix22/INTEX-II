@@ -436,7 +436,7 @@ export function DonorDashboardPage() {
       <article className="auth-card donor-history-overview" id="donor-history">
         <div className="donor-overview-head">
           <h2>Your giving overview</h2>
-          <Link className="donor-overview-cta" to="/donor-impact">
+          <Link className="donor-overview-cta" to="/my-impact">
             See full impact report →
           </Link>
         </div>
