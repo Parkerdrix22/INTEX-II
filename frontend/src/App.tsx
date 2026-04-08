@@ -60,8 +60,6 @@ function App() {
     !isLoading &&
     (roles.includes('Admin') || roles.includes('Staff')) &&
     !twoFactorEnabled;
-  const accentNavRoutes = ['/impact', '/donor-dashboard', '/profile'];
-  const useAccentNav = accentNavRoutes.includes(location.pathname);
   const isStaffLike = roles.includes('Admin') || roles.includes('Staff');
   const isDonor = roles.includes('Donor');
   const isResident = roles.includes('Resident');
@@ -81,7 +79,7 @@ function App() {
 
   return (
     <div className="app-shell">
-      <header className={`site-header${useAccentNav ? ' site-header--accent-nav' : ''}`}>
+      <header className="site-header">
         <nav className="top-nav">
           <div className="nav-left">
             <Link className="brand-mark" to="/">

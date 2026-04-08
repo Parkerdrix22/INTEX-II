@@ -46,6 +46,15 @@ public class DonorVolunteerController(
             focuses,
             request.Notes);
 
+        await staffNotificationEmail.SendVolunteerConfirmationAsync(
+            full,
+            email,
+            request.FlexibleOnDays,
+            days,
+            times,
+            focuses,
+            request.Notes);
+
         return Ok(new { message = "Thank you — your volunteer interest was submitted." });
     }
 }
