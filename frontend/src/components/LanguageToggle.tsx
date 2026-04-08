@@ -1,8 +1,8 @@
 import { useLanguage, type Lang } from '../i18n/LanguageContext';
 
-// Matches the visual language of the adjacent .auth-nav-pill — solid
-// navy background, white text, "|" separator. Active language is fully
-// opaque; inactive is dimmed. Keeps the nav bar visually cohesive.
+// Cream pill container with two buttons, active language filled with navy.
+// Modeled after the EN/SPA toggle on intex1.nathanblatter.com but themed
+// with Kateri colors (cream container + navy active state).
 
 export function LanguageToggle() {
   const { lang, setLang, t } = useLanguage();
@@ -12,34 +12,23 @@ export function LanguageToggle() {
   };
 
   return (
-    <div
-      className="auth-nav-pill lang-toggle-pill"
-      role="group"
-      aria-label={t('common.language.toggleLabel')}
-    >
+    <div className="lang-toggle" role="group" aria-label={t('common.language.toggleLabel')}>
       <button
         type="button"
-        className={`auth-nav-pill__logout lang-toggle-pill__btn${
-          lang === 'en' ? ' lang-toggle-pill__btn--active' : ''
-        }`}
+        className={`lang-button${lang === 'en' ? ' active' : ''}`}
         aria-pressed={lang === 'en'}
         onClick={() => choose('en')}
       >
-        EN
+        ENG
       </button>
-      <span className="auth-nav-pill__sep" aria-hidden="true">
-        |
-      </span>
       <button
         type="button"
-        className={`auth-nav-pill__logout lang-toggle-pill__btn${
-          lang === 'nv' ? ' lang-toggle-pill__btn--active' : ''
-        }`}
+        className={`lang-button${lang === 'nv' ? ' active' : ''}`}
         aria-pressed={lang === 'nv'}
         onClick={() => choose('nv')}
         title={t('common.language.mtDisclaimer')}
       >
-        Diné
+        DIN
       </button>
     </div>
   );
