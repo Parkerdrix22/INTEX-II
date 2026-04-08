@@ -34,14 +34,17 @@ export function ProfilePage() {
   const [setupUri, setSetupUri] = useState<string | null>(null);
   const [setupCode, setSetupCode] = useState('');
   const [setupQrCodeDataUrl, setSetupQrCodeDataUrl] = useState<string | null>(null);
-  const [securityMessage, setSecurityMessage] = useState<string | null>(null);
+  const [securityMessage, setSecurityMessage] = useState<string | null>(() => searchParams.get('message'));
   const [securityError, setSecurityError] = useState<string | null>(null);
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
 
   useEffect(() => {
-    setDisplayName(profile.displayName);
-    setPhone(profile.phone);
-    setNotes(profile.notes);
+    const raf = window.requestAnimationFrame(() => {
+      setDisplayName(profile.displayName);
+      setPhone(profile.phone);
+      setNotes(profile.notes);
+    });
+    return () => window.cancelAnimationFrame(raf);
   }, [profile.displayName, profile.phone, profile.notes]);
 
   useEffect(() => {
@@ -52,10 +55,6 @@ export function ProfilePage() {
       return;
     }
     setupHintFromUrl.current = true;
-    const msg = searchParams.get('message');
-    if (msg) {
-      setSecurityMessage(msg);
-    }
     window.requestAnimationFrame(() => {
       document.getElementById('profile-security')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });

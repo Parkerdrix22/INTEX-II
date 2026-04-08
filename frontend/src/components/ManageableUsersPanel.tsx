@@ -249,12 +249,11 @@ export function ManageableUsersPanel() {
       )}
       {!loading && filtered.length > 0 && (
         <div className="admin-accounts-table-wrap">
-          <table className="admin-accounts-table">
+          <table className="admin-accounts-table admin-accounts-table--manageable">
             <thead>
               <tr>
                 <th scope="col">Name</th>
                 <th scope="col">Email</th>
-                <th scope="col">Sign-in id</th>
                 <th scope="col">Role</th>
                 <th scope="col">Links</th>
                 <th scope="col">Actions</th>
@@ -265,9 +264,6 @@ export function ManageableUsersPanel() {
                 <tr key={row.id}>
                   <td className="admin-accounts-td-name">{formatPersonName(row)}</td>
                   <td className="admin-accounts-td-clip">{row.email ?? '—'}</td>
-                  <td className="admin-accounts-td-clip">
-                    <code className="donor-promote-mono">{row.loginId ?? row.email ?? '—'}</code>
-                  </td>
                   <td className="admin-accounts-td-role">
                     <span className="admin-accounts-role-pill">{row.role}</span>
                   </td>

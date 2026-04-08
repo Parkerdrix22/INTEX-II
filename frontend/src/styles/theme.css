@@ -2097,6 +2097,11 @@ a.auth-nav-pill--solo-login:focus-visible {
   color: var(--text-muted);
 }
 
+.donor-promote-search input {
+  width: 100%;
+  min-height: 2.35rem;
+}
+
 .donor-promote-search__label {
   font-weight: 600;
   font-size: 0.9rem;
@@ -2144,20 +2149,19 @@ a.auth-nav-pill--solo-login:focus-visible {
 }
 
 .admin-accounts-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 0.75rem;
 }
 
 .admin-accounts-toolbar__search {
-  flex: 1 1 14rem;
-  max-width: 22rem;
+  width: 100%;
+  max-width: none;
 }
 
 .admin-accounts-table-wrap {
-  overflow-x: auto;
+  overflow-x: hidden;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.72);
@@ -2169,6 +2173,7 @@ a.auth-nav-pill--solo-login:focus-visible {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.94rem;
+  table-layout: fixed;
 }
 
 .admin-accounts-table th,
@@ -2184,6 +2189,7 @@ a.auth-nav-pill--solo-login:focus-visible {
   color: var(--text-muted);
   background: rgba(56, 95, 130, 0.07);
   font-family: var(--font-ui);
+  white-space: normal;
 }
 
 .admin-accounts-table tr:last-child td {
@@ -2202,12 +2208,14 @@ a.auth-nav-pill--solo-login:focus-visible {
 }
 
 .admin-accounts-td-name {
-  max-width: 12rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .admin-accounts-td-clip {
-  max-width: 14rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
@@ -2217,8 +2225,8 @@ a.auth-nav-pill--solo-login:focus-visible {
 }
 
 .admin-accounts-td-actions {
-  width: 1%;
-  white-space: nowrap;
+  width: auto;
+  white-space: normal;
   vertical-align: middle;
 }
 
@@ -2228,13 +2236,13 @@ a.auth-nav-pill--solo-login:focus-visible {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.35rem;
   line-height: 1.35;
-  min-height: 2.25rem;
 }
 
 .admin-accounts-links-empty {
-  align-self: center;
+  line-height: 1.2;
 }
 
 .admin-accounts-link-chip {
@@ -2248,6 +2256,13 @@ a.auth-nav-pill--solo-login:focus-visible {
   line-height: 1.2;
 }
 
+/* Optical nudge: link chips sat slightly high vs email/role text in the same row */
+.admin-accounts-table--manageable .admin-accounts-link-chip,
+.admin-accounts-table--manageable .admin-accounts-links-empty {
+  position: relative;
+  top: 3px;
+}
+
 .admin-accounts-actions {
   display: inline-flex;
   flex-wrap: nowrap;
@@ -2259,6 +2274,50 @@ a.auth-nav-pill--solo-login:focus-visible {
   font-size: 0.82rem !important;
   padding: 0.45rem 0.65rem !important;
   flex-shrink: 0;
+  min-width: 0;
+}
+
+.admin-accounts-table--manageable th:nth-child(1),
+.admin-accounts-table--manageable td:nth-child(1) {
+  width: 20%;
+}
+
+.admin-accounts-table--manageable th:nth-child(2),
+.admin-accounts-table--manageable td:nth-child(2) {
+  width: 30%;
+}
+
+.admin-accounts-table--manageable th:nth-child(3),
+.admin-accounts-table--manageable td:nth-child(3) {
+  width: 12%;
+}
+
+.admin-accounts-table--manageable th:nth-child(4),
+.admin-accounts-table--manageable td:nth-child(4) {
+  width: 10%;
+}
+
+.admin-accounts-table--manageable th:nth-child(5),
+.admin-accounts-table--manageable td:nth-child(5) {
+  width: 28%;
+}
+
+.admin-accounts-table--manageable tbody tr {
+  border-bottom: 1px solid rgba(170, 190, 208, 0.45);
+}
+
+.admin-accounts-table--manageable tbody tr:last-child {
+  border-bottom: none;
+}
+
+.admin-accounts-table--manageable tbody td {
+  border-bottom: none;
+}
+
+@media (max-width: 980px) {
+  .admin-accounts-toolbar {
+    grid-template-columns: 1fr;
+  }
 }
 
 .admin-accounts-btn-danger {

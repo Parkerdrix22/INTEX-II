@@ -26,7 +26,9 @@ export function AdminStaffTwoFactorGate() {
 
     if (!needsGate) {
       prevPathnameRef.current = location.pathname;
-      setBlockedLeaveModalOpen(false);
+      window.requestAnimationFrame(() => {
+        setBlockedLeaveModalOpen(false);
+      });
       return;
     }
 
@@ -37,7 +39,9 @@ export function AdminStaffTwoFactorGate() {
 
     const cameFromProfile = prevPathnameRef.current === '/profile';
     if (cameFromProfile) {
-      setBlockedLeaveModalOpen(true);
+      window.requestAnimationFrame(() => {
+        setBlockedLeaveModalOpen(true);
+      });
     }
     prevPathnameRef.current = '/profile';
   }, [isLoading, isAuthenticated, needsGate, location.pathname]);

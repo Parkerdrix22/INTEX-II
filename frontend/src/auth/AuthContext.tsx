@@ -46,9 +46,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (isAuthenticated && (email || username)) {
-      setProfile(loadProfile(email, username));
+      const timer = window.setTimeout(() => {
+        setProfile(loadProfile(email, username));
+      }, 0);
+      return () => window.clearTimeout(timer);
     } else if (!isAuthenticated) {
-      setProfile({ displayName: '', phone: '', notes: '' });
+      const timer = window.setTimeout(() => {
+        setProfile({ displayName: '', phone: '', notes: '' });
+      }, 0);
+      return () => window.clearTimeout(timer);
     }
   }, [isAuthenticated, email, username]);
 
