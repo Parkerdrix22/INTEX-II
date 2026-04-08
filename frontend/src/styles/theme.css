@@ -4288,25 +4288,30 @@ input[type='reset']:disabled {
   transform: translateY(-7px) rotate(45deg);
 }
 
-/* Mobile dropdown panel — slides down from the top of the viewport */
+/* Mobile side drawer — slides in from the right of the viewport, full
+   height, solid opaque background (no transparency bleed). Styled after
+   the Adidas mobile drawer pattern but anchored to the right because
+   the hamburger sits in the top-right corner. */
 .mobile-nav {
   display: none; /* hidden by default, enabled at mobile breakpoint */
   position: fixed;
-  left: 0;
+  top: 0;
+  bottom: 0;
   right: 0;
-  top: -100vh; /* parked above the fold */
+  width: min(88vw, 360px);
+  height: 100vh;
+  transform: translateX(100%);
   z-index: 55;
-  background: var(--surface, #fdf8ec);
-  box-shadow: 0 12px 40px rgba(31, 47, 63, 0.2);
-  border-bottom: 1px solid rgba(56, 95, 130, 0.15);
-  padding: 1rem 1.5rem 1.5rem;
-  transition: top 0.3s ease-in-out;
+  background: #fdf8ec; /* solid cream, no alpha */
+  box-shadow: -20px 0 50px rgba(31, 47, 63, 0.25);
+  padding: 5rem 1.5rem 2rem; /* top padding clears the fixed hamburger */
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
   overflow-y: auto;
-  max-height: calc(100vh - 70px);
+  -webkit-overflow-scrolling: touch;
 }
 
 .mobile-nav--open {
-  top: 70px;
+  transform: translateX(0);
 }
 
 .mobile-nav__link {
@@ -4406,13 +4411,14 @@ input[type='reset']:disabled {
   transform: scale(0.98);
 }
 
-/* Dim backdrop behind the overlay */
+/* Dim backdrop behind the drawer — darker than a typical scrim so the
+   drawer reads as the focused surface on smaller phones. */
 .mobile-nav-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(31, 47, 63, 0.45);
+  background: rgba(8, 15, 24, 0.6);
   z-index: 50;
-  animation: mobileNavFadeIn 0.25s ease-out;
+  animation: mobileNavFadeIn 0.3s ease-out;
 }
 
 @keyframes mobileNavFadeIn {
@@ -4434,9 +4440,8 @@ input[type='reset']:disabled {
 }
 
 :root[data-theme='dark'] .mobile-nav {
-  background: rgba(16, 26, 38, 0.98);
-  border-bottom-color: rgba(130, 155, 178, 0.35);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  background: #101a26; /* solid dark navy, no alpha */
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.65);
 }
 
 :root[data-theme='dark'] .mobile-nav__link {
@@ -4483,7 +4488,7 @@ input[type='reset']:disabled {
 }
 
 :root[data-theme='dark'] .mobile-nav-backdrop {
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.75);
 }
 
 /* ── Activate the mobile nav under 768px, hide the desktop nav-right ── */
