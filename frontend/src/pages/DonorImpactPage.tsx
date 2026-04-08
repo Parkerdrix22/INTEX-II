@@ -427,7 +427,7 @@ export function DonorImpactPage() {
                   </header>
                   {report.programAreaBreakdown.length > 0 ? (
                     <div className="impact-chart-wrap">
-                      <ResponsiveContainer width="100%" height={260}>
+                      <ResponsiveContainer width="100%" debounce={1} height={260}>
                         <PieChart>
                           <Pie
                             data={report.programAreaBreakdown}
@@ -482,7 +482,7 @@ export function DonorImpactPage() {
                   </header>
                   {report.monthlyTimeline.length > 0 ? (
                     <div className="impact-chart-wrap">
-                      <ResponsiveContainer width="100%" height={260}>
+                      <ResponsiveContainer width="100%" debounce={1} height={260}>
                         <LineChart data={report.monthlyTimeline}>
                           <XAxis
                             dataKey="month"
@@ -534,7 +534,7 @@ export function DonorImpactPage() {
                     <p>{t('donorImpact.totalAllocatedBySafehouse')}</p>
                   </header>
                   <div className="impact-chart-wrap">
-                    <ResponsiveContainer width="100%" height={Math.max(200, report.safehousesSupported.length * 42)}>
+                    <ResponsiveContainer width="100%" debounce={1} height={Math.max(200, report.safehousesSupported.length * 42)}>
                       <BarChart
                         data={report.safehousesSupported}
                         layout="vertical"
