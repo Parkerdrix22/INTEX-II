@@ -17,6 +17,7 @@ import {
 import './DonorImpactPage.css';
 import './MyImpactPage.css';
 import { useAuth } from '../auth/useAuth';
+import { useLanguage } from '../i18n/LanguageContext';
 
 // =============================================================================
 // API types — match the C# DonorImpactController DTOs
@@ -138,6 +139,7 @@ function prettyVar(v: string): string {
 // =============================================================================
 
 export function MyImpactPage() {
+  const { t } = useLanguage();
   const { isLoading: authLoading, roles } = useAuth();
   const canViewModelContext = roles.includes('Admin') || roles.includes('Staff');
   const [report, setReport] = useState<DonorImpactReport | null>(null);
@@ -159,8 +161,8 @@ export function MyImpactPage() {
           const text = await reportRes.text().catch(() => '');
           throw new Error(
             reportRes.status === 404
-              ? 'Your account is not linked to a donor profile yet. Contact us to connect your giving record.'
-              : text || 'Failed to load your impact report',
+              ? t('myImpact.errors.notLinked')
+              : text || t('myImpact.errors.failedLoad'),
           );
         }
         const data: DonorImpactReport = await reportRes.json();
@@ -192,14 +194,14 @@ export function MyImpactPage() {
           setModelInfo(null);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        setError(err instanceof Error ? err.message : t('common.error'));
       } finally {
         setLoading(false);
         setTimeout(() => setVisible(true), 60);
       }
     };
     load();
-  }, [authLoading, canViewModelContext]);
+  }, [authLoading, canViewModelContext, t]);
 
   const significantHealthFindings = useMemo(() => {
     if (!research?.health) return [];
@@ -212,7 +214,7 @@ export function MyImpactPage() {
     return (
       <div className="impact-loading">
         <div className="impact-spinner" />
-        <p>Loading your impact report…</p>
+        <p>{t('myImpact.loading')}</p>
       </div>
     );
   }
@@ -220,10 +222,10 @@ export function MyImpactPage() {
   if (error) {
     return (
       <div className="impact-error">
-        <h2>Couldn't load your impact report</h2>
+        <h2>{t('myImpact.errors.couldntLoad')}</h2>
         <p>{error}</p>
         <Link to="/donor-dashboard" className="my-impact-back-link">
-          ← Back to your dashboard
+          {t('myImpact.backToDashboardArrow')}
         </Link>
       </div>
     );
@@ -236,28 +238,26 @@ export function MyImpactPage() {
       {/* ─── Back link ──────────────────────────────────────── */}
       <div className="my-impact-nav">
         <Link to="/donor-dashboard" className="my-impact-back-link">
-          ← Back to dashboard
+          {t('myImpact.backToDashboard')}
         </Link>
       </div>
 
       {/* ─── Header ─────────────────────────────────────────── */}
       <header className="impact-header">
-        <span className="impact-overline">Your Personal Impact Report</span>
-        <h1 className="impact-title">Where your generosity goes</h1>
-        <p className="impact-subtitle">
-          Trace every dollar you've given through the safehouses you've funded — see the
-          residents reached, the programs supported, and the outcomes the data shows.
-        </p>
+        <span className="impact-overline">{t('myImpact.overline')}</span>
+        <h1 className="impact-title">{t('myImpact.title')}</h1>
+        <p className="impact-subtitle">{t('myImpact.subtitle')}</p>
         {modelInfo && (
           <p className="impact-model-meta">
-            Powered by{' '}
-            <strong>{modelInfo.nObservations.toLocaleString()}</strong> safehouse-month
-            observations · OLS R² ={' '}
-            <strong>{(modelInfo.healthR2 * 100).toFixed(0)}%</strong> for health outcomes
+            {t('myImpact.poweredByPre')}{' '}
+            <strong>{modelInfo.nObservations.toLocaleString()}</strong>{' '}
+            {t('myImpact.poweredByMid')}{' '}
+            <strong>{(modelInfo.healthR2 * 100).toFixed(0)}%</strong>{' '}
+            {t('myImpact.poweredBySuffix')}
             {modelInfo.trainedAt && (
               <>
-                {' '}
-                · last refresh{' '}
+                {' · '}
+                {t('myImpact.lastRefresh')}{' '}
                 {new Date(modelInfo.trainedAt).toLocaleDateString(undefined, {
                   dateStyle: 'medium',
                 })}
@@ -272,9 +272,9 @@ export function MyImpactPage() {
         {/* ── Donor hero ───────────────────────────────────── */}
         <div className="impact-report-hero">
           <div className="impact-report-hero__text">
-            <span className="impact-report-overline">Personal Impact Report</span>
+            <span className="impact-report-overline">{t('donorImpact.personalReport')}</span>
             <h2 className="impact-report-name">
-              {report.displayName || `Donor #${report.supporterId}`}
+              {report.displayName || `${t('donorImpact.donorPrefix')} #${report.supporterId}`}
             </h2>
             <p className="impact-report-subtitle">
               {report.supporterType}
@@ -283,16 +283,16 @@ export function MyImpactPage() {
             </p>
           </div>
           <div className="impact-report-hero__total">
-            <span className="impact-hero-total-label">Total Contributed</span>
+            <span className="impact-hero-total-label">{t('donorImpact.totalContributed')}</span>
             <span className="impact-hero-total-amount">
               {moneyDecimal.format(report.totalContributed)}
             </span>
             <span className="impact-hero-total-meta">
-              {report.donationCount} gift{report.donationCount === 1 ? '' : 's'}
+              {report.donationCount} {report.donationCount === 1 ? t('donorImpact.gift') : t('donorImpact.gifts')}
               {report.firstDonationDate && (
                 <>
                   {' '}
-                  since{' '}
+                  {t('donorImpact.since')}{' '}
                   {new Date(report.firstDonationDate).toLocaleDateString(undefined, {
                     dateStyle: 'medium',
                   })}
@@ -305,7 +305,7 @@ export function MyImpactPage() {
         {/* ── Stat cards ───────────────────────────────────── */}
         <div className="impact-stat-grid">
           <StatCard
-            label="Safehouses Supported"
+            label={t('donorImpact.stat.safehousesSupported')}
             value={report.safehousesSupported.length.toString()}
             caption={
               report.safehousesSupported.length > 0
@@ -314,38 +314,38 @@ export function MyImpactPage() {
                     .map((s) => s.name)
                     .join(', ') +
                   (report.safehousesSupported.length > 2
-                    ? ` +${report.safehousesSupported.length - 2} more`
+                    ? ` +${report.safehousesSupported.length - 2} ${t('donorImpact.more')}`
                     : '')
-                : 'No allocations yet'
+                : t('donorImpact.stat.noAllocations')
             }
           />
           <StatCard
-            label="Residents in care (avg)"
+            label={t('donorImpact.stat.residentsInCare')}
             value={
               report.avgActiveResidents != null
                 ? Math.round(report.avgActiveResidents).toString()
                 : '—'
             }
-            caption="At funded safehouses, during your support period"
+            caption={t('donorImpact.stat.residentsCaption')}
           />
           <StatCard
-            label="Education Progress"
+            label={t('donorImpact.stat.educationProgress')}
             value={
               report.avgEducationProgress != null
                 ? `${report.avgEducationProgress.toFixed(0)}%`
                 : '—'
             }
-            caption="Avg progress at funded safehouses"
+            caption={t('donorImpact.stat.educationCaption')}
             accent
           />
           <StatCard
-            label="Health Score (avg)"
+            label={t('donorImpact.stat.healthScore')}
             value={
               report.avgHealthScore != null
                 ? `${report.avgHealthScore.toFixed(1)} / 5`
                 : '—'
             }
-            caption="Resident wellbeing at funded safehouses"
+            caption={t('donorImpact.stat.healthCaption')}
           />
         </div>
 
@@ -354,8 +354,8 @@ export function MyImpactPage() {
           {/* Donut: program area allocation */}
           <article className="impact-chart-card">
             <header>
-              <h3>Where your dollars go</h3>
-              <p>Breakdown by program area</p>
+              <h3>{t('donorImpact.whereDollarsGo')}</h3>
+              <p>{t('donorImpact.breakdownByArea')}</p>
             </header>
             {report.programAreaBreakdown.length > 0 ? (
               <div className="impact-chart-wrap">
@@ -402,15 +402,15 @@ export function MyImpactPage() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <p className="impact-empty">No program-area allocation data yet.</p>
+              <p className="impact-empty">{t('donorImpact.empty.programArea')}</p>
             )}
           </article>
 
           {/* Line: monthly contribution timeline */}
           <article className="impact-chart-card">
             <header>
-              <h3>Your giving over time</h3>
-              <p>Monthly contribution timeline</p>
+              <h3>{t('donorImpact.givingOverTime')}</h3>
+              <p>{t('donorImpact.monthlyTimeline')}</p>
             </header>
             {report.monthlyTimeline.length > 0 ? (
               <div className="impact-chart-wrap">
@@ -432,7 +432,7 @@ export function MyImpactPage() {
                         typeof label === 'string' ? formatMonthLabel(label) : String(label ?? '')) as never}
                       formatter={((value: unknown) => {
                         const num = typeof value === 'number' ? value : Number(value ?? 0);
-                        return [moneyDecimal.format(num), 'Contributed'];
+                        return [moneyDecimal.format(num), t('donorImpact.contributed')];
                       }) as never}
                       contentStyle={{
                         background: 'rgba(255,253,247,0.96)',
@@ -453,7 +453,7 @@ export function MyImpactPage() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <p className="impact-empty">No timeline data yet.</p>
+              <p className="impact-empty">{t('donorImpact.empty.timeline')}</p>
             )}
           </article>
         </div>
@@ -462,8 +462,8 @@ export function MyImpactPage() {
         {report.safehousesSupported.length > 0 && (
           <article className="impact-chart-card impact-chart-card--wide">
             <header>
-              <h3>Safehouses you've funded</h3>
-              <p>Total allocated by safehouse</p>
+              <h3>{t('donorImpact.safehousesFunded')}</h3>
+              <p>{t('donorImpact.totalAllocatedBySafehouse')}</p>
             </header>
             <div className="impact-chart-wrap">
               <ResponsiveContainer
@@ -491,7 +491,7 @@ export function MyImpactPage() {
                   <Tooltip
                     formatter={((value: unknown) => {
                       const num = typeof value === 'number' ? value : Number(value ?? 0);
-                      return [moneyDecimal.format(num), 'Allocated'];
+                      return [moneyDecimal.format(num), t('donorImpact.allocated')];
                     }) as never}
                     labelFormatter={((label: unknown, payload: Array<{ payload?: SafehouseSummary }>) => {
                       const p = payload?.[0]?.payload;
@@ -516,37 +516,35 @@ export function MyImpactPage() {
         {research && significantHealthFindings.length > 0 && (
           <article className="impact-research-card">
             <header>
-              <span className="impact-research-overline">📊 What the data shows</span>
-              <h3>Research-backed context</h3>
+              <span className="impact-research-overline">{t('donorImpact.research.overline')}</span>
+              <h3>{t('donorImpact.research.heading')}</h3>
               <p>
-                Based on {research.health.n_obs} safehouse-month observations, our model
-                explains {(research.health.r_squared * 100).toFixed(0)}% of the variance
-                in resident health scores.
+                {t('donorImpact.research.basedOnPre')} {research.health.n_obs}{' '}
+                {t('donorImpact.research.basedOnMid')}{' '}
+                {(research.health.r_squared * 100).toFixed(0)}%{' '}
+                {t('donorImpact.research.basedOnSuffix')}
               </p>
             </header>
             <ul className="impact-research-list">
               {significantHealthFindings.slice(0, 3).map((c) => {
-                const direction = c.coef > 0 ? 'increase' : 'decrease';
+                const direction = c.coef > 0 ? t('donorImpact.research.increase') : t('donorImpact.research.decrease');
                 const magnitude = Math.abs(c.coef * 1000);
                 const sig =
                   c.p_value < 0.01
-                    ? 'highly significant (p < 0.01)'
+                    ? t('donorImpact.research.highlySig')
                     : c.p_value < 0.05
-                      ? 'significant (p < 0.05)'
-                      : 'marginally significant (p < 0.10)';
+                      ? t('donorImpact.research.sig')
+                      : t('donorImpact.research.marginalSig');
                 return (
                   <li key={c.variable}>
-                    <strong>{prettyVar(c.variable)}:</strong> Each $1,000 is associated
-                    with a {magnitude.toFixed(3)}-point {direction} in average health
-                    score ({sig}).
+                    <strong>{prettyVar(c.variable)}:</strong> {t('donorImpact.research.each1000Pre')}{' '}
+                    {magnitude.toFixed(3)}{t('donorImpact.research.each1000Mid')} {direction}{' '}
+                    {t('donorImpact.research.each1000Suffix')} ({sig}).
                   </li>
                 );
               })}
             </ul>
-            <p className="impact-research-disclaimer">
-              Statistical association — not causal. Many factors influence resident
-              outcomes beyond donations.
-            </p>
+            <p className="impact-research-disclaimer">{t('donorImpact.research.disclaimer')}</p>
           </article>
         )}
 
@@ -557,9 +555,9 @@ export function MyImpactPage() {
         {/* ── No donations state ────────────────────────────── */}
         {report.donationCount === 0 && (
           <div className="my-impact-no-donations">
-            <p>You haven't made any donations yet.</p>
+            <p>{t('myImpact.noDonations')}</p>
             <Link to="/donor-dashboard" className="my-impact-back-link">
-              Make your first gift →
+              {t('myImpact.makeFirstGift')}
             </Link>
           </div>
         )}
@@ -567,7 +565,7 @@ export function MyImpactPage() {
         {/* ── CTA to full admin view (admin/staff only shown via role) ── */}
         <div className="my-impact-footer">
           <Link to="/donor-dashboard" className="my-impact-back-link">
-            ← Back to your dashboard
+            {t('myImpact.backToDashboardArrow')}
           </Link>
         </div>
       </div>

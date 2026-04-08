@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { SafehouseScene } from '../components/safehouse3d/SafehouseScene';
+import { useLanguage } from '../i18n/LanguageContext';
 
 function canUseWebGL(): boolean {
   try {
@@ -12,38 +13,29 @@ function canUseWebGL(): boolean {
 
 export function SafehouseTourPage() {
   const supportsWebGL = useMemo(() => canUseWebGL(), []);
+  const { t } = useLanguage();
 
   return (
     <section className="safehouse-tour-page">
       <article className="safehouse-tour-card">
         <header className="safehouse-tour-header">
-          <h1>See the Safehouse</h1>
-          <p className="auth-lead">
-            Explore a modeled safehouse layout featuring bedrooms, bathrooms, a kitchen, a playroom,
-            and a learning room. Drag to rotate and pinch or scroll to zoom.
-          </p>
+          <h1>{t('safehouse.heading')}</h1>
+          <p className="auth-lead">{t('safehouse.lead')}</p>
         </header>
 
-        <div className="safehouse-tour-model-wrap" role="img" aria-label="Interactive 3D dollhouse model">
+        <div className="safehouse-tour-model-wrap" role="img" aria-label={t('safehouse.modelAria')}>
           {supportsWebGL ? (
             <SafehouseScene />
           ) : (
             <div className="safehouse-tour-fallback">
-              <p>
-                Your browser does not support WebGL, so the 3D model cannot load here. Try a modern
-                browser version on desktop or mobile.
-              </p>
+              <p>{t('safehouse.noWebgl')}</p>
             </div>
           )}
         </div>
 
-        <section className="safehouse-tour-description" aria-label="Safehouse summary">
-          <h2>Inside this model</h2>
-          <p>
-            This concept house includes 10 bedrooms with two bunk-bed sets in each room, 5 bathrooms,
-            central circulation space, and shared areas for meals, play, and learning. The design is
-            intentionally simple to spotlight capacity, flow, and a warm environment for residents.
-          </p>
+        <section className="safehouse-tour-description" aria-label={t('safehouse.summaryAria')}>
+          <h2>{t('safehouse.insideHeading')}</h2>
+          <p>{t('safehouse.insideBody')}</p>
         </section>
       </article>
     </section>

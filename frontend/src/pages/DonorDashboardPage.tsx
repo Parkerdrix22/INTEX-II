@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { useAuth } from '../auth/useAuth';
+import { useLanguage } from '../i18n/LanguageContext';
 import {
   donorImpactApi,
   donationsApi,
@@ -126,13 +127,14 @@ function formatWelcomeName(raw: string | null): string | null {
 }
 
 export function DonorDashboardPage() {
+  const { t } = useLanguage();
   const { effectiveDisplayName, firstName, lastName } = useAuth();
   const welcomeName = formatWelcomeName(effectiveDisplayName);
 
   const accountVolunteerName = useMemo(() => {
     const full = [firstName?.trim(), lastName?.trim()].filter(Boolean).join(' ').trim();
-    return full || 'user';
-  }, [firstName, lastName]);
+    return full || t('donorDashboard.defaultVolunteerName');
+  }, [firstName, lastName, t]);
 
   const [amount, setAmount] = useState('100');
   const [donationType, setDonationType] = useState<DonationTypeKey>('Monetary');
@@ -206,7 +208,7 @@ export function DonorDashboardPage() {
       const data = await donorImpactApi.me();
       setImpact(data);
     } catch (err) {
-      setImpactError(err instanceof Error ? err.message : 'Could not load your giving history.');
+      setImpactError(err instanceof Error ? err.message : t('donorDashboard.errors.loadHistory'));
     } finally {
       setImpactLoading(false);
     }
@@ -229,10 +231,10 @@ export function DonorDashboardPage() {
       1,
       (last.getFullYear() - first.getFullYear()) * 12 + (last.getMonth() - first.getMonth()),
     );
-    if (months < 12) return `${months} month${months === 1 ? '' : 's'}`;
+    if (months < 12) return `${months} ${months === 1 ? t('donorDashboard.month') : t('donorDashboard.months')}`;
     const years = (months / 12).toFixed(1).replace(/\.0$/, '');
-    return `${years} year${years === '1' ? '' : 's'}`;
-  }, [impact]);
+    return `${years} ${years === '1' ? t('donorDashboard.year') : t('donorDashboard.years')}`;
+  }, [impact, t]);
 
   const onDonationSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -244,7 +246,7 @@ export function DonorDashboardPage() {
 
     const numericAmount = Number.parseFloat(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
-      setDonationError('Please enter a valid donation amount.');
+      setDonationError(t('donorDashboard.errors.invalidAmount'));
       setDonationSubmitting(false);
       return;
     }
@@ -283,15 +285,15 @@ export function DonorDashboardPage() {
 
       const v = response.valuation;
       const conversionLine = v.canonicalType === 'Monetary' || v.canonicalType === 'InKind'
-        ? `Your gift of ${money.format(v.estimatedValue)}`
-        : `Your ${v.rawAmount} ${v.impactUnit} (valued at ${money.format(v.estimatedValue)})`;
+        ? `${t('donorDashboard.success.yourGiftOf')} ${money.format(v.estimatedValue)}`
+        : `${t('donorDashboard.success.yourPrefix')} ${v.rawAmount} ${v.impactUnit} (${t('donorDashboard.success.valuedAt')} ${money.format(v.estimatedValue)})`;
       setDonationSuccess(
-        `Thank you, ${effectiveDisplayName || 'supporter'}! ${conversionLine} has been allocated based on current safehouse needs.`,
+        `${t('donorDashboard.success.thankYou')}, ${effectiveDisplayName || t('donorDashboard.success.supporter')}! ${conversionLine} ${t('donorDashboard.success.allocatedTail')}`,
       );
       await loadImpact();
       setAmount(DONATION_TYPE_CONFIG[donationType].defaultAmount);
     } catch (err) {
-      setDonationError(err instanceof Error ? err.message : 'Could not save donation.');
+      setDonationError(err instanceof Error ? err.message : t('donorDashboard.errors.saveDonation'));
     } finally {
       setDonationSubmitting(false);
     }
@@ -305,21 +307,21 @@ export function DonorDashboardPage() {
 
     const name = goodsItemName.trim();
     if (!name) {
-      setGoodsError('Please describe the item you would like to donate.');
+      setGoodsError(t('donorDashboard.errors.goodsItem'));
       setGoodsSubmitting(false);
       return;
     }
 
     const qty = Number.parseInt(goodsQuantity, 10);
     if (!Number.isFinite(qty) || qty < 1) {
-      setGoodsError('Please enter a valid quantity (whole number, at least 1).');
+      setGoodsError(t('donorDashboard.errors.goodsQuantity'));
       setGoodsSubmitting(false);
       return;
     }
 
     const totalVal = Number.parseFloat(goodsEstimatedValue);
     if (!Number.isFinite(totalVal) || totalVal <= 0) {
-      setGoodsError('Please enter an approximate total value greater than zero.');
+      setGoodsError(t('donorDashboard.errors.goodsValue'));
       setGoodsSubmitting(false);
       return;
     }
@@ -347,7 +349,7 @@ export function DonorDashboardPage() {
         donorName: accountVolunteerName,
       });
       setGoodsSuccess(
-        `Thank you! We recorded your in-kind pledge for "${name}". Our team may contact you at your account email to coordinate delivery.`,
+        `${t('donorDashboard.goodsSuccess.prefix')} "${name}". ${t('donorDashboard.goodsSuccess.suffix')}`,
       );
       await loadImpact();
       setGoodsItemName('');
@@ -358,7 +360,7 @@ export function DonorDashboardPage() {
       setGoodsIntendedUse(inKindIntendedUse[0].value);
       setGoodsCondition(inKindConditions[0].value);
     } catch (err) {
-      setGoodsError(err instanceof Error ? err.message : 'Could not save goods donation.');
+      setGoodsError(err instanceof Error ? err.message : t('donorDashboard.errors.saveGoods'));
     } finally {
       setGoodsSubmitting(false);
     }
@@ -370,19 +372,17 @@ export function DonorDashboardPage() {
     setVolunteerSuccess(null);
 
     if (selectedFocuses.length === 0) {
-      setVolunteerError('Please select at least one area you would like to help with.');
+      setVolunteerError(t('donorDashboard.errors.volunteerFocus'));
       return;
     }
 
     if (!flexibleOnDays && availDays.length === 0) {
-      setVolunteerError(
-        'Please choose at least one day you are usually available, or check “Flexible on days”.',
-      );
+      setVolunteerError(t('donorDashboard.errors.volunteerDays'));
       return;
     }
 
     if (availTimes.length === 0) {
-      setVolunteerError('Please choose at least one time of day you are usually available.');
+      setVolunteerError(t('donorDashboard.errors.volunteerTimes'));
       return;
     }
 
@@ -395,10 +395,10 @@ export function DonorDashboardPage() {
         focusAreas: [...selectedFocuses],
         notes: availabilityNotes.trim(),
       });
-      const daySummary = flexibleOnDays ? 'flexible on days' : availDays.join(', ');
+      const daySummary = flexibleOnDays ? t('donorDashboard.volunteer.flexibleSummary') : availDays.join(', ');
       const timeSummary = availTimes.join(', ');
       setVolunteerSuccess(
-        `Thank you, ${accountVolunteerName}! We recorded your interests (${selectedFocuses.join(', ')}), availability (${daySummary}; ${timeSummary}). Staff will reach out using your account email.`,
+        `${t('donorDashboard.volunteer.successPrefix')}, ${accountVolunteerName}! ${t('donorDashboard.volunteer.successRecorded')} (${selectedFocuses.join(', ')}), ${t('donorDashboard.volunteer.successAvailability')} (${daySummary}; ${timeSummary}). ${t('donorDashboard.volunteer.successSuffix')}`,
       );
       setAvailDays([]);
       setAvailTimes([]);
@@ -406,7 +406,7 @@ export function DonorDashboardPage() {
       setAvailabilityNotes('');
       setSelectedFocuses([]);
     } catch (err) {
-      setVolunteerError(err instanceof Error ? err.message : 'Could not submit volunteer interest.');
+      setVolunteerError(err instanceof Error ? err.message : t('donorDashboard.errors.saveVolunteer'));
     } finally {
       setVolunteerSubmitting(false);
     }
@@ -430,7 +430,9 @@ export function DonorDashboardPage() {
     );
   };
 
-  const heroTitle = welcomeName ? `Welcome back, ${welcomeName}` : 'Donor Portal';
+  const heroTitle = welcomeName
+    ? `${t('donorDashboard.welcomeBack')}, ${welcomeName}`
+    : t('donorDashboard.donorPortal');
 
   return (
     <section className="donor-page kateri-landing-section">
@@ -443,16 +445,13 @@ export function DonorDashboardPage() {
         <div className="kateri-photo-hero__scrim" aria-hidden={true} />
         <div className="kateri-photo-hero__inner">
           <h1 className="kateri-photo-hero__title">{heroTitle}</h1>
-          <p className="kateri-photo-hero__lead">
-            Your support helps provide safe housing, counseling, education, and reintegration
-            services for the girls in Kateri&apos;s care.
-          </p>
+          <p className="kateri-photo-hero__lead">{t('donorDashboard.heroLead')}</p>
           <div className="kateri-hero-actions">
             <a className="btn-kateri-gold" href="#donate-forms">
-              Make a donation
+              {t('donorDashboard.makeDonation')}
             </a>
             <Link className="btn-kateri-ghost" to="/impact">
-              View Our Impact
+              {t('donorDashboard.viewOurImpact')}
             </Link>
           </div>
         </div>
@@ -460,53 +459,50 @@ export function DonorDashboardPage() {
 
       <article className="auth-card donor-history-overview" id="donor-history">
         <div className="donor-overview-head">
-          <h2>Your giving overview</h2>
+          <h2>{t('donorDashboard.givingOverview')}</h2>
           <Link className="donor-overview-cta" to="/my-impact">
-            See full impact report →
+            {t('donorDashboard.seeFullReport')}
           </Link>
         </div>
 
         {impactLoading && (
-          <p className="auth-lead">Loading your giving history…</p>
+          <p className="auth-lead">{t('donorDashboard.loadingHistory')}</p>
         )}
 
         {impactError && (
           <p className="auth-lead donor-history-empty">
             {impactError?.includes('linked to a donor profile')
               ? impactError
-              : 'We couldn\u2019t load your giving history right now. Try refreshing the page.'}
+              : t('donorDashboard.errors.loadHistoryRetry')}
           </p>
         )}
 
         {!impactLoading && !impactError && impact && impact.donationCount === 0 && (
-          <p className="auth-lead donor-history-empty">
-            You haven&apos;t made any donations yet. Use the form below to make your first gift!
-          </p>
+          <p className="auth-lead donor-history-empty">{t('donorDashboard.noDonationsYet')}</p>
         )}
 
         {!impactLoading && !impactError && impact && impact.donationCount > 0 && (
           <>
             <p className="auth-lead">
-              Welcome back{impact.displayName ? `, ${impact.displayName}` : ''}. Here&apos;s the
-              real impact of your support — pulled directly from your linked giving record.
+              {t('donorDashboard.welcomeBack')}{impact.displayName ? `, ${impact.displayName}` : ''}. {t('donorDashboard.realImpactLead')}
             </p>
 
             <div className="donor-history-summary">
               <div className="donor-history-summary__item">
-                <p className="metric-label">Total contributed</p>
+                <p className="metric-label">{t('donorDashboard.totalContributed')}</p>
                 <p className="metric-value donor-history-summary__value">
                   {money.format(impact.totalContributed)}
                 </p>
                 {supportSpanText && (
-                  <p className="donor-overview-meta">over {supportSpanText} of giving</p>
+                  <p className="donor-overview-meta">{t('donorDashboard.overGivingPre')} {supportSpanText} {t('donorDashboard.overGivingSuffix')}</p>
                 )}
               </div>
               <div className="donor-history-summary__item">
-                <p className="metric-label">Gifts on record</p>
+                <p className="metric-label">{t('donorDashboard.giftsOnRecord')}</p>
                 <p className="metric-value donor-history-summary__value">{impact.donationCount}</p>
                 {impact.lastDonationDate && (
                   <p className="donor-overview-meta">
-                    last gift{' '}
+                    {t('donorDashboard.lastGift')}{' '}
                     {new Date(impact.lastDonationDate).toLocaleDateString(undefined, {
                       dateStyle: 'medium',
                     })}
@@ -514,18 +510,18 @@ export function DonorDashboardPage() {
                 )}
               </div>
               <div className="donor-history-summary__item">
-                <p className="metric-label">Safehouses you fund</p>
+                <p className="metric-label">{t('donorDashboard.safehousesYouFund')}</p>
                 <p className="metric-value donor-history-summary__value">
                   {impact.safehousesSupported.length}
                 </p>
                 {impact.safehousesSupported[0] && (
                   <p className="donor-overview-meta">
-                    incl. {impact.safehousesSupported[0].name}
+                    {t('donorDashboard.incl')} {impact.safehousesSupported[0].name}
                   </p>
                 )}
               </div>
               <div className="donor-history-summary__item">
-                <p className="metric-label">Top program area</p>
+                <p className="metric-label">{t('donorDashboard.topProgramArea')}</p>
                 <p className="metric-value donor-history-summary__value donor-overview-program">
                   {topProgramArea ? topProgramArea.name : '—'}
                 </p>
@@ -539,7 +535,7 @@ export function DonorDashboardPage() {
 
             {impact.programAreaBreakdown.length > 0 && (
               <div className="donor-overview-allocation">
-                <p className="metric-label">Where your dollars go</p>
+                <p className="metric-label">{t('donorDashboard.whereDollarsGo')}</p>
                 <div className="donor-overview-bar">
                   {impact.programAreaBreakdown.map((slice, idx) => {
                     const colors = ['#385f82', '#c9983f', '#a05b3a', '#5f8448', '#7e7468'];
@@ -578,24 +574,24 @@ export function DonorDashboardPage() {
 
             {(impact.avgHealthScore != null || impact.avgEducationProgress != null || impact.avgActiveResidents != null) && (
               <div className="donor-overview-outcomes">
-                <p className="metric-label">Outcomes at your funded safehouses</p>
+                <p className="metric-label">{t('donorDashboard.outcomesHeading')}</p>
                 <div className="donor-overview-outcomes__row">
                   {impact.avgHealthScore != null && (
                     <div>
                       <strong>{impact.avgHealthScore.toFixed(1)} / 5</strong>
-                      <span>Avg health score</span>
+                      <span>{t('donorDashboard.avgHealthScore')}</span>
                     </div>
                   )}
                   {impact.avgEducationProgress != null && (
                     <div>
                       <strong>{impact.avgEducationProgress.toFixed(0)}%</strong>
-                      <span>Avg education progress</span>
+                      <span>{t('donorDashboard.avgEducationProgress')}</span>
                     </div>
                   )}
                   {impact.avgActiveResidents != null && (
                     <div>
                       <strong>{Math.round(impact.avgActiveResidents)}</strong>
-                      <span>Residents in care</span>
+                      <span>{t('donorDashboard.residentsInCare')}</span>
                     </div>
                   )}
                 </div>
@@ -609,19 +605,19 @@ export function DonorDashboardPage() {
       <hr className="section-divider" />
 
       <article className="feature-slab">
-        <h2>How donations help</h2>
+        <h2>{t('donorDashboard.howHelpHeading')}</h2>
         <ul className="mission-list">
           <li>
-            <strong>$25</strong> helps cover school supplies and basic learning materials.
+            <strong>$25</strong> {t('donorDashboard.help25')}
           </li>
           <li>
-            <strong>$50</strong> supports transportation and case follow-up visits.
+            <strong>$50</strong> {t('donorDashboard.help50')}
           </li>
           <li>
-            <strong>$100</strong> funds meals, hygiene, and daily care essentials.
+            <strong>$100</strong> {t('donorDashboard.help100')}
           </li>
           <li>
-            <strong>$250</strong> helps provide professional counseling and trauma-informed support.
+            <strong>$250</strong> {t('donorDashboard.help250')}
           </li>
         </ul>
       </article>
@@ -631,23 +627,19 @@ export function DonorDashboardPage() {
       <div id="donate-forms" className="donor-forms-stack">
         <div className="donor-donate-row">
           <article className="auth-card">
-            <h2>Donate</h2>
-            <p className="auth-lead">
-              Choose how you'd like to give. Cash, volunteer time, or skilled work — all are
-              automatically routed to safehouses with the greatest current need in your chosen
-              program area. (To donate physical goods, use the In-kind form on the right.)
-            </p>
+            <h2>{t('donorDashboard.donateHeading')}</h2>
+            <p className="auth-lead">{t('donorDashboard.donateLead')}</p>
             <form onSubmit={onDonationSubmit}>
               <label>
-                Donation type
+                {t('donorDashboard.field.donationType')}
                 <select
                   value={donationType}
                   onChange={(event) => setDonationType(event.target.value as DonationTypeKey)}
                 >
-                  <option value="Monetary">Monetary</option>
-                  <option value="Time">Volunteer Time</option>
-                  <option value="Skills">Skilled Volunteer Time</option>
-                  <option value="SocialMedia">Social Media</option>
+                  <option value="Monetary">{t('donorDashboard.type.monetary')}</option>
+                  <option value="Time">{t('donorDashboard.type.volunteerTime')}</option>
+                  <option value="Skills">{t('donorDashboard.type.skilledTime')}</option>
+                  <option value="SocialMedia">{t('donorDashboard.type.socialMedia')}</option>
                 </select>
               </label>
               <label>
@@ -663,9 +655,9 @@ export function DonorDashboardPage() {
                 />
               </label>
               <p className="donation-type-helper">{typeConfig.helperText}</p>
-              <p className="donation-type-helper">Currency: USD</p>
+              <p className="donation-type-helper">{t('donorDashboard.currencyLabel')}: USD</p>
               <label>
-                Where should your gift go?
+                {t('donorDashboard.field.whereShouldGo')}
                 <select
                   value={programArea}
                   onChange={(event) => setProgramArea(event.target.value as ProgramArea)}
@@ -678,18 +670,16 @@ export function DonorDashboardPage() {
                 </select>
               </label>
               <p className="donate-transparency-note">
-                Your gift is automatically routed to the safehouses with the greatest current need in{' '}
-                <strong>{programArea}</strong> using a data-driven need score (
-                <Link to="/impact">how this works</Link>). 10% goes to our General Operating Fund and 5%
-                to a Rainy Day Reserve; the remaining 85% is split across the top 2 most-needy
-                safehouses.
+                {t('donorDashboard.transparencyPre')}{' '}
+                <strong>{programArea}</strong> {t('donorDashboard.transparencyMid')} (
+                <Link to="/impact">{t('donorDashboard.howThisWorks')}</Link>). {t('donorDashboard.transparencySuffix')}
               </p>
               {donationError && <p className="error-text">{donationError}</p>}
               {donationSuccess && <p className="success-text">{donationSuccess}</p>}
               {allocationPlan && allocationPlan.safehouseAllocations.length > 0 && (
                 <div className="allocation-plan-card">
                   <h3 className="allocation-plan-card__title">
-                    Where your {money.format(allocationPlan.totalAmount)} went
+                    {t('donorDashboard.allocation.titlePre')} {money.format(allocationPlan.totalAmount)} {t('donorDashboard.allocation.titleSuffix')}
                   </h3>
                   {valuation && valuation.canonicalType !== 'Monetary' && valuation.canonicalType !== 'InKind' && (
                     <p className="allocation-plan-card__conversion">
@@ -707,15 +697,15 @@ export function DonorDashboardPage() {
                       </li>
                     ))}
                     <li className="allocation-plan-card__reserve">
-                      <span className="allocation-plan-card__safehouse">General Operating Fund</span>
-                      <span className="allocation-plan-card__area">10% reserve</span>
+                      <span className="allocation-plan-card__safehouse">{t('donorDashboard.allocation.generalFund')}</span>
+                      <span className="allocation-plan-card__area">{t('donorDashboard.allocation.reserve10')}</span>
                       <span className="allocation-plan-card__amount">
                         {money.format(allocationPlan.generalFundAmount)}
                       </span>
                     </li>
                     <li className="allocation-plan-card__reserve">
-                      <span className="allocation-plan-card__safehouse">Rainy Day Reserve</span>
-                      <span className="allocation-plan-card__area">5% emergency fund</span>
+                      <span className="allocation-plan-card__safehouse">{t('donorDashboard.allocation.rainyDay')}</span>
+                      <span className="allocation-plan-card__area">{t('donorDashboard.allocation.reserve5')}</span>
                       <span className="allocation-plan-card__amount">
                         {money.format(allocationPlan.rainyDayAmount)}
                       </span>
@@ -724,33 +714,31 @@ export function DonorDashboardPage() {
                 </div>
               )}
               <button type="submit" disabled={donationSubmitting}>
-                {donationSubmitting ? 'Submitting…' : 'Submit donation'}
+                {donationSubmitting ? t('donorDashboard.submitting') : t('donorDashboard.submitDonation')}
               </button>
             </form>
           </article>
 
           <article className="auth-card">
-            <h2>Donate goods</h2>
+            <h2>{t('donorDashboard.donateGoodsHeading')}</h2>
             <p className="auth-lead">
-              Tell us what you would like to give. Fields match our in-kind data: category, quantity,
-              unit, total estimated value, intended use, and condition. Value currency is the same as
-              in the monetary section above ({currency}).
+              {t('donorDashboard.donateGoodsLead')} ({currency}).
             </p>
             <form onSubmit={(e) => void onGoodsSubmit(e)}>
               <label>
-                Item description
+                {t('donorDashboard.goods.itemDescription')}
                 <input
                   required
                   maxLength={200}
                   type="text"
-                  placeholder="e.g. School supplies, hygiene kits, rice"
+                  placeholder={t('donorDashboard.goods.itemPlaceholder')}
                   value={goodsItemName}
                   onChange={(event) => setGoodsItemName(event.target.value)}
                   autoComplete="off"
                 />
               </label>
               <label>
-                Item category
+                {t('donorDashboard.goods.itemCategory')}
                 <select
                   value={goodsCategory}
                   onChange={(event) => setGoodsCategory(event.target.value)}
@@ -763,7 +751,7 @@ export function DonorDashboardPage() {
                 </select>
               </label>
               <label>
-                Quantity
+                {t('donorDashboard.goods.quantity')}
                 <input
                   required
                   min={1}
@@ -774,7 +762,7 @@ export function DonorDashboardPage() {
                 />
               </label>
               <label>
-                Unit of measure
+                {t('donorDashboard.goods.unitOfMeasure')}
                 <select value={goodsUnit} onChange={(event) => setGoodsUnit(event.target.value)}>
                   {inKindUnits.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -784,7 +772,7 @@ export function DonorDashboardPage() {
                 </select>
               </label>
               <label>
-                Approximate total value ({currency})
+                {t('donorDashboard.goods.approxValue')} ({currency})
                 <input
                   required
                   min={0.01}
@@ -792,14 +780,12 @@ export function DonorDashboardPage() {
                   type="number"
                   value={goodsEstimatedValue}
                   onChange={(event) => setGoodsEstimatedValue(event.target.value)}
-                  placeholder="Total estimated value for this pledge"
+                  placeholder={t('donorDashboard.goods.totalValuePlaceholder')}
                 />
               </label>
-              <p className="donor-goods-hint">
-                We save per-unit value as total ÷ quantity (same structure as our in-kind import).
-              </p>
+              <p className="donor-goods-hint">{t('donorDashboard.goods.perUnitHint')}</p>
               <label>
-                Intended use
+                {t('donorDashboard.goods.intendedUse')}
                 <select
                   value={goodsIntendedUse}
                   onChange={(event) => setGoodsIntendedUse(event.target.value)}
@@ -812,7 +798,7 @@ export function DonorDashboardPage() {
                 </select>
               </label>
               <label>
-                Received condition
+                {t('donorDashboard.goods.receivedCondition')}
                 <select
                   value={goodsCondition}
                   onChange={(event) => setGoodsCondition(event.target.value)}
@@ -827,22 +813,19 @@ export function DonorDashboardPage() {
               {goodsError && <p className="error-text">{goodsError}</p>}
               {goodsSuccess && <p className="success-text">{goodsSuccess}</p>}
               <button type="submit" disabled={goodsSubmitting}>
-                {goodsSubmitting ? 'Submitting…' : 'Submit goods pledge'}
+                {goodsSubmitting ? t('donorDashboard.submitting') : t('donorDashboard.submitGoods')}
               </button>
             </form>
           </article>
         </div>
 
         <article className="auth-card">
-          <h2>Volunteer sign-up</h2>
-          <p className="auth-lead">Tell us how you would like to help the girls.</p>
+          <h2>{t('donorDashboard.volunteerHeading')}</h2>
+          <p className="auth-lead">{t('donorDashboard.volunteerLead')}</p>
           <form onSubmit={(event) => void onVolunteerSubmit(event)}>
             <fieldset className="donor-focus-fieldset volunteer-availability-fieldset">
-              <legend>When are you usually available?</legend>
-              <p className="volunteer-availability-hint">
-                Pick days and times of day so we can match you to opportunities. Staff can follow up
-                for exact times.
-              </p>
+              <legend>{t('donorDashboard.volunteer.whenAvailable')}</legend>
+              <p className="volunteer-availability-hint">{t('donorDashboard.volunteer.whenHint')}</p>
 
               <label className="volunteer-flexible-option">
                 <input
@@ -853,7 +836,7 @@ export function DonorDashboardPage() {
                     if (event.target.checked) setAvailDays([]);
                   }}
                 />
-                <span>Flexible on which days I volunteer</span>
+                <span>{t('donorDashboard.volunteer.flexibleDays')}</span>
               </label>
 
               <div
@@ -873,7 +856,7 @@ export function DonorDashboardPage() {
                 ))}
               </div>
 
-              <p className="volunteer-availability-sublegend">Time of day (select all that apply)</p>
+              <p className="volunteer-availability-sublegend">{t('donorDashboard.volunteer.timeOfDay')}</p>
               <div className="volunteer-time-grid">
                 {timeOfDayOptions.map((slot) => (
                   <label className="donor-focus-option" key={slot.id}>
@@ -888,10 +871,10 @@ export function DonorDashboardPage() {
               </div>
 
               <label className="volunteer-notes-label">
-                Additional notes (optional)
+                {t('donorDashboard.volunteer.additionalNotes')}
                 <textarea
                   rows={3}
-                  placeholder="e.g. Only during school year, prefer virtual for tutoring, etc."
+                  placeholder={t('donorDashboard.volunteer.notesPlaceholder')}
                   value={availabilityNotes}
                   onChange={(event) => setAvailabilityNotes(event.target.value)}
                 />
@@ -899,7 +882,7 @@ export function DonorDashboardPage() {
             </fieldset>
 
             <fieldset className="donor-focus-fieldset">
-              <legend>What would you like to help with?</legend>
+              <legend>{t('donorDashboard.volunteer.helpWith')}</legend>
               <div className="donor-focus-grid">
                 {volunteerFocusOptions.map((focus) => (
                   <label className="donor-focus-option" key={focus}>
@@ -917,7 +900,7 @@ export function DonorDashboardPage() {
             {volunteerError && <p className="error-text">{volunteerError}</p>}
             {volunteerSuccess && <p className="success-text">{volunteerSuccess}</p>}
             <button type="submit" disabled={volunteerSubmitting}>
-              {volunteerSubmitting ? 'Submitting…' : 'Submit volunteer interest'}
+              {volunteerSubmitting ? t('donorDashboard.submitting') : t('donorDashboard.submitVolunteer')}
             </button>
           </form>
         </article>
@@ -937,18 +920,18 @@ export function DonorDashboardPage() {
             onClick={(event) => event.stopPropagation()}
           >
             <header className="record-detail-card__header">
-              <p className="record-detail-card__eyebrow">Let&apos;s talk — this is a big gift</p>
-              <h2 id="large-gift-modal-title">Please contact a staff member</h2>
+              <p className="record-detail-card__eyebrow">{t('donorDashboard.largeGift.eyebrow')}</p>
+              <h2 id="large-gift-modal-title">{t('donorDashboard.largeGift.heading')}</h2>
             </header>
 
             <p className="auth-lead">
-              Thank you for your extraordinary generosity. Individual donations above{' '}
+              {t('donorDashboard.largeGift.bodyPre')}{' '}
               <strong>
                 {donationType === 'Monetary' || donationType === 'InKind'
                   ? money.format(LARGE_GIFT_CAPS[donationType])
                   : `${LARGE_GIFT_CAPS[donationType].toLocaleString()} ${typeConfig.unitNoun}`}
               </strong>{' '}
-              need a quick conversation with our team first. This lets us:
+              {t('donorDashboard.largeGift.bodySuffix')}
             </p>
             <ul className="large-gift-modal__list">
               <li>Handle the tax-deduction paperwork correctly for a gift of this size</li>
@@ -976,7 +959,7 @@ export function DonorDashboardPage() {
                 className="btn-primary"
                 onClick={() => setShowLargeGiftModal(false)}
               >
-                Got it, I&apos;ll reach out
+                {t('donorDashboard.largeGift.gotIt')}
               </button>
             </div>
           </article>
