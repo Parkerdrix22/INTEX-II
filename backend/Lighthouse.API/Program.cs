@@ -102,7 +102,9 @@ builder.Services
     })
     .AddRoles<IdentityRole<int>>()
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddSignInManager();
+    .AddSignInManager()
+    // Required for TOTP authenticator + recovery codes (VerifyTwoFactorTokenAsync, etc.)
+    .AddDefaultTokenProviders();
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminOnly", policy => policy.RequireRole(UserRoles.Admin))

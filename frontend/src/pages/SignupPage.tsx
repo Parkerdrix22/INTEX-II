@@ -45,7 +45,7 @@ export function SignupPage() {
   }
 
   return (
-    <section className="auth-page">
+    <section className="auth-page kateri-landing-section">
       <article className="auth-card">
         <h1>Create account</h1>
         <p className="auth-lead">

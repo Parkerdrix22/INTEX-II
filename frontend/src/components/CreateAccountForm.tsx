@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { authApi } from '../lib/api';
 
-export type CreateAccountRole = 'Resident' | 'Donor' | 'Staff' | 'Admin';
+export type CreateAccountRole = 'Resident' | 'Donor' | 'Staff';
 
 type CreateAccountFormProps = {
   isAdmin: boolean;
@@ -12,6 +12,7 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [loginUsername, setLoginUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<CreateAccountRole>('Resident');
   const [submitting, setSubmitting] = useState(false);
@@ -25,8 +26,8 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
     setError(null);
 
     try {
-      if (role === 'Admin' || role === 'Staff') {
-        await authApi.registerStaff(firstName, lastName, email, password, role);
+      if (role === 'Staff') {
+        await authApi.registerStaff(firstName, lastName, email, password, loginUsername.trim() || undefined);
       } else {
         await authApi.register(firstName, lastName, email, password, role);
       }
@@ -34,11 +35,12 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
       setFirstName('');
       setLastName('');
       setEmail('');
+      setLoginUsername('');
       setPassword('');
       setRole('Resident');
       setSuccess(
         isAdmin
-          ? 'Account created. The new user can sign in with these credentials.'
+          ? 'Account created. They can sign in with this email (or the custom login id if you set one) and the password you chose. If they use Google with the same email, they can link that after signing in once.'
           : 'Account created. You can now sign in.',
       );
     } catch (err) {
@@ -85,6 +87,24 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
           onChange={(event) => setEmail(event.target.value)}
         />
       </label>
+      {isAdmin && (
+        <label>
+          Login username <span className="profile-create-account-hint-inline">(optional)</span>
+          <input
+            type="text"
+            autoComplete="off"
+            placeholder="Leave blank to use email as login id"
+            value={loginUsername}
+            onChange={(event) => setLoginUsername(event.target.value)}
+          />
+        </label>
+      )}
+      {isAdmin && (
+        <p className="auth-lead profile-create-account-hint">
+          If you leave username blank, they sign in with the email address above. Only letters, numbers, and . _ @ + - are
+          allowed in a custom username.
+        </p>
+      )}
       <label>
         Password
         <input
@@ -106,12 +126,11 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
           <option value="Resident">Resident</option>
           <option value="Donor">Donor</option>
           {isAdmin && <option value="Staff">Staff</option>}
-          {isAdmin && <option value="Admin">Admin</option>}
         </select>
       </label>
       {isAdmin && (
         <p className="auth-lead profile-create-account-hint">
-          You can create Resident, Donor, Staff, and Admin accounts.
+          Create residents, donors, or staff. New administrators are promoted from the Residents, donors & staff table (see below).
         </p>
       )}
       {error && <p className="error-text">{error}</p>}

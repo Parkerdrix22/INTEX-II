@@ -1,5 +1,5 @@
-import { createContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { authApi } from '../lib/api';
+import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { authApi, type LoginResponse } from '../lib/api';
 import { loadProfile, saveProfile, type UserProfile } from './profileStorage';
 
 type AuthContextValue = {
@@ -12,12 +12,15 @@ type AuthContextValue = {
   /** Phone on file from the account (Identity), when available */
   accountPhone: string | null;
   roles: string[];
+  twoFactorEnabled: boolean;
+  recoveryCodesLeft: number;
   profile: UserProfile;
   effectiveDisplayName: string | null;
   /** Profile phone (local) or account phone — for contact displays */
   effectivePhone: string | null;
   updateProfile: (patch: Partial<UserProfile>) => void;
-  login: (login: string, password: string, rememberMe: boolean) => Promise<string[]>;
+  login: (login: string, password: string, rememberMe: boolean) => Promise<LoginResponse>;
+  refreshSession: () => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -33,6 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [email, setEmail] = useState<string | null>(null);
   const [accountPhone, setAccountPhone] = useState<string | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [recoveryCodesLeft, setRecoveryCodesLeft] = useState(0);
   const [profile, setProfile] = useState<UserProfile>({
     displayName: '',
     phone: '',
@@ -41,36 +46,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (isAuthenticated && (email || username)) {
-      setProfile(loadProfile(email, username));
+      const timer = window.setTimeout(() => {
+        setProfile(loadProfile(email, username));
+      }, 0);
+      return () => window.clearTimeout(timer);
     } else if (!isAuthenticated) {
-      setProfile({ displayName: '', phone: '', notes: '' });
+      const timer = window.setTimeout(() => {
+        setProfile({ displayName: '', phone: '', notes: '' });
+      }, 0);
+      return () => window.clearTimeout(timer);
     }
   }, [isAuthenticated, email, username]);
 
+  const refreshSession = useCallback(async () => {
+    try {
+      const result = await authApi.me();
+      setIsAuthenticated(result.isAuthenticated);
+      setUsername(result.username ?? null);
+      setFirstName(result.firstName ?? null);
+      setLastName(result.lastName ?? null);
+      setEmail(result.email);
+      setAccountPhone(result.phone?.trim() || null);
+      setRoles(result.roles ?? []);
+      setTwoFactorEnabled(result.twoFactorEnabled ?? false);
+      setRecoveryCodesLeft(result.recoveryCodesLeft ?? 0);
+      if (result.isAuthenticated) {
+        try {
+          await authApi.reissueSession();
+        } catch {
+          // UI already uses DB-backed /me; reissue only refreshes API authorization claims.
+        }
+      }
+    } catch {
+      setIsAuthenticated(false);
+      setUsername(null);
+      setFirstName(null);
+      setLastName(null);
+      setEmail(null);
+      setAccountPhone(null);
+      setRoles([]);
+      setTwoFactorEnabled(false);
+      setRecoveryCodesLeft(0);
+    }
+  }, []);
+
   useEffect(() => {
     const loadAuth = async () => {
-      try {
-        const result = await authApi.me();
-        setIsAuthenticated(result.isAuthenticated);
-        setUsername(result.username ?? null);
-        setFirstName(result.firstName ?? null);
-        setLastName(result.lastName ?? null);
-        setEmail(result.email);
-        setAccountPhone(result.phone?.trim() || null);
-        setRoles(result.roles ?? []);
-      } catch {
-        setIsAuthenticated(false);
-        setUsername(null);
-        setEmail(null);
-        setAccountPhone(null);
-        setRoles([]);
-      } finally {
-        setIsLoading(false);
-      }
+      await refreshSession();
+      setIsLoading(false);
     };
-
     void loadAuth();
-  }, []);
+  }, [refreshSession]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -82,6 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       accountPhone,
       roles,
+      twoFactorEnabled,
+      recoveryCodesLeft,
       profile,
       effectiveDisplayName: (() => {
         const fromProfile = profile.displayName?.trim();
@@ -109,18 +137,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       },
       login: async (loginInput: string, password: string, rememberMe: boolean) => {
-        await authApi.login(loginInput, password, rememberMe);
+        const loginResponse = await authApi.login(loginInput, password, rememberMe);
+        if (loginResponse.requiresTwoFactor) {
+          return loginResponse;
+        }
+
+        if (loginResponse.requiresTwoFactorSetup) {
+          await refreshSession();
+          const me = await authApi.me();
+          setProfile(loadProfile(me.email, me.username ?? null));
+          return loginResponse;
+        }
+
+        await refreshSession();
         const me = await authApi.me();
-        setIsAuthenticated(me.isAuthenticated);
-        setUsername(me.username ?? null);
-        setFirstName(me.firstName ?? null);
-        setLastName(me.lastName ?? null);
-        setEmail(me.email);
-        setAccountPhone(me.phone?.trim() || null);
-        setRoles(me.roles ?? []);
         setProfile(loadProfile(me.email, me.username ?? null));
-        return me.roles ?? [];
+        return loginResponse;
       },
+      refreshSession,
       logout: async () => {
         await authApi.logout();
         setIsAuthenticated(false);
@@ -130,10 +164,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setEmail(null);
         setAccountPhone(null);
         setRoles([]);
+        setTwoFactorEnabled(false);
+        setRecoveryCodesLeft(0);
         setProfile({ displayName: '', phone: '', notes: '' });
       },
     }),
-    [isAuthenticated, isLoading, username, firstName, lastName, email, accountPhone, roles, profile],
+    [
+      isAuthenticated,
+      isLoading,
+      username,
+      firstName,
+      lastName,
+      email,
+      accountPhone,
+      roles,
+      twoFactorEnabled,
+      recoveryCodesLeft,
+      profile,
+      refreshSession,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

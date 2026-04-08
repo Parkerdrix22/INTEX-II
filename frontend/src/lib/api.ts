@@ -11,6 +11,30 @@ type MeResponse = {
   residentId?: string | null;
   supporterId?: string | null;
   staffMemberId?: string | null;
+  twoFactorEnabled?: boolean;
+  recoveryCodesLeft?: number;
+};
+
+export type LoginResponse = {
+  message: string;
+  requiresTwoFactor?: boolean;
+  requiresTwoFactorSetup?: boolean;
+  challengeToken?: string;
+};
+
+export type TwoFactorSetupStartResponse = {
+  sharedKey: string;
+  otpauthUri: string;
+};
+
+export type TwoFactorSetupVerifyResponse = {
+  message: string;
+  recoveryCodes: string[];
+};
+
+export type TwoFactorRegenerateResponse = {
+  message: string;
+  recoveryCodes: string[];
 };
 
 export type CaseloadResident = {
@@ -320,7 +344,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const authApi = {
   login: (login: string, password: string, rememberMe: boolean) =>
-    apiFetch<{ message: string }>('/api/auth/login', {
+    apiFetch<LoginResponse>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ login, password, rememberMe }),
     }),
@@ -329,10 +353,27 @@ export const authApi = {
       method: 'POST',
       body: JSON.stringify({ firstName, lastName, email, password, role }),
     }),
-  registerStaff: (firstName: string, lastName: string, email: string, password: string, role: 'Admin' | 'Staff') =>
+  registerStaff: (
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string,
+    username?: string,
+  ) =>
     apiFetch<{ message: string }>('/api/auth/register-staff', {
       method: 'POST',
-      body: JSON.stringify({ firstName, lastName, email, password, role }),
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        password,
+        role: 'Staff',
+        ...(username?.trim() ? { username: username.trim() } : {}),
+      }),
+    }),
+  reissueSession: () =>
+    apiFetch<{ message: string }>('/api/auth/reissue-session', {
+      method: 'POST',
     }),
   logout: () =>
     apiFetch<{ message: string }>('/api/auth/logout', {
@@ -343,6 +384,94 @@ export const authApi = {
     apiFetch<Array<{ name: string; displayName: string }>>('/api/auth/providers', { method: 'GET' }),
   externalLoginUrl: (provider: string, returnPath = '/', flow: 'login' | 'signup' = 'login') =>
     `${API_BASE_URL}/api/auth/external-login?provider=${encodeURIComponent(provider)}&returnPath=${encodeURIComponent(returnPath)}&flow=${encodeURIComponent(flow)}`,
+  twoFactorChallenge: (challengeToken: string, code: string) =>
+    apiFetch<{ message: string }>('/api/auth/2fa/challenge', {
+      method: 'POST',
+      body: JSON.stringify({ challengeToken, code }),
+    }),
+  twoFactorSetupStart: () =>
+    apiFetch<TwoFactorSetupStartResponse>('/api/auth/2fa/setup/start', {
+      method: 'POST',
+    }),
+  twoFactorSetupVerify: (code: string) =>
+    apiFetch<TwoFactorSetupVerifyResponse>('/api/auth/2fa/setup/verify', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    }),
+  twoFactorDisable: () =>
+    apiFetch<{ message: string }>('/api/auth/2fa/disable', {
+      method: 'POST',
+    }),
+  twoFactorRecoveryCodesRegenerate: () =>
+    apiFetch<TwoFactorRegenerateResponse>('/api/auth/2fa/recovery-codes/regenerate', {
+      method: 'POST',
+    }),
+};
+
+export type DonorAccountRow = {
+  id: number;
+  email: string | null;
+  firstName: string;
+  lastName: string;
+  loginId: string | null;
+  supporterId: number | null;
+};
+
+export type AdminAccountRow = {
+  id: number;
+  email: string | null;
+  firstName: string;
+  lastName: string;
+  loginId: string | null;
+  staffMemberId: number | null;
+};
+
+export type ManageableUserRow = {
+  id: number;
+  email: string | null;
+  firstName: string;
+  lastName: string;
+  loginId: string | null;
+  role: string;
+  residentId: number | null;
+  supporterId: number | null;
+  staffMemberId: number | null;
+};
+
+export type ManageableRole = 'Resident' | 'Donor' | 'Staff';
+
+export const userAccountsApi = {
+  donorAccounts: () => apiFetch<DonorAccountRow[]>('/api/user-accounts/donors', { method: 'GET' }),
+  admins: () => apiFetch<AdminAccountRow[]>('/api/user-accounts/admins', { method: 'GET' }),
+  manageableUsers: () => apiFetch<ManageableUserRow[]>('/api/user-accounts/manageable', { method: 'GET' }),
+  createUser: (payload: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    role: ManageableRole;
+  }) =>
+    apiFetch<{ message: string }>('/api/user-accounts', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  updateUser: (
+    userId: number,
+    payload: { firstName: string; lastName: string; email: string; role: ManageableRole },
+  ) =>
+    apiFetch<{ message: string }>(`/api/user-accounts/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  deleteUser: (userId: number) =>
+    apiFetch<{ message: string }>(`/api/user-accounts/${userId}`, { method: 'DELETE' }),
+  promoteToAdmin: (userId: number) =>
+    apiFetch<{ message: string }>(`/api/user-accounts/${userId}/promote-to-admin`, { method: 'POST' }),
+  demoteFromAdmin: (userId: number, targetRole: 'Staff' | 'Donor') =>
+    apiFetch<{ message: string }>(`/api/user-accounts/${userId}/demote-from-admin`, {
+      method: 'POST',
+      body: JSON.stringify({ targetRole }),
+    }),
 };
 
 export const donorVolunteerApi = {

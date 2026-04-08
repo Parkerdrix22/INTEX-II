@@ -914,6 +914,89 @@ a.auth-nav-pill--solo-login:focus-visible {
   color: var(--text-muted);
 }
 
+.field-helper-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.profile-security-card {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.profile-2fa-setup,
+.profile-2fa-actions,
+.profile-2fa-codes {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.profile-2fa-setup code {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+.profile-2fa-qr {
+  width: 220px;
+  height: 220px;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 0.4rem;
+}
+
+.profile-2fa-codes ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.profile-security-button {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.68rem 0.95rem;
+  font-weight: 600;
+}
+
+.profile-security-button:hover {
+  background: color-mix(in srgb, var(--accent) 88%, #000);
+  border-color: color-mix(in srgb, var(--accent) 88%, #000);
+}
+
+.profile-security-button--secondary {
+  background: rgba(56, 95, 130, 0.08);
+  color: var(--accent);
+  border-color: rgba(56, 95, 130, 0.35);
+}
+
+.profile-security-button--secondary:hover {
+  background: rgba(56, 95, 130, 0.16);
+  color: var(--accent);
+  border-color: rgba(56, 95, 130, 0.45);
+}
+
+.auth-card form .login-2fa-back {
+  width: 100%;
+  cursor: pointer;
+  font: inherit;
+}
+
+.auth-info-text {
+  margin: 0.25rem 0 0;
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  background: rgba(11, 92, 151, 0.09);
+  border: 1px solid rgba(11, 92, 151, 0.28);
+  color: #114b78;
+  font-size: 0.94rem;
+}
+
 .impact-stats .stat-card {
   min-height: 116px;
 }
@@ -1470,6 +1553,26 @@ a.auth-nav-pill--solo-login:focus-visible {
   margin-top: 0.8rem;
 }
 
+.two-factor-required-backdrop {
+  z-index: 60;
+}
+
+.two-factor-required-modal {
+  border-left: 4px solid var(--primary-2);
+}
+
+.two-factor-required-modal h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: #1f3a52;
+}
+
+.two-factor-required-modal__body {
+  margin: 0 0 1rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
 .resident-profile-actions {
   grid-column: 1 / -1;
   margin-top: 0.35rem;
@@ -2005,6 +2108,330 @@ a.auth-nav-pill--solo-login:focus-visible {
 
 .profile-admin-create-card .profile-create-account-hint {
   margin-top: 0;
+}
+
+.profile-create-account-hint-inline {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.88em;
+}
+
+.donor-promote-panel {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.donor-promote-search {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-muted);
+}
+
+.donor-promote-search input {
+  width: 100%;
+  min-height: 2.35rem;
+}
+
+.donor-promote-search__label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.donor-promote-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.donor-promote-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.94rem;
+}
+
+.donor-promote-table th,
+.donor-promote-table td {
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(170, 190, 208, 0.45);
+  vertical-align: middle;
+}
+
+.donor-promote-table th {
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(56, 95, 130, 0.06);
+}
+
+.donor-promote-table tr:last-child td {
+  border-bottom: none;
+}
+
+.donor-promote-mono {
+  font-size: 0.85em;
+  word-break: break-all;
+}
+
+.admin-accounts-panel {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.admin-accounts-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-accounts-toolbar__search {
+  width: 100%;
+  max-width: none;
+}
+
+.admin-accounts-table-wrap {
+  overflow-x: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  border-left: 4px solid var(--primary-2);
+  box-shadow: 0 4px 20px rgba(45, 54, 64, 0.06);
+}
+
+.admin-accounts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.94rem;
+  table-layout: fixed;
+}
+
+.admin-accounts-table th,
+.admin-accounts-table td {
+  padding: 0.6rem 0.7rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(170, 190, 208, 0.45);
+  vertical-align: middle;
+}
+
+.admin-accounts-table th {
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(56, 95, 130, 0.07);
+  font-family: var(--font-ui);
+  white-space: normal;
+}
+
+.admin-accounts-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-accounts-role-pill {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: rgba(201, 152, 63, 0.18);
+  color: #6b4e12;
+  border: 1px solid rgba(201, 152, 63, 0.45);
+}
+
+.admin-accounts-td-name {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.admin-accounts-td-clip {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.admin-accounts-td-role,
+.admin-accounts-td-num {
+  vertical-align: middle;
+}
+
+.admin-accounts-td-actions {
+  width: auto;
+  white-space: normal;
+  vertical-align: middle;
+}
+
+.admin-accounts-links {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.35rem;
+  line-height: 1.35;
+}
+
+.admin-accounts-links-empty {
+  line-height: 1.2;
+}
+
+.admin-accounts-link-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  background: rgba(56, 95, 130, 0.1);
+  border: 1px solid rgba(56, 95, 130, 0.22);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Optical nudge: link chips sat slightly high vs email/role text in the same row */
+.admin-accounts-table--manageable .admin-accounts-link-chip,
+.admin-accounts-table--manageable .admin-accounts-links-empty {
+  position: relative;
+  top: 3px;
+}
+
+.admin-accounts-actions {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.admin-accounts-actions__btn {
+  font-size: 0.82rem !important;
+  padding: 0.45rem 0.65rem !important;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.admin-accounts-table--manageable th:nth-child(1),
+.admin-accounts-table--manageable td:nth-child(1) {
+  width: 20%;
+}
+
+.admin-accounts-table--manageable th:nth-child(2),
+.admin-accounts-table--manageable td:nth-child(2) {
+  width: 30%;
+}
+
+.admin-accounts-table--manageable th:nth-child(3),
+.admin-accounts-table--manageable td:nth-child(3) {
+  width: 12%;
+}
+
+.admin-accounts-table--manageable th:nth-child(4),
+.admin-accounts-table--manageable td:nth-child(4) {
+  width: 10%;
+}
+
+.admin-accounts-table--manageable th:nth-child(5),
+.admin-accounts-table--manageable td:nth-child(5) {
+  width: 28%;
+}
+
+.admin-accounts-table--manageable tbody tr {
+  border-bottom: 1px solid rgba(170, 190, 208, 0.45);
+}
+
+.admin-accounts-table--manageable tbody tr:last-child {
+  border-bottom: none;
+}
+
+.admin-accounts-table--manageable tbody td {
+  border-bottom: none;
+}
+
+@media (max-width: 980px) {
+  .admin-accounts-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-accounts-btn-danger {
+  border: 1px solid rgba(166, 61, 64, 0.55);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--error);
+  font-weight: 600;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-accounts-btn-danger:hover:not(:disabled) {
+  background: rgba(166, 61, 64, 0.1);
+  border-color: rgba(166, 61, 64, 0.75);
+}
+
+.admin-accounts-btn-danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-accounts-delete-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--error);
+  font-weight: 600;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+}
+
+.admin-accounts-delete-btn:hover:not(:disabled) {
+  background: rgba(166, 61, 64, 0.1);
+}
+
+.admin-accounts-delete-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-account-modal-backdrop {
+  z-index: 65;
+}
+
+.admin-account-modal {
+  width: min(480px, 100%);
+  border-left: 4px solid var(--primary-2);
+}
+
+.admin-account-modal-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-account-modal-field {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.admin-account-modal-field input,
+.admin-account-modal-field select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  font: inherit;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.admin-account-modal-hint {
+  margin: 0;
+  font-size: 0.88rem !important;
+}
+
+.admin-account-modal-actions {
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .donor-focus-fieldset {

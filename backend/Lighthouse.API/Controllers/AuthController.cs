@@ -1,7 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Concurrent;
+using System.Linq;
 using System.Security.Claims;
 using Lighthouse.API.Data;
 using Lighthouse.API.Data.Entities;
+using Lighthouse.API.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -21,13 +24,21 @@ public class AuthController(
     SignInManager<AppUser> signInManager,
     IConfiguration configuration) : ControllerBase
 {
+    private static readonly ConcurrentDictionary<string, TwoFactorChallengeState> TwoFactorChallenges = new();
+    private static readonly TimeSpan TwoFactorChallengeTtl = TimeSpan.FromMinutes(5);
+
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         var firstName = request.FirstName.Trim();
         var lastName = request.LastName.Trim();
-        var username = BuildUsername(firstName, lastName, request.Email);
+        var username = UserAccountIdentityHelper.ResolveIdentityUserName(null, firstName, lastName, request.Email, out var usernameError);
+        if (usernameError is not null || string.IsNullOrWhiteSpace(username))
+        {
+            return BadRequest(new { message = usernameError ?? "Unable to assign a login id." });
+        }
+
         var selectedRole = request.Role.Trim();
         if (!string.Equals(selectedRole, UserRoles.Resident, StringComparison.OrdinalIgnoreCase)
             && !string.Equals(selectedRole, UserRoles.Donor, StringComparison.OrdinalIgnoreCase))
@@ -36,7 +47,6 @@ public class AuthController(
         }
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        var normalizedUsername = username.ToLowerInvariant();
 
         if (await userManager.Users.AnyAsync(user => user.Email != null && user.Email.ToLower() == normalizedEmail))
         {
@@ -77,14 +87,14 @@ public class AuthController(
             supporterId = supporter.Id;
         }
 
-        var user = CreateUser(
-            username: username,
-            firstName: firstName,
-            lastName: lastName,
-            email: request.Email.Trim(),
-            role: role,
-            residentId: residentId,
-            supporterId: supporterId);
+        var user = UserAccountIdentityHelper.BuildAppUser(
+            username,
+            firstName,
+            lastName,
+            request.Email.Trim(),
+            role,
+            residentId,
+            supporterId);
         var createResult = await userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
         {
@@ -100,41 +110,46 @@ public class AuthController(
     {
         var firstName = request.FirstName.Trim();
         var lastName = request.LastName.Trim();
-        var username = BuildUsername(firstName, lastName, request.Email);
-        var selectedRole = request.Role.Trim();
-        if (!string.Equals(selectedRole, UserRoles.Admin, StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(selectedRole, UserRoles.Staff, StringComparison.OrdinalIgnoreCase))
+        var username = UserAccountIdentityHelper.ResolveIdentityUserName(request.Username, firstName, lastName, request.Email, out var usernameError);
+        if (usernameError is not null || string.IsNullOrWhiteSpace(username))
         {
-            return BadRequest(new { message = "Staff registration only supports Admin or Staff." });
+            return BadRequest(new { message = usernameError ?? "Unable to assign a login id." });
+        }
+
+        if (!string.Equals(request.Role.Trim(), UserRoles.Staff, StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { message = "Only Staff accounts can be created here. Promote a donor to grant Admin." });
         }
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        var normalizedUsername = username.ToLowerInvariant();
         if (await userManager.Users.AnyAsync(user => user.Email != null && user.Email.ToLower() == normalizedEmail))
         {
             return Conflict(new { message = "An account with this email already exists." });
         }
 
-        var role = selectedRole.Equals(UserRoles.Admin, StringComparison.OrdinalIgnoreCase)
-            ? UserRoles.Admin
-            : UserRoles.Staff;
+        if (await userManager.FindByNameAsync(username) is not null)
+        {
+            return Conflict(new { message = "An account with this login id already exists." });
+        }
+
+        const string role = UserRoles.Staff;
 
         var staffMember = new StaffMember
         {
             FullName = $"{firstName} {lastName}".Trim(),
             Email = request.Email.Trim(),
-            Title = role == UserRoles.Admin ? "Administrator" : "Staff",
+            Title = "Staff",
             CreatedAt = DateTime.UtcNow,
         };
         dbContext.StaffMembers.Add(staffMember);
         await dbContext.SaveChangesAsync();
 
-        var user = CreateUser(
-            username: username,
-            firstName: firstName,
-            lastName: lastName,
-            email: request.Email.Trim(),
-            role: role,
+        var user = UserAccountIdentityHelper.BuildAppUser(
+            username,
+            firstName,
+            lastName,
+            request.Email.Trim(),
+            role,
             staffMemberId: staffMember.Id);
         var createResult = await userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
@@ -142,7 +157,7 @@ public class AuthController(
             return BadRequest(new { message = string.Join(" ", createResult.Errors.Select(error => error.Description)) });
         }
 
-        return Ok(new { message = $"{role} account created successfully." });
+        return Ok(new { message = "Staff account created successfully." });
     }
 
     [HttpPost("login")]
@@ -164,6 +179,31 @@ public class AuthController(
         if (!passwordResult.Succeeded)
         {
             return Unauthorized(new { message = "Invalid credentials." });
+        }
+
+        var isAdminOrStaff = string.Equals(user.Role, UserRoles.Admin, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(user.Role, UserRoles.Staff, StringComparison.OrdinalIgnoreCase);
+
+        if (isAdminOrStaff && !user.TwoFactorEnabled)
+        {
+            // Must issue a session so they can open Profile and complete setup (otherwise lockout).
+            await SignInWithAppCookieAsync(user, request.RememberMe);
+            return Ok(new
+            {
+                requiresTwoFactorSetup = true,
+                message = "Two-factor authentication is required for Admin and Staff accounts. Complete setup in your profile."
+            });
+        }
+
+        if (user.TwoFactorEnabled)
+        {
+            var challengeToken = CreateTwoFactorChallengeToken(user.Id, request.RememberMe);
+            return Ok(new
+            {
+                requiresTwoFactor = true,
+                challengeToken,
+                message = "Enter the 2FA code from your authenticator app."
+            });
         }
 
         await SignInWithAppCookieAsync(user, request.RememberMe);
@@ -188,28 +228,238 @@ public class AuthController(
             return Ok(new { isAuthenticated = false, email = (string?)null, roles = Array.Empty<string>() });
         }
 
-        string? phone = null;
-        var userId = User.FindFirstValue("user_id");
-        if (!string.IsNullOrWhiteSpace(userId))
+        var user = await ResolveCurrentAppUserAsync();
+        if (user is null || !user.IsActive)
         {
-            var user = await userManager.FindByIdAsync(userId);
-            phone = user?.PhoneNumber;
+            return Ok(new { isAuthenticated = false, email = (string?)null, roles = Array.Empty<string>() });
         }
 
+        var recoveryCount = await userManager.CountRecoveryCodesAsync(user);
+        var role = string.IsNullOrWhiteSpace(user.Role) ? UserRoles.Donor : user.Role;
+        var phone = user.PhoneNumber;
         return Ok(
             new
             {
                 isAuthenticated = true,
-                username = User.FindFirstValue(ClaimTypes.Name),
-                firstName = User.FindFirstValue(ClaimTypes.GivenName),
-                lastName = User.FindFirstValue(ClaimTypes.Surname),
-                email = User.FindFirstValue(ClaimTypes.Email),
+                username = user.UserName ?? user.Email,
+                firstName = user.FirstName,
+                lastName = user.LastName,
+                email = user.Email,
                 phone,
-                roles = User.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray(),
-                residentId = User.FindFirstValue("resident_id"),
-                supporterId = User.FindFirstValue("supporter_id"),
-                staffMemberId = User.FindFirstValue("staff_member_id"),
+                roles = new[] { role },
+                twoFactorEnabled = user.TwoFactorEnabled,
+                recoveryCodesLeft = recoveryCount,
+                residentId = user.ResidentId?.ToString(),
+                supporterId = user.SupporterId?.ToString(),
+                staffMemberId = user.StaffMemberId?.ToString(),
             });
+    }
+
+    /// <summary>Re-issues the auth cookie from the database so role and 2FA claims match current user rows.</summary>
+    [HttpPost("reissue-session")]
+    [Authorize]
+    public async Task<IActionResult> ReissueSession()
+    {
+        var auth = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        if (!auth.Succeeded)
+        {
+            return Unauthorized();
+        }
+
+        var user = await ResolveCurrentAppUserAsync();
+        if (user is null || !user.IsActive)
+        {
+            return Unauthorized();
+        }
+
+        var persistent = auth.Properties?.IsPersistent == true;
+        await SignInWithAppCookieAsync(user, persistent);
+        return Ok(new { message = "Session refreshed." });
+    }
+
+    /// <summary>
+    /// Identity's GetUserAsync expects <see cref="ClaimTypes.NameIdentifier"/>; older cookies only had <c>user_id</c>.
+    /// </summary>
+    private async Task<AppUser?> ResolveCurrentAppUserAsync()
+    {
+        var user = await userManager.GetUserAsync(User);
+        if (user is not null)
+        {
+            return user;
+        }
+
+        var legacyId = User.FindFirst("user_id")?.Value;
+        if (int.TryParse(legacyId, out var id))
+        {
+            return await userManager.FindByIdAsync(id.ToString());
+        }
+
+        return null;
+    }
+
+    [HttpPost("2fa/challenge")]
+    [AllowAnonymous]
+    public async Task<IActionResult> CompleteTwoFactorChallenge([FromBody] TwoFactorChallengeRequest request)
+    {
+        var token = request.ChallengeToken?.Trim();
+        if (string.IsNullOrWhiteSpace(token) || !TryGetTwoFactorChallenge(token, out var state))
+        {
+            return Unauthorized(new { message = "Two-factor challenge is invalid or expired. Please sign in again." });
+        }
+
+        var user = await userManager.FindByIdAsync(state.UserId.ToString());
+        if (user is null || !user.IsActive || !user.TwoFactorEnabled)
+        {
+            InvalidateTwoFactorChallenge(token);
+            return Unauthorized(new { message = "Two-factor challenge could not be completed." });
+        }
+
+        // TOTP is 6 digits. Recovery codes are stored as "XXXXX-XXXXX" (hyphen required by Identity).
+        // Do not strip hyphens for recovery redemption or the code will never match.
+        var rawCode = request.Code?.Trim() ?? string.Empty;
+        var totpCode = NormalizeTotpCode(rawCode);
+        var authenticatorValid = totpCode.Length == 6
+            && await userManager.VerifyTwoFactorTokenAsync(
+                user,
+                TokenOptions.DefaultAuthenticatorProvider,
+                totpCode);
+
+        var usedRecoveryCode = false;
+        if (!authenticatorValid)
+        {
+            var recoveryCode = NormalizeRecoveryCodeForIdentity(rawCode);
+            if (string.IsNullOrEmpty(recoveryCode))
+            {
+                return Unauthorized(new { message = "Invalid two-factor or recovery code." });
+            }
+
+            var recoveryResult = await userManager.RedeemTwoFactorRecoveryCodeAsync(user, recoveryCode);
+            usedRecoveryCode = recoveryResult.Succeeded;
+            if (!usedRecoveryCode)
+            {
+                return Unauthorized(new { message = "Invalid two-factor or recovery code." });
+            }
+        }
+
+        await SignInWithAppCookieAsync(user, state.RememberMe);
+        InvalidateTwoFactorChallenge(token);
+        return Ok(new
+        {
+            message = usedRecoveryCode ? "Signed in with recovery code." : "Two-factor verification successful."
+        });
+    }
+
+    [HttpPost("2fa/setup/start")]
+    [Authorize]
+    public async Task<IActionResult> StartTwoFactorSetup()
+    {
+        var user = await GetCurrentUserAsync();
+        if (user is null)
+        {
+            return Unauthorized(new { message = "User session is invalid." });
+        }
+
+        var key = await userManager.GetAuthenticatorKeyAsync(user);
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            await userManager.ResetAuthenticatorKeyAsync(user);
+            key = await userManager.GetAuthenticatorKeyAsync(user);
+        }
+
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return Problem("Unable to generate authenticator key.");
+        }
+
+        var appName = "Kateri";
+        var accountName = string.IsNullOrWhiteSpace(user.Email) ? user.UserName ?? $"user-{user.Id}" : user.Email;
+        var encodedApp = Uri.EscapeDataString(appName);
+        var encodedAccount = Uri.EscapeDataString(accountName ?? $"user-{user.Id}");
+        var encodedSecret = Uri.EscapeDataString(key);
+        var otpauthUri = $"otpauth://totp/{encodedApp}:{encodedAccount}?secret={encodedSecret}&issuer={encodedApp}&digits=6";
+
+        return Ok(new
+        {
+            sharedKey = FormatKey(key),
+            otpauthUri
+        });
+    }
+
+    [HttpPost("2fa/setup/verify")]
+    [Authorize]
+    public async Task<IActionResult> VerifyTwoFactorSetup([FromBody] TwoFactorSetupVerifyRequest request)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user is null)
+        {
+            return Unauthorized(new { message = "User session is invalid." });
+        }
+
+        var code = NormalizeAuthenticatorCode(request.Code);
+        var valid = await userManager.VerifyTwoFactorTokenAsync(
+            user,
+            TokenOptions.DefaultAuthenticatorProvider,
+            code);
+
+        if (!valid)
+        {
+            return BadRequest(new { message = "Invalid authenticator code." });
+        }
+
+        var enableResult = await userManager.SetTwoFactorEnabledAsync(user, true);
+        if (!enableResult.Succeeded)
+        {
+            return BadRequest(new { message = "Unable to enable two-factor authentication." });
+        }
+
+        var recoveryCodes = (await userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10) ?? Array.Empty<string>()).ToArray();
+        return Ok(new
+        {
+            message = "Two-factor authentication enabled.",
+            recoveryCodes
+        });
+    }
+
+    [HttpPost("2fa/disable")]
+    [Authorize]
+    public async Task<IActionResult> DisableTwoFactor()
+    {
+        var user = await GetCurrentUserAsync();
+        if (user is null)
+        {
+            return Unauthorized(new { message = "User session is invalid." });
+        }
+
+        var disableResult = await userManager.SetTwoFactorEnabledAsync(user, false);
+        if (!disableResult.Succeeded)
+        {
+            return BadRequest(new { message = "Unable to disable two-factor authentication." });
+        }
+
+        return Ok(new { message = "Two-factor authentication disabled." });
+    }
+
+    [HttpPost("2fa/recovery-codes/regenerate")]
+    [Authorize]
+    public async Task<IActionResult> RegenerateRecoveryCodes()
+    {
+        var user = await GetCurrentUserAsync();
+        if (user is null)
+        {
+            return Unauthorized(new { message = "User session is invalid." });
+        }
+
+        if (!user.TwoFactorEnabled)
+        {
+            return BadRequest(new { message = "Enable two-factor authentication before generating recovery codes." });
+        }
+
+        var recoveryCodes = (await userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10) ?? Array.Empty<string>()).ToArray();
+        return Ok(new
+        {
+            message = "Recovery codes regenerated.",
+            recoveryCodes
+        });
     }
 
     [HttpGet("providers")]
@@ -265,8 +515,7 @@ public class AuthController(
         if (linkedUser is not null)
         {
             await TryBackfillNamesFromExternalInfoAsync(linkedUser, info);
-            await SignInWithAppCookieAsync(linkedUser, false);
-            return Redirect(BuildFrontendSuccessUrl(returnPath));
+            return await CompleteLoginOrStartTwoFactorAsync(linkedUser, rememberMe: false, returnPath);
         }
 
         var email = info.Principal.FindFirstValue(ClaimTypes.Email) ?? info.Principal.FindFirstValue("email");
@@ -284,7 +533,7 @@ public class AuthController(
             }
 
             var (firstName, lastName) = ExtractNamesFromExternalInfo(info);
-            user = CreateUser(email, firstName, lastName, email, UserRoles.Donor);
+            user = UserAccountIdentityHelper.BuildAppUser(email, firstName, lastName, email, UserRoles.Donor);
             user.EmailConfirmed = true;
             var createResult = await userManager.CreateAsync(user, GenerateExternalPlaceholderPassword());
             if (!createResult.Succeeded)
@@ -303,34 +552,7 @@ public class AuthController(
             return Redirect(BuildFrontendErrorUrl("Unable to associate the external login with the local account."));
         }
 
-        await SignInWithAppCookieAsync(user, false);
-        return Redirect(BuildFrontendSuccessUrl(returnPath));
-    }
-
-    private AppUser CreateUser(
-        string username,
-        string firstName,
-        string lastName,
-        string email,
-        string role,
-        int? residentId = null,
-        int? supporterId = null,
-        int? staffMemberId = null)
-    {
-        var user = new AppUser
-        {
-            Username = username,
-            FirstName = firstName,
-            LastName = lastName,
-            Email = email,
-            Role = role,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow,
-            ResidentId = residentId,
-            SupporterId = supporterId,
-            StaffMemberId = staffMemberId,
-        };
-        return user;
+        return await CompleteLoginOrStartTwoFactorAsync(user, rememberMe: false, returnPath);
     }
 
     private bool IsGoogleConfigured()
@@ -349,15 +571,28 @@ public class AuthController(
         return returnPath;
     }
 
-    private static string BuildUsername(string firstName, string lastName, string email)
+    private async Task<IActionResult> CompleteLoginOrStartTwoFactorAsync(AppUser user, bool rememberMe, string? returnPath)
     {
-        var full = $"{firstName} {lastName}".Trim();
-        if (!string.IsNullOrWhiteSpace(full))
+        var isAdminOrStaff = string.Equals(user.Role, UserRoles.Admin, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(user.Role, UserRoles.Staff, StringComparison.OrdinalIgnoreCase);
+
+        if (isAdminOrStaff && !user.TwoFactorEnabled)
         {
-            return full;
+            await SignInWithAppCookieAsync(user, rememberMe);
+            return Redirect(BuildFrontendProfileUrl(
+                "Two-factor authentication is required for Admin/Staff accounts. Complete setup below."));
         }
 
-        return email.Trim();
+        if (user.TwoFactorEnabled)
+        {
+            var challengeToken = CreateTwoFactorChallengeToken(user.Id, rememberMe);
+            return Redirect(BuildFrontendLoginUrl(
+                "Enter the 6-digit code from your authenticator app to finish signing in.",
+                challengeToken: challengeToken));
+        }
+
+        await SignInWithAppCookieAsync(user, rememberMe);
+        return Redirect(BuildFrontendSuccessUrl(returnPath));
     }
 
     private static string NormalizeExternalFlow(string? flow)
@@ -385,6 +620,8 @@ public class AuthController(
         }
         var claims = new List<Claim>
         {
+            // Required for UserManager.GetUserAsync(User) used by /me and reissue-session.
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, displayName),
             new(ClaimTypes.GivenName, user.FirstName),
             new(ClaimTypes.Surname, user.LastName),
@@ -407,6 +644,10 @@ public class AuthController(
         {
             claims.Add(new("staff_member_id", user.StaffMemberId.Value.ToString()));
         }
+        claims.Add(new("two_factor_enabled", user.TwoFactorEnabled.ToString()));
+
+        var recoveryCount = await userManager.CountRecoveryCodesAsync(user);
+        claims.Add(new("recovery_codes_left", recoveryCount.ToString()));
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
@@ -480,6 +721,113 @@ public class AuthController(
         }
     }
 
+    private static string CreateTwoFactorChallengeToken(int userId, bool rememberMe)
+    {
+        CleanupExpiredTwoFactorChallenges();
+        var token = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+            .Replace('+', '-')
+            .Replace('/', '_')
+            .TrimEnd('=');
+        TwoFactorChallenges[token] = new TwoFactorChallengeState(
+            userId,
+            rememberMe,
+            DateTimeOffset.UtcNow.Add(TwoFactorChallengeTtl));
+        return token;
+    }
+
+    private static bool TryGetTwoFactorChallenge(string token, out TwoFactorChallengeState state)
+    {
+        CleanupExpiredTwoFactorChallenges();
+        if (TwoFactorChallenges.TryGetValue(token, out state))
+        {
+            return state.ExpiresAt >= DateTimeOffset.UtcNow;
+        }
+
+        state = default;
+        return false;
+    }
+
+    private static void InvalidateTwoFactorChallenge(string token)
+    {
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            TwoFactorChallenges.TryRemove(token, out _);
+        }
+    }
+
+    private static void CleanupExpiredTwoFactorChallenges()
+    {
+        var now = DateTimeOffset.UtcNow;
+        foreach (var entry in TwoFactorChallenges)
+        {
+            if (entry.Value.ExpiresAt < now)
+            {
+                TwoFactorChallenges.TryRemove(entry.Key, out _);
+            }
+        }
+    }
+
+    private async Task<AppUser?> GetCurrentUserAsync()
+    {
+        var userIdClaim = User.FindFirstValue("user_id");
+        if (string.IsNullOrWhiteSpace(userIdClaim))
+        {
+            return null;
+        }
+
+        return await userManager.FindByIdAsync(userIdClaim);
+    }
+
+    private static string NormalizeAuthenticatorCode(string code)
+    {
+        return (code ?? string.Empty).Replace(" ", string.Empty).Replace("-", string.Empty).Trim();
+    }
+
+    /// <summary>
+    /// Returns six digits only, or empty if the input is not a 6-digit authenticator code.
+    /// </summary>
+    private static string NormalizeTotpCode(string code)
+    {
+        var digits = string.Concat((code ?? string.Empty).Where(char.IsDigit));
+        return digits.Length == 6 ? digits : string.Empty;
+    }
+
+    /// <summary>
+    /// Normalizes user input to the recovery code format Identity stores: "XXXXX-XXXXX".
+    /// </summary>
+    private static string NormalizeRecoveryCodeForIdentity(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            return string.Empty;
+        }
+
+        var compact = new string(code.Trim().Where(c => !char.IsWhiteSpace(c)).ToArray()).ToUpperInvariant();
+        if (compact.Length == 11 && compact[5] == '-')
+        {
+            return compact;
+        }
+
+        var noDash = compact.Replace("-", string.Empty).Replace("_", string.Empty);
+        if (noDash.Length == 10)
+        {
+            return noDash.Substring(0, 5) + "-" + noDash.Substring(5);
+        }
+
+        return compact;
+    }
+
+    private static string FormatKey(string unformattedKey)
+    {
+        return string.Join(' ', Enumerable.Range(0, (unformattedKey.Length + 3) / 4)
+            .Select(i =>
+            {
+                var start = i * 4;
+                var length = Math.Min(4, unformattedKey.Length - start);
+                return unformattedKey.Substring(start, length).ToLowerInvariant();
+            }));
+    }
+
     private string BuildFrontendSuccessUrl(string? returnPath)
     {
         var frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:5173";
@@ -492,7 +840,46 @@ public class AuthController(
         var loginUrl = $"{frontendUrl.TrimEnd('/')}/login";
         return QueryHelpers.AddQueryString(loginUrl, "externalError", errorMessage);
     }
+
+    private string BuildFrontendLoginUrl(string? message = null, bool requiresTwoFactorSetup = false, string? challengeToken = null)
+    {
+        var frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:5173";
+        var loginUrl = $"{frontendUrl.TrimEnd('/')}/login";
+        var parameters = new Dictionary<string, string>();
+
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            parameters["message"] = message;
+        }
+
+        if (requiresTwoFactorSetup)
+        {
+            parameters["requiresTwoFactorSetup"] = "true";
+        }
+
+        if (!string.IsNullOrWhiteSpace(challengeToken))
+        {
+            parameters["challengeToken"] = challengeToken;
+        }
+
+        return parameters.Count == 0 ? loginUrl : QueryHelpers.AddQueryString(loginUrl, parameters);
+    }
+
+    private string BuildFrontendProfileUrl(string? message = null)
+    {
+        var frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:5173";
+        var profileUrl = $"{frontendUrl.TrimEnd('/')}/profile";
+        var parameters = new Dictionary<string, string> { ["requiresTwoFactorSetup"] = "true" };
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            parameters["message"] = message;
+        }
+
+        return QueryHelpers.AddQueryString(profileUrl, parameters);
+    }
 }
+
+public readonly record struct TwoFactorChallengeState(int UserId, bool RememberMe, DateTimeOffset ExpiresAt);
 
 public class LoginRequest
 {
@@ -546,6 +933,10 @@ public class RegisterStaffRequest
     [RegularExpression(@"^[a-zA-Z\- ]+$", ErrorMessage = "Last name contains unsupported characters.")]
     public string LastName { get; set; } = string.Empty;
 
+    /// <summary>Optional login id. If omitted, the user's email is used (recommended).</summary>
+    [MaxLength(256)]
+    public string? Username { get; set; }
+
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
@@ -557,4 +948,19 @@ public class RegisterStaffRequest
 
     [Required]
     public string Role { get; set; } = UserRoles.Staff;
+}
+
+public class TwoFactorChallengeRequest
+{
+    [Required]
+    public string ChallengeToken { get; set; } = string.Empty;
+
+    [Required]
+    public string Code { get; set; } = string.Empty;
+}
+
+public class TwoFactorSetupVerifyRequest
+{
+    [Required]
+    public string Code { get; set; } = string.Empty;
 }
