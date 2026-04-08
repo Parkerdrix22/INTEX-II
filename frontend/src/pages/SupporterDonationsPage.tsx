@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   donorsContributionsApi,
@@ -41,7 +41,7 @@ export function SupporterDonationsPage() {
     campaignName: '',
   });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!Number.isFinite(numericSupporterId) || numericSupporterId <= 0) {
       setError('Invalid supporter id.');
       setLoading(false);
@@ -75,11 +75,11 @@ export function SupporterDonationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [numericSupporterId]);
 
   useEffect(() => {
     void load();
-  }, [numericSupporterId]);
+  }, [load]);
 
   const supporter = useMemo(
     () => dashboard?.supporters.find((item) => item.id === numericSupporterId) ?? null,

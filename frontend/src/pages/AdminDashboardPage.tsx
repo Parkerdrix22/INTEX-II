@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -61,6 +61,7 @@ export function AdminDashboardPage() {
     assignedWorkers: 0,
     totalContributions: 0,
   });
+  const animatedSummaryRef = useRef(animatedSummary);
 
   useEffect(() => {
     const load = async () => {
@@ -95,9 +96,13 @@ export function AdminDashboardPage() {
   }, [residents, donors]);
 
   useEffect(() => {
+    animatedSummaryRef.current = animatedSummary;
+  }, [animatedSummary]);
+
+  useEffect(() => {
     const durationMs = 900;
     const start = performance.now();
-    const initial = { ...animatedSummary };
+    const initial = { ...animatedSummaryRef.current };
     let rafId = 0;
 
     const tick = (now: number) => {

@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { caseloadApi, type CaseloadResident } from '../lib/api';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
@@ -44,6 +44,7 @@ export function CaseloadInventoryPage() {
     withWorkerCount: 0,
     closedCount: 0,
   });
+  const animatedSummaryRef = useRef(animatedSummary);
   const [showCreateResident, setShowCreateResident] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [creatingResident, setCreatingResident] = useState(false);
@@ -129,9 +130,13 @@ export function CaseloadInventoryPage() {
   }, [pagedCases, filteredCases, activeCaseId]);
 
   useEffect(() => {
+    animatedSummaryRef.current = animatedSummary;
+  }, [animatedSummary]);
+
+  useEffect(() => {
     const durationMs = 900;
     const start = performance.now();
-    const initial = { ...animatedSummary };
+    const initial = { ...animatedSummaryRef.current };
     let rafId = 0;
 
     const tick = (now: number) => {

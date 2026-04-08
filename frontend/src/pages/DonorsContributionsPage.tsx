@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CartesianGrid,
@@ -52,6 +52,7 @@ export function DonorsContributionsPage() {
     contributionsMtd: 0,
     totalContributions: 0,
   });
+  const animatedSummaryRef = useRef(animatedSummary);
   const [showAddSupporterModal, setShowAddSupporterModal] = useState(false);
   const [savingSupporter, setSavingSupporter] = useState(false);
   const [supporterError, setSupporterError] = useState<string | null>(null);
@@ -90,7 +91,7 @@ export function DonorsContributionsPage() {
   }, []);
 
   const supporters = dashboard?.supporters ?? [];
-  const contributions = dashboard?.contributions ?? [];
+  const contributions = useMemo(() => dashboard?.contributions ?? [], [dashboard]);
   const allocations = dashboard?.allocations ?? [];
   const activityLog = dashboard?.activity ?? [];
   const summary = useMemo(
@@ -106,7 +107,7 @@ export function DonorsContributionsPage() {
   useEffect(() => {
     const durationMs = 900;
     const start = performance.now();
-    const initial = { ...animatedSummary };
+    const initial = { ...animatedSummaryRef.current };
     let rafId = 0;
 
     const tick = (now: number) => {
@@ -127,6 +128,10 @@ export function DonorsContributionsPage() {
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
   }, [summary]);
+
+  useEffect(() => {
+    animatedSummaryRef.current = animatedSummary;
+  }, [animatedSummary]);
 
   const supporterTypes = Array.from(new Set(supporters.map((row) => row.supporterType))).sort();
   const supporterStatuses = Array.from(new Set(supporters.map((row) => row.status))).sort();
