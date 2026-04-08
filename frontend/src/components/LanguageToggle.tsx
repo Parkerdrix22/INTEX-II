@@ -1,9 +1,8 @@
 import { useLanguage, type Lang } from '../i18n/LanguageContext';
 
-// Two-button segmented control that flips the active language cookie and
-// triggers a re-render of the whole tree via LanguageContext. Lives in the
-// top nav right next to the auth pill. The Diné option carries an unobtrusive
-// "MT" badge as an honest disclosure that translations are machine-generated.
+// Matches the visual language of the adjacent .auth-nav-pill — solid
+// navy background, white text, "|" separator. Active language is fully
+// opaque; inactive is dimmed. Keeps the nav bar visually cohesive.
 
 export function LanguageToggle() {
   const { lang, setLang, t } = useLanguage();
@@ -14,21 +13,28 @@ export function LanguageToggle() {
 
   return (
     <div
-      className="lang-toggle"
+      className="auth-nav-pill lang-toggle-pill"
       role="group"
       aria-label={t('common.language.toggleLabel')}
     >
       <button
         type="button"
-        className={`lang-toggle__btn${lang === 'en' ? ' lang-toggle__btn--active' : ''}`}
+        className={`auth-nav-pill__logout lang-toggle-pill__btn${
+          lang === 'en' ? ' lang-toggle-pill__btn--active' : ''
+        }`}
         aria-pressed={lang === 'en'}
         onClick={() => choose('en')}
       >
         EN
       </button>
+      <span className="auth-nav-pill__sep" aria-hidden="true">
+        |
+      </span>
       <button
         type="button"
-        className={`lang-toggle__btn${lang === 'nv' ? ' lang-toggle__btn--active' : ''}`}
+        className={`auth-nav-pill__logout lang-toggle-pill__btn${
+          lang === 'nv' ? ' lang-toggle-pill__btn--active' : ''
+        }`}
         aria-pressed={lang === 'nv'}
         onClick={() => choose('nv')}
         title={t('common.language.mtDisclaimer')}

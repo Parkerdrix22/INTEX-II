@@ -2118,61 +2118,50 @@ a.auth-nav-pill--solo-login:focus-visible {
   text-align: center;
 }
 
-/* ── Language toggle (EN / Diné) — top nav segmented control ─────────── */
-.lang-toggle {
-  display: inline-flex;
-  align-items: stretch;
-  gap: 0;
-  border: none;
-  border-radius: 999px;
-  padding: 3px;
-  background: transparent;
-  box-shadow: none;
+/* ── Language toggle (EN / Diné) ──────────────────────────────────────
+   Reuses the .auth-nav-pill chrome so it sits flush next to the
+   Sign up | Login (or Profile | Logout) pill in the nav bar — same
+   navy background, white text, "|" separator. The active language
+   is full opacity; the inactive is dimmed. Uses underline to make
+   the active state unambiguous. */
+.lang-toggle-pill {
+  gap: 0.5rem;
+  padding: 0.38rem 0.85rem;
 }
 
-.lang-toggle__btn {
-  appearance: none;
-  background: transparent;
-  border: none;
-  color: #385f82;
-  padding: 0.32rem 0.9rem;
-  font-size: 0.78rem;
+.lang-toggle-pill__btn {
   font-weight: 600;
-  letter-spacing: 0.04em;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.1s ease;
-  font-family: inherit;
-  line-height: 1.1;
-  user-select: none;
+  letter-spacing: 0.02em;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+  padding: 0;
 }
 
-.lang-toggle__btn:hover:not(.lang-toggle__btn--active) {
-  background: rgba(56, 95, 130, 0.1);
-  color: #264a66;
+.lang-toggle-pill__btn:hover {
+  opacity: 0.85;
 }
 
-.lang-toggle__btn:active:not(.lang-toggle__btn--active) {
-  transform: scale(0.97);
+.lang-toggle-pill__btn--active {
+  opacity: 1;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(253, 248, 236, 0.9);
 }
 
-.lang-toggle__btn--active {
-  background: linear-gradient(135deg, #4a78a0 0%, #385f82 100%);
-  color: #fdf8ec;
-  box-shadow:
-    0 2px 6px rgba(56, 95, 130, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.lang-toggle__btn:focus-visible {
-  outline: 2px solid #c9983f;
+.lang-toggle-pill__btn:focus-visible {
+  outline: 2px solid currentColor;
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
 @media (max-width: 640px) {
-  .lang-toggle__btn {
-    padding: 0.26rem 0.65rem;
-    font-size: 0.72rem;
+  .lang-toggle-pill {
+    padding: 0.3rem 0.7rem;
+    gap: 0.4rem;
+  }
+  .lang-toggle-pill__btn {
+    font-size: 0.85rem;
   }
 }
 
