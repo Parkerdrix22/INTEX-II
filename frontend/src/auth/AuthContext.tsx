@@ -13,6 +13,7 @@ type AuthContextValue = {
   accountPhone: string | null;
   roles: string[];
   twoFactorEnabled: boolean;
+  requiresTwoFactorSetup: boolean;
   recoveryCodesLeft: number;
   profile: UserProfile;
   effectiveDisplayName: string | null;
@@ -37,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [accountPhone, setAccountPhone] = useState<string | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [requiresTwoFactorSetup, setRequiresTwoFactorSetup] = useState(false);
   const [recoveryCodesLeft, setRecoveryCodesLeft] = useState(0);
   const [profile, setProfile] = useState<UserProfile>({
     displayName: '',
@@ -69,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAccountPhone(result.phone?.trim() || null);
       setRoles(result.roles ?? []);
       setTwoFactorEnabled(result.twoFactorEnabled ?? false);
+      setRequiresTwoFactorSetup(result.requiresTwoFactorSetup ?? false);
       setRecoveryCodesLeft(result.recoveryCodesLeft ?? 0);
       if (result.isAuthenticated) {
         try {
@@ -86,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAccountPhone(null);
       setRoles([]);
       setTwoFactorEnabled(false);
+      setRequiresTwoFactorSetup(false);
       setRecoveryCodesLeft(0);
     }
   }, []);
@@ -109,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       accountPhone,
       roles,
       twoFactorEnabled,
+      requiresTwoFactorSetup,
       recoveryCodesLeft,
       profile,
       effectiveDisplayName: (() => {
@@ -169,6 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAccountPhone(null);
         setRoles([]);
         setTwoFactorEnabled(false);
+        setRequiresTwoFactorSetup(false);
         setRecoveryCodesLeft(0);
         setProfile({ displayName: '', phone: '', notes: '' });
       },
@@ -183,6 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       accountPhone,
       roles,
       twoFactorEnabled,
+      requiresTwoFactorSetup,
       recoveryCodesLeft,
       profile,
       refreshSession,

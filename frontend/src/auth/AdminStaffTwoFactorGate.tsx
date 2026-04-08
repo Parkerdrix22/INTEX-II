@@ -7,13 +7,17 @@ import { useAuth } from './useAuth';
  * The actual redirect back to Profile is handled in App.tsx via <Navigate /> (no route flash).
  */
 export function AdminStaffTwoFactorGate() {
-  const { isAuthenticated, isLoading, roles, twoFactorEnabled } = useAuth();
+  const { isAuthenticated, isLoading, roles, twoFactorEnabled, requiresTwoFactorSetup } = useAuth();
   const location = useLocation();
   const prevPathnameRef = useRef<string | null>(null);
   const [blockedLeaveModalOpen, setBlockedLeaveModalOpen] = useState(false);
 
   const needsGate =
-    isAuthenticated && !isLoading && (roles.includes('Admin') || roles.includes('Staff')) && !twoFactorEnabled;
+    isAuthenticated &&
+    !isLoading &&
+    (roles.includes('Admin') || roles.includes('Staff')) &&
+    !twoFactorEnabled &&
+    requiresTwoFactorSetup;
 
   const closeModal = useCallback(() => {
     setBlockedLeaveModalOpen(false);

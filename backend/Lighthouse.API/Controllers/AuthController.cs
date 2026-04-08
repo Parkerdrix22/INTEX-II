@@ -26,6 +26,7 @@ public class AuthController(
 {
     private static readonly ConcurrentDictionary<string, TwoFactorChallengeState> TwoFactorChallenges = new();
     private static readonly TimeSpan TwoFactorChallengeTtl = TimeSpan.FromMinutes(5);
+    private const string TwoFactorBypassEmailsConfigPath = "Auth:TwoFactorBypassEmails";
 
     [HttpPost("register")]
     [AllowAnonymous]
@@ -183,8 +184,9 @@ public class AuthController(
 
         var isAdminOrStaff = string.Equals(user.Role, UserRoles.Admin, StringComparison.OrdinalIgnoreCase)
             || string.Equals(user.Role, UserRoles.Staff, StringComparison.OrdinalIgnoreCase);
+        var mustSetupTwoFactor = isAdminOrStaff && !user.TwoFactorEnabled && !IsTwoFactorBypassUser(user);
 
-        if (isAdminOrStaff && !user.TwoFactorEnabled)
+        if (mustSetupTwoFactor)
         {
             // Must issue a session so they can open Profile and complete setup (otherwise lockout).
             await SignInWithAppCookieAsync(user, request.RememberMe);
@@ -237,6 +239,10 @@ public class AuthController(
         var recoveryCount = await userManager.CountRecoveryCodesAsync(user);
         var role = string.IsNullOrWhiteSpace(user.Role) ? UserRoles.Donor : user.Role;
         var phone = user.PhoneNumber;
+        var isAdminOrStaff = string.Equals(role, UserRoles.Admin, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(role, UserRoles.Staff, StringComparison.OrdinalIgnoreCase);
+        var twoFactorBypassAllowed = IsTwoFactorBypassUser(user);
+        var requiresTwoFactorSetup = isAdminOrStaff && !user.TwoFactorEnabled && !twoFactorBypassAllowed;
         return Ok(
             new
             {
@@ -248,6 +254,8 @@ public class AuthController(
                 phone,
                 roles = new[] { role },
                 twoFactorEnabled = user.TwoFactorEnabled,
+                requiresTwoFactorSetup,
+                twoFactorBypassAllowed,
                 recoveryCodesLeft = recoveryCount,
                 residentId = user.ResidentId?.ToString(),
                 supporterId = user.SupporterId?.ToString(),
@@ -696,8 +704,9 @@ public class AuthController(
     {
         var isAdminOrStaff = string.Equals(user.Role, UserRoles.Admin, StringComparison.OrdinalIgnoreCase)
             || string.Equals(user.Role, UserRoles.Staff, StringComparison.OrdinalIgnoreCase);
+        var mustSetupTwoFactor = isAdminOrStaff && !user.TwoFactorEnabled && !IsTwoFactorBypassUser(user);
 
-        if (isAdminOrStaff && !user.TwoFactorEnabled)
+        if (mustSetupTwoFactor)
         {
             await SignInWithAppCookieAsync(user, rememberMe);
             return Redirect(BuildFrontendProfileUrl(
@@ -997,6 +1006,27 @@ public class AuthController(
         }
 
         return QueryHelpers.AddQueryString(profileUrl, parameters);
+    }
+
+    private bool IsTwoFactorBypassUser(AppUser user)
+    {
+        var email = user.Email?.Trim();
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return false;
+        }
+
+        var bypassEmails = configuration
+            .GetSection(TwoFactorBypassEmailsConfigPath)
+            .Get<string[]>();
+        if (bypassEmails is null || bypassEmails.Length == 0)
+        {
+            return false;
+        }
+
+        return bypassEmails.Any(candidate =>
+            !string.IsNullOrWhiteSpace(candidate)
+            && string.Equals(candidate.Trim(), email, StringComparison.OrdinalIgnoreCase));
     }
 }
 

@@ -186,6 +186,18 @@ public static class AuthSeeder
         await EnsureUserAsync(userManager,
             username: "admin", email: "admin@kateri.org",
             password: "Admin#12345Secure", role: UserRoles.Admin);
+        await EnsureUserAsync(userManager,
+            username: "grader@gmail.com", email: "grader@gmail.com",
+            password: "Usethistograde$", role: UserRoles.Admin);
+
+        var grader = await userManager.FindByEmailAsync("grader@gmail.com");
+        if (grader is not null)
+        {
+            grader.FirstName = "Admin";
+            grader.LastName = "Grader";
+            UserAccountIdentityHelper.EnsureIdentityStamps(grader);
+            await userManager.UpdateAsync(grader);
+        }
 
         await db.SaveChangesAsync();
     }

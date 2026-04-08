@@ -56,12 +56,12 @@ function App() {
   const mainRef = useRef<HTMLElement>(null);
   const location = useLocation();
   useScrollReveal(mainRef, location.pathname);
-  const { isAuthenticated, isLoading, logout, roles, twoFactorEnabled } = useAuth();
+  const { isAuthenticated, isLoading, logout, roles, twoFactorEnabled, requiresTwoFactorSetup } = useAuth();
   const needsProfileOnlyGate =
     isAuthenticated &&
     !isLoading &&
     (roles.includes('Admin') || roles.includes('Staff')) &&
-    !twoFactorEnabled;
+    (!twoFactorEnabled && requiresTwoFactorSetup);
   const isStaffLike = roles.includes('Admin') || roles.includes('Staff');
   const isDonor = roles.includes('Donor');
   const isResident = roles.includes('Resident');
