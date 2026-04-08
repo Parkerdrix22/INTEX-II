@@ -2123,11 +2123,14 @@ a.auth-nav-pill--solo-login:focus-visible {
   display: inline-flex;
   align-items: stretch;
   gap: 0;
-  border: 1px solid rgba(56, 95, 130, 0.3);
+  border: 1px solid rgba(56, 95, 130, 0.22);
   border-radius: 999px;
-  padding: 2px;
-  background: rgba(255, 253, 247, 0.85);
-  box-shadow: 0 1px 2px rgba(31, 47, 63, 0.06);
+  padding: 3px;
+  background: rgba(255, 253, 247, 0.9);
+  box-shadow:
+    0 1px 3px rgba(31, 47, 63, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
 }
 
 .lang-toggle__btn {
@@ -2135,24 +2138,33 @@ a.auth-nav-pill--solo-login:focus-visible {
   background: transparent;
   border: none;
   color: #385f82;
-  padding: 0.3rem 0.85rem;
+  padding: 0.32rem 0.9rem;
   font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   border-radius: 999px;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.1s ease;
   font-family: inherit;
   line-height: 1.1;
+  user-select: none;
 }
 
 .lang-toggle__btn:hover:not(.lang-toggle__btn--active) {
-  background: rgba(56, 95, 130, 0.08);
+  background: rgba(56, 95, 130, 0.1);
+  color: #264a66;
+}
+
+.lang-toggle__btn:active:not(.lang-toggle__btn--active) {
+  transform: scale(0.97);
 }
 
 .lang-toggle__btn--active {
-  background: #385f82;
+  background: linear-gradient(135deg, #4a78a0 0%, #385f82 100%);
   color: #fdf8ec;
+  box-shadow:
+    0 2px 6px rgba(56, 95, 130, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .lang-toggle__btn:focus-visible {
@@ -2162,7 +2174,7 @@ a.auth-nav-pill--solo-login:focus-visible {
 
 @media (max-width: 640px) {
   .lang-toggle__btn {
-    padding: 0.25rem 0.6rem;
+    padding: 0.26rem 0.65rem;
     font-size: 0.72rem;
   }
 }
