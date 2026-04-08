@@ -20,6 +20,11 @@ public class DonationsController(
     INeedBasedAllocationService allocationService,
     IDonationValuationService valuationService) : ControllerBase
 {
+    // Server-side cap mirroring the donor-portal UI. Anything larger than this
+    // requires a human conversation (tax paperwork, compliance review, custom
+    // allocation). The UI blocks it first with a modal; this is the backstop.
+    private const decimal LargeGiftCapUsd = 5_000_000m;
+
     [HttpPost]
     public async Task<IActionResult> CreateDonation([FromBody] CreateDonationRequest request)
     {
@@ -43,6 +48,24 @@ public class DonationsController(
             request.DonationType,
             request.Amount,
             dbContext);
+
+        // Server-side cap on the estimated dollar value (post-valuation). This
+        // catches any gift that slips past the UI, including Time/Skills where
+        // a huge hour count could translate into millions of dollars.
+        if (valuation.EstimatedValue > LargeGiftCapUsd)
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                new
+                {
+                    message =
+                        $"Donations above {LargeGiftCapUsd:C0} (USD estimated value) require a staff " +
+                        "conversation. Please contact giving@kateri.byuisresearch.com and we will be in " +
+                        "touch within one business day.",
+                    capUsd = LargeGiftCapUsd,
+                    estimatedValue = valuation.EstimatedValue,
+                });
+        }
 
         int? supporterId = valuation.CanonicalType == "Monetary"
             ? await ResolveSupporterForLighthouseAsync(request.DonorName)
@@ -115,6 +138,22 @@ public class DonationsController(
             return BadRequest(new { message = "Quantity must be at least 1." });
         if (request.EstimatedTotalValue <= 0)
             return BadRequest(new { message = "Estimated value must be greater than zero." });
+
+        // Same large-gift backstop as the monetary endpoint.
+        if (request.EstimatedTotalValue > LargeGiftCapUsd)
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                new
+                {
+                    message =
+                        $"In-kind donations above {LargeGiftCapUsd:C0} (USD estimated value) require a " +
+                        "staff conversation. Please contact giving@kateri.byuisresearch.com and we will " +
+                        "be in touch within one business day.",
+                    capUsd = LargeGiftCapUsd,
+                    estimatedValue = request.EstimatedTotalValue,
+                });
+        }
 
         var itemName = request.ItemName.Trim();
         if (string.IsNullOrWhiteSpace(itemName))
