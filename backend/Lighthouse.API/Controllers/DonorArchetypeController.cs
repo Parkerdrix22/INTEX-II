@@ -345,7 +345,7 @@ public class DonorArchetypeController : ControllerBase
         }
 
         await using (var cmd = new NpgsqlCommand(
-            "SELECT supporter_id, donation_date, is_recurring, COALESCE(estimated_value, 0)::float8 FROM lighthouse.donations",
+            "SELECT supporter_id, donation_date, is_recurring, COALESCE(estimated_value, 0)::float8 FROM lighthouse.donations WHERE supporter_id IS NOT NULL",
             conn))
         await using (var reader = await cmd.ExecuteReaderAsync())
         {
