@@ -14,6 +14,7 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
   const [email, setEmail] = useState('');
   const [loginUsername, setLoginUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<CreateAccountRole>('Resident');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -26,6 +27,11 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
     setError(null);
 
     try {
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.');
+        return;
+      }
+
       if (role === 'Staff') {
         await authApi.registerStaff(firstName, lastName, email, password, loginUsername.trim() || undefined);
       } else {
@@ -37,6 +43,7 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
       setEmail('');
       setLoginUsername('');
       setPassword('');
+      setConfirmPassword('');
       setRole('Resident');
       setSuccess(
         isAdmin
@@ -115,6 +122,17 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
           title="At least 14 characters, including one uppercase letter and one special character."
           value={password}
           onChange={(event) => setPassword(event.target.value)}
+        />
+      </label>
+      <label>
+        Confirm password
+        <input
+          required
+          minLength={14}
+          type="password"
+          autoComplete="new-password"
+          value={confirmPassword}
+          onChange={(event) => setConfirmPassword(event.target.value)}
         />
       </label>
       <p className="auth-lead profile-create-account-hint">
