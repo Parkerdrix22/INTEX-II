@@ -1,5 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
 import { Bedroom } from './rooms/Bedroom';
 import { Bathroom } from './rooms/Bathroom';
 import { Kitchen } from './rooms/Kitchen';
@@ -226,7 +227,7 @@ export function SafehouseScene() {
       className="safehouse-canvas"
       camera={{ position: [52, 30, 52], fov: 38 }}
       dpr={[1, 1.8]}
-      shadows
+      shadows={{ type: THREE.PCFShadowMap }}
     >
       <color attach="background" args={['#dce9f4']} />
       <fog attach="fog" args={['#dce9f4', 95, 170]} />

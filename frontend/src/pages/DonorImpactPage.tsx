@@ -154,7 +154,7 @@ export function DonorImpactPage() {
       }
     };
     load();
-  }, []);
+  }, [t]);
 
   // ── Load report when donor selection changes ──────────────────────────
   useEffect(() => {
@@ -175,7 +175,7 @@ export function DonorImpactPage() {
       }
     };
     loadReport();
-  }, [selectedId]);
+  }, [selectedId, t]);
 
   const filteredDonors = useMemo(
     () =>
@@ -209,7 +209,6 @@ export function DonorImpactPage() {
     <section className={`donor-impact-page ${visible ? 'is-visible' : ''}`}>
       {/* ─── Header ───────────────────────────────────────── */}
       <header className="impact-header">
-        <span className="impact-overline">{t('donorImpact.overline')}</span>
         <h1 className="impact-title">{t('donorImpact.title')}</h1>
         <p className="impact-subtitle">{t('donorImpact.subtitle')}</p>
         {modelInfo && (
@@ -376,7 +375,7 @@ export function DonorImpactPage() {
                   </header>
                   {report.programAreaBreakdown.length > 0 ? (
                     <div className="impact-chart-wrap">
-                      <ResponsiveContainer width="100%" height={260}>
+                      <ResponsiveContainer width="100%" debounce={1} height={260}>
                         <PieChart>
                           <Pie
                             data={report.programAreaBreakdown}
@@ -432,7 +431,7 @@ export function DonorImpactPage() {
                   </header>
                   {report.monthlyTimeline.length > 0 ? (
                     <div className="impact-chart-wrap">
-                      <ResponsiveContainer width="100%" height={260}>
+                      <ResponsiveContainer width="100%" debounce={1} height={260}>
                         <LineChart data={report.monthlyTimeline}>
                           <XAxis
                             dataKey="month"
@@ -484,7 +483,7 @@ export function DonorImpactPage() {
                     <p>{t('donorImpact.totalAllocatedBySafehouse')}</p>
                   </header>
                   <div className="impact-chart-wrap">
-                    <ResponsiveContainer width="100%" height={Math.max(200, report.safehousesSupported.length * 42)}>
+                    <ResponsiveContainer width="100%" debounce={1} height={Math.max(200, report.safehousesSupported.length * 42)}>
                       <BarChart
                         data={report.safehousesSupported}
                         layout="vertical"

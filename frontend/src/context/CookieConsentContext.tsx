@@ -1,13 +1,17 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 const consentCookieName = 'kateri_cookie_consent';
+const themeCookieName = 'kateri_theme_pref';
 const consentMaxAgeSeconds = 60 * 60 * 24 * 365;
+type ThemePreference = 'light' | 'dark';
 
 type CookieConsentValue = {
   hasAcknowledgedConsent: boolean;
   consentChoice: 'all' | 'necessary' | null;
+  themePreference: ThemePreference;
   acceptAllCookies: () => void;
   acceptNecessaryCookies: () => void;
+  toggleThemePreference: () => void;
 };
 
 const CookieConsentContext = createContext<CookieConsentValue | undefined>(undefined);
@@ -34,26 +38,64 @@ function readInitialChoice(): 'all' | 'necessary' | null {
   return null;
 }
 
+function normalizeThemePreference(value: string | null): ThemePreference {
+  return value === 'dark' ? 'dark' : 'light';
+}
+
+function writeCookie(name: string, value: string) {
+  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${consentMaxAgeSeconds}; Path=/; SameSite=Lax`;
+}
+
+function deleteCookie(name: string) {
+  document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax`;
+}
+
+function readInitialTheme(choice: 'all' | 'necessary' | null): ThemePreference {
+  if (choice !== 'all') {
+    return 'light';
+  }
+
+  return normalizeThemePreference(readCookieValue(themeCookieName));
+}
+
 export function CookieConsentProvider({ children }: { children: ReactNode }) {
   const [hasAcknowledgedConsent, setHasAcknowledgedConsent] = useState(readInitialValue);
-  const [consentChoice, setConsentChoice] = useState<'all' | 'necessary' | null>(readInitialChoice);
+  const [consentChoice, setConsentChoice] = useState<'all' | 'necessary' | null>(() => readInitialChoice());
+  const [themePreference, setThemePreference] = useState<ThemePreference>(() => readInitialTheme(readInitialChoice()));
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = themePreference;
+  }, [themePreference]);
 
   const value = useMemo<CookieConsentValue>(
     () => ({
       hasAcknowledgedConsent,
       consentChoice,
+      themePreference,
       acceptAllCookies: () => {
-        document.cookie = `${consentCookieName}=all; Max-Age=${consentMaxAgeSeconds}; Path=/; SameSite=Lax`;
+        writeCookie(consentCookieName, 'all');
+        writeCookie(themeCookieName, themePreference);
         setConsentChoice('all');
         setHasAcknowledgedConsent(true);
       },
       acceptNecessaryCookies: () => {
-        document.cookie = `${consentCookieName}=necessary; Max-Age=${consentMaxAgeSeconds}; Path=/; SameSite=Lax`;
+        writeCookie(consentCookieName, 'necessary');
+        deleteCookie(themeCookieName);
+        setThemePreference('light');
         setConsentChoice('necessary');
         setHasAcknowledgedConsent(true);
       },
+      toggleThemePreference: () => {
+        const next = themePreference === 'dark' ? 'light' : 'dark';
+        setThemePreference(next);
+        if (consentChoice === 'all') {
+          writeCookie(themeCookieName, next);
+        } else {
+          deleteCookie(themeCookieName);
+        }
+      },
     }),
-    [hasAcknowledgedConsent, consentChoice],
+    [hasAcknowledgedConsent, consentChoice, themePreference],
   );
 
   return <CookieConsentContext.Provider value={value}>{children}</CookieConsentContext.Provider>;
@@ -67,8 +109,10 @@ export function useCookieConsent() {
     return {
       hasAcknowledgedConsent: true,
       consentChoice: null,
+      themePreference: 'light',
       acceptAllCookies: () => {},
       acceptNecessaryCookies: () => {},
+      toggleThemePreference: () => {},
     } satisfies CookieConsentValue;
   }
 

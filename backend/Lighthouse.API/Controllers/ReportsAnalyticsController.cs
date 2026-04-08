@@ -42,6 +42,7 @@ public class ReportsAnalyticsController(AppDbContext dbContext, IWebHostEnvironm
     }
 
     [HttpPost("annual-report")]
+    [Authorize(Roles = "Admin")]
     [RequestSizeLimit(MaxAnnualReportBytes)]
     public async Task<IActionResult> UploadAnnualReport([FromForm] IFormFile? file, CancellationToken cancellationToken)
     {

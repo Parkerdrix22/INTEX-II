@@ -8,7 +8,8 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5050',
+        // Must match Lighthouse.API http URL in Properties/launchSettings.json (default profile uses 5029).
+        target: 'http://localhost:5029',
         changeOrigin: true,
       },
     },

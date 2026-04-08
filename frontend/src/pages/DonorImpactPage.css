@@ -591,3 +591,74 @@
   color: var(--text);
   text-align: center;
 }
+
+:root[data-theme='dark'] .impact-sidebar,
+:root[data-theme='dark'] .impact-report-hero,
+:root[data-theme='dark'] .impact-stat-card,
+:root[data-theme='dark'] .impact-chart-card,
+:root[data-theme='dark'] .impact-research-card,
+:root[data-theme='dark'] .impact-report-empty {
+  background: rgba(16, 26, 38, 0.9);
+  border-color: rgba(130, 155, 178, 0.42);
+  box-shadow: 0 14px 34px rgba(8, 12, 18, 0.35);
+}
+
+:root[data-theme='dark'] .impact-donor-card {
+  background: rgba(24, 36, 50, 0.9);
+  border-color: rgba(130, 155, 178, 0.3);
+}
+
+:root[data-theme='dark'] .impact-donor-card:hover {
+  background: rgba(36, 52, 70, 0.92);
+  border-color: rgba(157, 181, 204, 0.55);
+}
+
+:root[data-theme='dark'] .impact-donor-card.is-selected {
+  background: rgba(127, 179, 224, 0.16);
+  border-color: rgba(127, 179, 224, 0.55);
+}
+
+:root[data-theme='dark'] .impact-search {
+  background: rgba(24, 36, 50, 0.92);
+  border-color: rgba(130, 155, 178, 0.4);
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .impact-search::placeholder {
+  color: rgba(226, 235, 245, 0.62);
+}
+
+:root[data-theme='dark'] .impact-stat-card--accent {
+  background: rgba(201, 152, 63, 0.16);
+  border-color: rgba(201, 152, 63, 0.45);
+}
+
+:root[data-theme='dark'] .impact-stat-card--accent .impact-stat-value {
+  color: #f1d594;
+}
+
+:root[data-theme='dark'] .impact-report-overline,
+:root[data-theme='dark'] .impact-hero-total-label {
+  color: var(--text-muted);
+}
+
+:root[data-theme='dark'] .impact-chart-card .recharts-cartesian-axis-tick-value,
+:root[data-theme='dark'] .impact-chart-card .recharts-legend-item-text {
+  fill: var(--text-muted) !important;
+  color: var(--text-muted) !important;
+}
+
+:root[data-theme='dark'] .impact-chart-card .recharts-cartesian-grid line,
+:root[data-theme='dark'] .impact-chart-card .recharts-cartesian-grid path {
+  stroke: rgba(157, 181, 204, 0.2);
+}
+
+:root[data-theme='dark'] .impact-chart-card .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: rgba(20, 30, 42, 0.96) !important;
+  border: 1px solid rgba(130, 155, 178, 0.45) !important;
+}
+
+:root[data-theme='dark'] .impact-chart-card .recharts-tooltip-wrapper .recharts-tooltip-label,
+:root[data-theme='dark'] .impact-chart-card .recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: var(--text) !important;
+}

@@ -312,7 +312,6 @@ export function ResidentRiskPage() {
     <section className={`rrisk-page ${visible ? 'is-visible' : ''}`}>
       {/* ── Header ───────────────────────────────────────── */}
       <header className="rrisk-header">
-        <span className="rrisk-overline">Pipeline 1 · Resident Risk Classification</span>
         <h1 className="rrisk-title">Resident Risk Triage</h1>
         <p className="rrisk-subtitle">
           Identify residents who need immediate case manager attention. Powered by a Random
@@ -371,7 +370,7 @@ export function ResidentRiskPage() {
         <div className="rrisk-distribution-card">
           <h3 className="rrisk-distribution-title">Risk distribution</h3>
           {distribution.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" debounce={1} height={200}>
               <PieChart>
                 <Pie
                   data={distribution}
@@ -713,7 +712,7 @@ function ResidentDetail({
 
         <div className="rrisk-detail-chart">
           <h4 className="rrisk-detail-chart-title">Activity by category</h4>
-          <ResponsiveContainer width="100%" height={170}>
+          <ResponsiveContainer width="100%" debounce={1} height={170}>
             <BarChart data={categoryData} layout="vertical" margin={{ left: 8, right: 16 }}>
               <XAxis
                 type="number"

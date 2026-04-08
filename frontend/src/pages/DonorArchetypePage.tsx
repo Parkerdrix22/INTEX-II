@@ -242,7 +242,6 @@ export function DonorArchetypePage() {
     <section className={`archetype-page ${visible ? 'is-visible' : ''}`}>
       {/* ─── Header ───────────────────────────────────────── */}
       <header className="archetype-header">
-        <span className="archetype-overline">Pipeline 7 · Unsupervised Segmentation</span>
         <h1 className="archetype-title">Donor Archetypes</h1>
         <p className="archetype-subtitle">
           Every donor automatically grouped into one of four natural personas based on their RFM
@@ -289,7 +288,7 @@ export function DonorArchetypePage() {
             <p>How the donor base breaks down by archetype</p>
           </header>
           <div className="archetype-chart-wrap">
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" debounce={1} height={260}>
               <PieChart>
                 <Pie
                   data={distributionData}
@@ -581,6 +580,7 @@ function DonorRow({
                 <div className="archetype-chart-wrap archetype-chart-wrap--bar">
                   <ResponsiveContainer
                     width="100%"
+                    debounce={1}
                     height={Math.max(160, detail.distanceToOtherCentroids.length * 42)}
                   >
                     <BarChart

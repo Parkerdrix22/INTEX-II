@@ -25,6 +25,78 @@
   background-color: var(--bg);
 }
 
+:root[data-theme='dark'] {
+  --bg: #121b25;
+  --surface: rgba(21, 31, 43, 0.82);
+  --text: #e6edf3;
+  --text-muted: #b2c1cc;
+  --accent: #7fb3e0;
+  --primary-2: #d1ab65;
+  --accent-soft: rgba(127, 179, 224, 0.2);
+  --accent-warm: #e2bf7e;
+  --border: rgba(130, 155, 178, 0.45);
+  --glass-shadow: 0 10px 28px rgba(8, 12, 18, 0.45);
+}
+
+/* Dark theme: scrollbars (Firefox scrollbar-color + WebKit pseudo-elements) */
+:root[data-theme='dark'] html {
+  scrollbar-color: rgba(157, 181, 204, 0.58) rgba(17, 27, 39, 0.92);
+  scrollbar-width: thin;
+}
+
+:root[data-theme='dark'] html::-webkit-scrollbar,
+:root[data-theme='dark'] body::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+:root[data-theme='dark'] html::-webkit-scrollbar-track,
+:root[data-theme='dark'] body::-webkit-scrollbar-track {
+  background: rgba(17, 27, 39, 0.92);
+}
+
+:root[data-theme='dark'] html::-webkit-scrollbar-thumb,
+:root[data-theme='dark'] body::-webkit-scrollbar-thumb {
+  background: rgba(157, 181, 204, 0.55);
+  border-radius: 8px;
+  border: 2px solid rgba(17, 27, 39, 0.92);
+}
+
+:root[data-theme='dark'] html::-webkit-scrollbar-thumb:hover,
+:root[data-theme='dark'] body::-webkit-scrollbar-thumb:hover {
+  background: rgba(186, 206, 224, 0.78);
+}
+
+:root[data-theme='dark'] .resident-modal-card,
+:root[data-theme='dark'] .staff-sidebar {
+  scrollbar-color: rgba(157, 181, 204, 0.55) rgba(17, 27, 39, 0.88);
+  scrollbar-width: thin;
+}
+
+:root[data-theme='dark'] .resident-modal-card::-webkit-scrollbar,
+:root[data-theme='dark'] .staff-sidebar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+:root[data-theme='dark'] .resident-modal-card::-webkit-scrollbar-track,
+:root[data-theme='dark'] .staff-sidebar::-webkit-scrollbar-track {
+  background: rgba(17, 27, 39, 0.88);
+  border-radius: 8px;
+}
+
+:root[data-theme='dark'] .resident-modal-card::-webkit-scrollbar-thumb,
+:root[data-theme='dark'] .staff-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(157, 181, 204, 0.52);
+  border-radius: 8px;
+  border: 2px solid rgba(17, 27, 39, 0.88);
+}
+
+:root[data-theme='dark'] .resident-modal-card::-webkit-scrollbar-thumb:hover,
+:root[data-theme='dark'] .staff-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(186, 206, 224, 0.72);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -568,6 +640,399 @@ a.btn-kateri-ghost {
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 0.95rem;
+}
+
+.theme-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 0;
+  font: inherit;
+  line-height: 1;
+}
+
+.theme-toggle-button svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.theme-toggle-button:hover {
+  background: rgba(56, 95, 130, 0.08);
+}
+
+:root[data-theme='dark'] .kateri-landing-section .impact-card,
+:root[data-theme='dark'] .kateri-landing-section .stat-card,
+:root[data-theme='dark'] .kateri-landing-section .feature-slab,
+:root[data-theme='dark'] .kateri-landing-section .auth-card {
+  background: rgba(20, 30, 42, 0.92);
+  border-color: rgba(130, 155, 178, 0.45);
+  box-shadow: 0 8px 24px rgba(8, 12, 18, 0.4);
+}
+
+:root[data-theme='dark'] .kateri-landing-section .impact-icon {
+  background: rgba(127, 179, 224, 0.12);
+  border-color: rgba(127, 179, 224, 0.35);
+}
+
+:root[data-theme='dark'] .kateri-landing-section .impact-card h2,
+:root[data-theme='dark'] .kateri-landing-section .feature-slab h2,
+:root[data-theme='dark'] .kateri-landing-section .auth-card h2 {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .kateri-landing-section .feature-slab p,
+:root[data-theme='dark'] .kateri-landing-section .impact-card p,
+:root[data-theme='dark'] .kateri-landing-section .metric-label {
+  color: var(--text-muted);
+}
+
+:root[data-theme='dark'] .home-page .hero-title,
+:root[data-theme='dark'] .home-page .feature-slab h2,
+:root[data-theme='dark'] .home-page .cta-panel h2,
+:root[data-theme='dark'] .home-page .mission-list strong {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .home-page .hero-copy,
+:root[data-theme='dark'] .home-page .mission-list,
+:root[data-theme='dark'] .home-page .feature-slab p,
+:root[data-theme='dark'] .home-page .metric-label {
+  color: var(--text-muted);
+}
+
+:root[data-theme='dark'] .home-page .serve-content,
+:root[data-theme='dark'] .home-page .name-grid .feature-slab {
+  background: rgba(20, 30, 42, 0.94);
+  border-left-color: rgba(127, 179, 224, 0.55);
+}
+
+:root[data-theme='dark'] .safehouse-tour-header h1,
+:root[data-theme='dark'] .safehouse-tour-description h2 {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .safehouse-tour-model-wrap {
+  background: rgba(234, 239, 244, 0.95);
+}
+
+:root[data-theme='dark'] .admin-accounts-table-wrap {
+  background: rgba(16, 26, 38, 0.9);
+  border-color: rgba(130, 155, 178, 0.45);
+}
+
+:root[data-theme='dark'] .admin-accounts-table th {
+  background: rgba(127, 179, 224, 0.12);
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .admin-accounts-table td {
+  color: var(--text);
+  border-bottom-color: rgba(130, 155, 178, 0.32);
+}
+
+:root[data-theme='dark'] .admin-chart-card h2,
+:root[data-theme='dark'] .admin-activity-card h2 {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .admin-chart-card .recharts-cartesian-grid line,
+:root[data-theme='dark'] .admin-chart-card .recharts-cartesian-grid path {
+  stroke: rgba(157, 181, 204, 0.2);
+}
+
+:root[data-theme='dark'] .admin-chart-card .recharts-cartesian-axis-tick-value,
+:root[data-theme='dark'] .admin-chart-card .recharts-legend-item-text {
+  fill: var(--text-muted) !important;
+  color: var(--text-muted) !important;
+}
+
+:root[data-theme='dark'] .admin-chart-card .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: rgba(20, 30, 42, 0.96) !important;
+  border: 1px solid rgba(130, 155, 178, 0.45) !important;
+}
+
+:root[data-theme='dark'] .admin-chart-card .recharts-tooltip-wrapper .recharts-tooltip-label,
+:root[data-theme='dark'] .admin-chart-card .recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: var(--text) !important;
+}
+
+:root[data-theme='dark'] .caseload-table-wrap,
+:root[data-theme='dark'] .donor-table-wrap,
+:root[data-theme='dark'] .resident-case-panel {
+  background: rgba(16, 26, 38, 0.9);
+  border-color: rgba(130, 155, 178, 0.42);
+}
+
+:root[data-theme='dark'] .caseload-table th,
+:root[data-theme='dark'] .donor-table th {
+  color: var(--text);
+  background: rgba(127, 179, 224, 0.1);
+}
+
+:root[data-theme='dark'] .caseload-table td,
+:root[data-theme='dark'] .donor-table td {
+  color: var(--text);
+  border-bottom-color: rgba(130, 155, 178, 0.32);
+}
+
+:root[data-theme='dark'] .caseload-filters input,
+:root[data-theme='dark'] .caseload-filters select,
+:root[data-theme='dark'] .donor-toolbar input,
+:root[data-theme='dark'] .donor-toolbar select {
+  background: rgba(24, 36, 50, 0.92);
+  color: var(--text);
+  border-color: rgba(130, 155, 178, 0.46);
+}
+
+:root[data-theme='dark'] .caseload-filters input::placeholder,
+:root[data-theme='dark'] .donor-toolbar input::placeholder {
+  color: rgba(226, 235, 245, 0.64);
+}
+
+:root[data-theme='dark'] .caseload-filters select,
+:root[data-theme='dark'] .donor-toolbar select {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .caseload-table-wrap,
+:root[data-theme='dark'] .donor-table-wrap {
+  scrollbar-color: rgba(157, 181, 204, 0.55) rgba(17, 27, 39, 0.85);
+}
+
+:root[data-theme='dark'] .caseload-table-wrap::-webkit-scrollbar,
+:root[data-theme='dark'] .donor-table-wrap::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+:root[data-theme='dark'] .caseload-table-wrap::-webkit-scrollbar-track,
+:root[data-theme='dark'] .donor-table-wrap::-webkit-scrollbar-track {
+  background: rgba(17, 27, 39, 0.85);
+  border-radius: 10px;
+}
+
+:root[data-theme='dark'] .caseload-table-wrap::-webkit-scrollbar-thumb,
+:root[data-theme='dark'] .donor-table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(157, 181, 204, 0.6);
+  border-radius: 10px;
+  border: 2px solid rgba(17, 27, 39, 0.85);
+}
+
+:root[data-theme='dark'] .caseload-table-wrap::-webkit-scrollbar-thumb:hover,
+:root[data-theme='dark'] .donor-table-wrap::-webkit-scrollbar-thumb:hover {
+  background: rgba(186, 206, 224, 0.78);
+}
+
+:root[data-theme='dark'] .caseload-table tbody tr:hover,
+:root[data-theme='dark'] .donor-click-row:hover,
+:root[data-theme='dark'] .resident-record-row:hover {
+  background: rgba(127, 179, 224, 0.14);
+}
+
+:root[data-theme='dark'] .caseload-row--active {
+  background: rgba(127, 179, 224, 0.2);
+}
+
+/* Centered overlays: new resident case, home visit, process recording, and other resident-modal-* dialogs */
+:root[data-theme='dark'] .resident-modal-backdrop {
+  background: rgba(6, 10, 16, 0.78);
+}
+
+:root[data-theme='dark'] .resident-modal-card {
+  background: rgba(20, 30, 42, 0.98);
+  border-color: rgba(130, 155, 178, 0.45);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .resident-modal-card h2 {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .resident-modal-card .donor-entry-form label {
+  color: var(--text-muted);
+}
+
+:root[data-theme='dark'] .resident-modal-card .donor-entry-form input,
+:root[data-theme='dark'] .resident-modal-card .donor-entry-form select,
+:root[data-theme='dark'] .resident-modal-card .donor-entry-form textarea {
+  background: rgba(24, 36, 50, 0.92);
+  color: var(--text);
+  border-color: rgba(130, 155, 178, 0.46);
+}
+
+:root[data-theme='dark'] .resident-modal-card .donor-entry-form input::placeholder,
+:root[data-theme='dark'] .resident-modal-card .donor-entry-form textarea::placeholder {
+  color: rgba(226, 235, 245, 0.55);
+}
+
+:root[data-theme='dark'] .resident-modal-card .donor-entry-form button.btn-secondary {
+  background: rgba(36, 50, 66, 0.95);
+  color: var(--text);
+  border-color: rgba(130, 155, 178, 0.5);
+}
+
+:root[data-theme='dark'] .resident-modal-card .error-text {
+  color: #f0a8a8;
+}
+
+/* View/detail modals (record-detail-card inside the same shell) */
+:root[data-theme='dark'] .resident-modal-card .record-detail-card__header {
+  border-bottom-color: rgba(130, 155, 178, 0.35);
+}
+
+:root[data-theme='dark'] .resident-modal-card .record-detail-grid dd {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .resident-modal-card .record-detail-card__prose {
+  background: rgba(127, 179, 224, 0.08);
+  border-left-color: rgba(127, 179, 224, 0.45);
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .two-factor-required-modal h2 {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .case-status-pill--open {
+  background: rgba(78, 166, 111, 0.24);
+  color: #c8f0d8;
+  border-color: rgba(114, 199, 146, 0.48);
+}
+
+:root[data-theme='dark'] .case-status-pill--progress {
+  background: rgba(127, 179, 224, 0.26);
+  color: #d5e8f8;
+  border-color: rgba(157, 201, 238, 0.5);
+}
+
+:root[data-theme='dark'] .case-status-pill--prep {
+  background: rgba(201, 152, 63, 0.28);
+  color: #f3dcad;
+  border-color: rgba(220, 177, 98, 0.5);
+}
+
+:root[data-theme='dark'] .case-status-pill--closed {
+  background: rgba(146, 161, 176, 0.24);
+  color: #dde6ef;
+  border-color: rgba(170, 184, 198, 0.45);
+}
+
+:root[data-theme='dark'] .caseload-narrative-cell,
+:root[data-theme='dark'] .record-detail-grid dt,
+:root[data-theme='dark'] .record-detail-grid dd,
+:root[data-theme='dark'] .record-detail-card__prose {
+  color: var(--text-muted);
+}
+
+:root[data-theme='dark'] .record-detail-card__section h3,
+:root[data-theme='dark'] .record-detail-card__eyebrow {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .rrisk-summary-card,
+:root[data-theme='dark'] .rrisk-distribution-card,
+:root[data-theme='dark'] .rrisk-empty,
+:root[data-theme='dark'] .rrisk-card,
+:root[data-theme='dark'] .cres-summary-card,
+:root[data-theme='dark'] .cres-distribution-card,
+:root[data-theme='dark'] .cres-empty,
+:root[data-theme='dark'] .cres-card,
+:root[data-theme='dark'] .churn-summary-card,
+:root[data-theme='dark'] .churn-empty,
+:root[data-theme='dark'] .churn-donor-card,
+:root[data-theme='dark'] .archetype-card,
+:root[data-theme='dark'] .archetype-chart-card,
+:root[data-theme='dark'] .archetype-controls,
+:root[data-theme='dark'] .archetype-donor-section,
+:root[data-theme='dark'] .archetype-donor-card,
+:root[data-theme='dark'] .archetype-detail {
+  background: rgba(16, 26, 38, 0.9);
+  border-color: rgba(130, 155, 178, 0.42);
+  box-shadow: 0 12px 32px rgba(8, 12, 18, 0.35);
+}
+
+:root[data-theme='dark'] .archetype-mini-stat,
+:root[data-theme='dark'] .archetype-distance-block,
+:root[data-theme='dark'] .archetype-rfm-block,
+:root[data-theme='dark'] .archetype-rfm-stat,
+:root[data-theme='dark'] .archetype-strategy-block {
+  background: rgba(24, 36, 50, 0.88);
+  border-color: rgba(130, 155, 178, 0.35);
+}
+
+:root[data-theme='dark'] .rrisk-search,
+:root[data-theme='dark'] .rrisk-filter-btn,
+:root[data-theme='dark'] .rrisk-sort-select,
+:root[data-theme='dark'] .cres-search,
+:root[data-theme='dark'] .cres-filter-btn,
+:root[data-theme='dark'] .cres-sort-select,
+:root[data-theme='dark'] .churn-search,
+:root[data-theme='dark'] .churn-filter-btn,
+:root[data-theme='dark'] .churn-sort-select,
+:root[data-theme='dark'] .archetype-search,
+:root[data-theme='dark'] .archetype-filter-btn,
+:root[data-theme='dark'] .archetype-sort-select {
+  background: rgba(24, 36, 50, 0.9);
+  color: var(--text);
+  border-color: rgba(130, 155, 178, 0.4);
+}
+
+:root[data-theme='dark'] .rrisk-filter-btn:hover,
+:root[data-theme='dark'] .cres-filter-btn:hover,
+:root[data-theme='dark'] .churn-filter-btn:hover,
+:root[data-theme='dark'] .archetype-filter-btn:hover {
+  color: var(--text);
+  border-color: rgba(157, 181, 204, 0.6);
+  background: rgba(127, 179, 224, 0.14);
+}
+
+:root[data-theme='dark'] .rrisk-card-row:hover,
+:root[data-theme='dark'] .cres-card-row:hover,
+:root[data-theme='dark'] .churn-donor-row:hover {
+  background: rgba(127, 179, 224, 0.12);
+}
+
+:root[data-theme='dark'] .rrisk-page .recharts-cartesian-axis-tick-value,
+:root[data-theme='dark'] .rrisk-page .recharts-legend-item-text,
+:root[data-theme='dark'] .cres-page .recharts-cartesian-axis-tick-value,
+:root[data-theme='dark'] .cres-page .recharts-legend-item-text,
+:root[data-theme='dark'] .archetype-page .recharts-cartesian-axis-tick-value,
+:root[data-theme='dark'] .archetype-page .recharts-legend-item-text {
+  fill: var(--text-muted) !important;
+  color: var(--text-muted) !important;
+}
+
+:root[data-theme='dark'] .rrisk-page .recharts-cartesian-grid line,
+:root[data-theme='dark'] .rrisk-page .recharts-cartesian-grid path,
+:root[data-theme='dark'] .cres-page .recharts-cartesian-grid line,
+:root[data-theme='dark'] .cres-page .recharts-cartesian-grid path,
+:root[data-theme='dark'] .archetype-page .recharts-cartesian-grid line,
+:root[data-theme='dark'] .archetype-page .recharts-cartesian-grid path {
+  stroke: rgba(157, 181, 204, 0.2);
+}
+
+:root[data-theme='dark'] .rrisk-page .recharts-tooltip-wrapper .recharts-default-tooltip,
+:root[data-theme='dark'] .cres-page .recharts-tooltip-wrapper .recharts-default-tooltip,
+:root[data-theme='dark'] .archetype-page .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: rgba(20, 30, 42, 0.96) !important;
+  border: 1px solid rgba(130, 155, 178, 0.45) !important;
+}
+
+:root[data-theme='dark'] .rrisk-page .recharts-tooltip-wrapper .recharts-tooltip-label,
+:root[data-theme='dark'] .rrisk-page .recharts-tooltip-wrapper .recharts-tooltip-item,
+:root[data-theme='dark'] .cres-page .recharts-tooltip-wrapper .recharts-tooltip-label,
+:root[data-theme='dark'] .cres-page .recharts-tooltip-wrapper .recharts-tooltip-item,
+:root[data-theme='dark'] .archetype-page .recharts-tooltip-wrapper .recharts-tooltip-label,
+:root[data-theme='dark'] .archetype-page .recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: var(--text) !important;
 }
 
 .brand-mark {
@@ -1887,6 +2352,77 @@ a.auth-nav-pill--solo-login:focus-visible {
   font-size: 0.9rem;
 }
 
+/* Process recordings list: no horizontal scroll; column widths flex with viewport;
+   narrative is shortened in JS (see truncateNarrativePreview) with CSS fallback. */
+.process-recording-table-wrap {
+  overflow-x: hidden;
+}
+
+.process-recording-table-wrap .caseload-table {
+  min-width: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.process-recording-table-wrap .caseload-table th:nth-child(1),
+.process-recording-table-wrap .caseload-table td:nth-child(1) {
+  width: 9%;
+}
+
+.process-recording-table-wrap .caseload-table th:nth-child(2),
+.process-recording-table-wrap .caseload-table td:nth-child(2) {
+  width: 16%;
+}
+
+.process-recording-table-wrap .caseload-table th:nth-child(3),
+.process-recording-table-wrap .caseload-table td:nth-child(3) {
+  width: 11%;
+}
+
+.process-recording-table-wrap .caseload-table th:nth-child(4),
+.process-recording-table-wrap .caseload-table td:nth-child(4) {
+  width: 14%;
+}
+
+.process-recording-table-wrap .caseload-table th:nth-child(5),
+.process-recording-table-wrap .caseload-table td:nth-child(5) {
+  width: 14%;
+}
+
+.process-recording-table-wrap .caseload-table th:nth-child(6),
+.process-recording-table-wrap .caseload-table td:nth-child(6) {
+  width: 10%;
+}
+
+.process-recording-table-wrap .caseload-table th:nth-child(7),
+.process-recording-table-wrap .caseload-table td:nth-child(7) {
+  width: 26%;
+  min-width: 0;
+}
+
+.process-recording-table-wrap .caseload-table td:nth-child(1),
+.process-recording-table-wrap .caseload-table td:nth-child(2),
+.process-recording-table-wrap .caseload-table td:nth-child(3),
+.process-recording-table-wrap .caseload-table td:nth-child(4),
+.process-recording-table-wrap .caseload-table td:nth-child(5),
+.process-recording-table-wrap .caseload-table td:nth-child(7) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.process-recording-table-wrap .caseload-table td:nth-child(6) {
+  white-space: normal;
+}
+
+.process-recording-table-wrap .caseload-table td:nth-child(2) a {
+  display: inline;
+}
+
+.process-recording-narrative-preview {
+  max-width: none;
+}
+
 /* Read-only detail card shown when a staff member clicks a row on the
    standalone Process Recording / Home Visitation list pages. Shares the
    modal chrome but renders a nicely formatted presentation instead of
@@ -2571,6 +3107,12 @@ a.auth-nav-pill--solo-login:focus-visible {
   border: 1px solid rgba(201, 152, 63, 0.45);
 }
 
+.admin-accounts-role-pill--admin {
+  background: rgba(56, 95, 130, 0.2);
+  color: #173756;
+  border-color: rgba(56, 95, 130, 0.5);
+}
+
 .admin-accounts-td-name {
   white-space: normal;
   overflow-wrap: anywhere;
@@ -2906,6 +3448,82 @@ a.auth-nav-pill--solo-login:focus-visible {
   gap: 0.4rem;
   margin-top: 0.25rem;
   color: var(--text-muted);
+}
+
+:root[data-theme='dark'] .donor-page .donor-focus-fieldset {
+  background: rgba(16, 26, 38, 0.86);
+  border-color: rgba(130, 155, 178, 0.42);
+}
+
+:root[data-theme='dark'] .donor-page .volunteer-day-chip {
+  background: rgba(24, 36, 50, 0.9);
+  border-color: rgba(130, 155, 178, 0.42);
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .donor-page .volunteer-day-chip:has(input:checked) {
+  background: rgba(127, 179, 224, 0.16);
+  border-color: rgba(127, 179, 224, 0.58);
+}
+
+:root[data-theme='dark'] .donor-page .volunteer-time-grid .donor-focus-option,
+:root[data-theme='dark'] .donor-page .volunteer-flexible-option {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .donor-page input::placeholder,
+:root[data-theme='dark'] .donor-page textarea::placeholder,
+:root[data-theme='dark'] .caseload-page input::placeholder {
+  color: rgba(226, 235, 245, 0.62);
+}
+
+:root[data-theme='dark'] .donor-page .auth-card input,
+:root[data-theme='dark'] .donor-page .auth-card select,
+:root[data-theme='dark'] .donor-page .auth-card textarea {
+  background: rgba(24, 36, 50, 0.92);
+  color: var(--text);
+  border-color: rgba(130, 155, 178, 0.46);
+}
+
+:root[data-theme='dark'] .donor-page .auth-card input::placeholder,
+:root[data-theme='dark'] .donor-page .auth-card textarea::placeholder {
+  color: rgba(226, 235, 245, 0.64);
+}
+
+:root[data-theme='dark'] .donor-page .mission-list strong {
+  color: #d6e7f7;
+}
+
+:root[data-theme='dark'] .caseload-pagination__meta,
+:root[data-theme='dark'] .caseload-pagination__controls {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .caseload-pagination__meta select {
+  background: rgba(24, 36, 50, 0.92);
+  color: var(--text);
+  border-color: rgba(130, 155, 178, 0.46);
+}
+
+:root[data-theme='dark'] .caseload-pagination__page-indicator {
+  background: rgba(24, 36, 50, 0.92);
+  color: var(--text);
+  border-color: rgba(130, 155, 178, 0.46);
+}
+
+:root[data-theme='dark'] .caseload-detail-card {
+  background: rgba(16, 26, 38, 0.92);
+  border-color: rgba(130, 155, 178, 0.42);
+}
+
+:root[data-theme='dark'] .caseload-detail-card h2 {
+  color: var(--text);
+}
+
+:root[data-theme='dark'] .admin-accounts-role-pill--admin {
+  background: rgba(127, 179, 224, 0.2);
+  color: #c6ddf0;
+  border-color: rgba(127, 179, 224, 0.5);
 }
 
 .auth-page {
@@ -3806,4 +4424,274 @@ input[type='reset']:disabled {
   display: block;
   width: 18px;
   height: 18px;
+}
+
+/* ============================================================================
+   Mobile nav — hamburger + full-width dropdown
+   Modeled after the intex1 mobile pattern but in Kateri colors, with
+   dark-mode support that dovetails into Tanner's [data-theme='dark'] system.
+   ============================================================================ */
+
+.hamburger {
+  display: none; /* hidden by default, shown at mobile breakpoint */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(56, 95, 130, 0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  appearance: none;
+  z-index: 60;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.hamburger:hover {
+  background: rgba(56, 95, 130, 0.08);
+}
+
+.hamburger:focus-visible {
+  outline: 2px solid #c9983f;
+  outline-offset: 2px;
+}
+
+.hamburger__bar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--accent, #385f82);
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+  transform-origin: center;
+}
+
+/* Hamburger animates into an X when active */
+.hamburger--active .hamburger__bar:nth-child(1) {
+  transform: translateY(7px) rotate(-45deg);
+}
+.hamburger--active .hamburger__bar:nth-child(2) {
+  opacity: 0;
+}
+.hamburger--active .hamburger__bar:nth-child(3) {
+  transform: translateY(-7px) rotate(45deg);
+}
+
+/* Mobile side drawer — slides in from the right of the viewport, full
+   height, solid opaque background (no transparency bleed). Styled after
+   the Adidas mobile drawer pattern but anchored to the right because
+   the hamburger sits in the top-right corner. */
+.mobile-nav {
+  display: none; /* hidden by default, enabled at mobile breakpoint */
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: min(88vw, 360px);
+  height: 100vh;
+  transform: translateX(100%);
+  z-index: 55;
+  background: #fdf8ec; /* solid cream, no alpha */
+  box-shadow: -20px 0 50px rgba(31, 47, 63, 0.25);
+  padding: 5rem 1.5rem 2rem; /* top padding clears the fixed hamburger */
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-nav--open {
+  transform: translateX(0);
+}
+
+.mobile-nav__link {
+  display: block;
+  padding: 1rem 0.25rem;
+  border-bottom: 1px solid rgba(56, 95, 130, 0.1);
+  color: var(--text, #1e2c3a);
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: color 0.15s ease, padding-left 0.15s ease;
+}
+
+.mobile-nav__link:hover,
+.mobile-nav__link:focus-visible {
+  color: var(--accent, #385f82);
+  padding-left: 0.5rem;
+  outline: none;
+}
+
+.mobile-nav__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(56, 95, 130, 0.1);
+}
+
+.mobile-nav__theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  align-self: flex-start;
+  padding: 0.55rem 1rem;
+  border: 1px solid rgba(56, 95, 130, 0.3);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent, #385f82);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.mobile-nav__theme-btn:hover {
+  background: rgba(56, 95, 130, 0.08);
+}
+
+.mobile-nav__theme-btn svg {
+  flex-shrink: 0;
+}
+
+.mobile-nav__auth {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.mobile-nav__auth-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--accent, #385f82);
+  background: transparent;
+  color: var(--accent, #385f82);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.mobile-nav__auth-btn:hover {
+  background: rgba(56, 95, 130, 0.08);
+}
+
+.mobile-nav__auth-btn--primary {
+  background: var(--accent, #385f82);
+  color: #fdf8ec;
+}
+
+.mobile-nav__auth-btn--primary:hover {
+  background: #2d4e6b;
+  color: #fdf8ec;
+}
+
+.mobile-nav__auth-btn:active {
+  transform: scale(0.98);
+}
+
+/* Dim backdrop behind the drawer — darker than a typical scrim so the
+   drawer reads as the focused surface on smaller phones. */
+.mobile-nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 15, 24, 0.6);
+  z-index: 50;
+  animation: mobileNavFadeIn 0.3s ease-out;
+}
+
+@keyframes mobileNavFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Dark mode — dovetails into Tanner's [data-theme='dark'] system */
+:root[data-theme='dark'] .hamburger {
+  border-color: rgba(157, 181, 204, 0.4);
+}
+
+:root[data-theme='dark'] .hamburger:hover {
+  background: rgba(127, 179, 224, 0.1);
+}
+
+:root[data-theme='dark'] .hamburger__bar {
+  background: rgba(220, 232, 245, 0.9);
+}
+
+:root[data-theme='dark'] .mobile-nav {
+  background: #101a26; /* solid dark navy, no alpha */
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.65);
+}
+
+:root[data-theme='dark'] .mobile-nav__link {
+  color: rgba(226, 235, 245, 0.92);
+  border-bottom-color: rgba(130, 155, 178, 0.18);
+}
+
+:root[data-theme='dark'] .mobile-nav__link:hover,
+:root[data-theme='dark'] .mobile-nav__link:focus-visible {
+  color: #c9983f;
+}
+
+:root[data-theme='dark'] .mobile-nav__controls {
+  border-bottom-color: rgba(130, 155, 178, 0.18);
+}
+
+:root[data-theme='dark'] .mobile-nav__theme-btn {
+  border-color: rgba(157, 181, 204, 0.45);
+  color: rgba(226, 235, 245, 0.92);
+}
+
+:root[data-theme='dark'] .mobile-nav__theme-btn:hover {
+  background: rgba(127, 179, 224, 0.1);
+}
+
+:root[data-theme='dark'] .mobile-nav__auth-btn {
+  border-color: rgba(157, 181, 204, 0.55);
+  color: rgba(226, 235, 245, 0.95);
+}
+
+:root[data-theme='dark'] .mobile-nav__auth-btn:hover {
+  background: rgba(127, 179, 224, 0.1);
+}
+
+:root[data-theme='dark'] .mobile-nav__auth-btn--primary {
+  background: rgba(127, 179, 224, 0.2);
+  border-color: rgba(127, 179, 224, 0.6);
+  color: #f1d594;
+}
+
+:root[data-theme='dark'] .mobile-nav__auth-btn--primary:hover {
+  background: rgba(127, 179, 224, 0.3);
+  color: #f1d594;
+}
+
+:root[data-theme='dark'] .mobile-nav-backdrop {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+/* ── Activate the mobile nav under 768px, hide the desktop nav-right ── */
+@media (max-width: 768px) {
+  .nav-right {
+    display: none;
+  }
+  .hamburger {
+    display: flex;
+  }
+  .mobile-nav {
+    display: block;
+  }
 }

@@ -26,6 +26,7 @@ public class DonationsController(
     private const decimal LargeGiftCapUsd = 5_000_000m;
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateDonation([FromBody] CreateDonationRequest request)
     {
         if (request.Amount <= 0)
@@ -130,6 +131,7 @@ public class DonationsController(
     }
 
     [HttpPost("in-kind")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateInKindDonation(
         [FromBody] CreateInKindDonationRequest request,
         CancellationToken cancellationToken)

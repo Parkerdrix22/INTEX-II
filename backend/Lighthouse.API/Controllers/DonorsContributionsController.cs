@@ -133,6 +133,7 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
     }
 
     [HttpPost("supporters/{supporterId:int}/donations")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateSupporterDonation(int supporterId, [FromBody] CreateSupporterDonationRequest request)
     {
         if (request.EstimatedValue <= 0)
@@ -219,8 +220,9 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
         }
     }
 
-    [HttpPut("donations/{donationId:long}")]
-    public async Task<IActionResult> UpdateDonation(long donationId, [FromBody] UpdateDonationRequest request)
+    [HttpPut("donations/{donationId:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateDonation(int donationId, [FromBody] UpdateDonationRequest request)
     {
         if (request.EstimatedValue <= 0)
         {
@@ -256,13 +258,7 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
         }
         catch
         {
-            if (donationId is < int.MinValue or > int.MaxValue)
-            {
-                return NotFound(new { message = "Donation not found." });
-            }
-
-            var id32 = (int)donationId;
-            var donation = await dbContext.Donations.FirstOrDefaultAsync(d => d.Id == id32);
+            var donation = await dbContext.Donations.FirstOrDefaultAsync(d => d.Id == donationId);
             if (donation is null) return NotFound(new { message = "Donation not found." });
 
             donation.Amount = request.EstimatedValue;
@@ -275,8 +271,9 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
         }
     }
 
-    [HttpDelete("donations/{donationId:long}")]
-    public async Task<IActionResult> DeleteDonation(long donationId)
+    [HttpDelete("donations/{donationId:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteDonation(int donationId)
     {
         try
         {
@@ -312,13 +309,7 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
         catch
         {
             // Fallback for local/non-lighthouse DB shape.
-            if (donationId is < int.MinValue or > int.MaxValue)
-            {
-                return NotFound(new { message = "Donation not found." });
-            }
-
-            var id32 = (int)donationId;
-            var donation = await dbContext.Donations.FirstOrDefaultAsync(d => d.Id == id32);
+            var donation = await dbContext.Donations.FirstOrDefaultAsync(d => d.Id == donationId);
             if (donation is null) return NotFound(new { message = "Donation not found." });
 
             dbContext.Donations.Remove(donation);
@@ -328,6 +319,7 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
     }
 
     [HttpPost("supporters")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateSupporter([FromBody] CreateSupporterRequest request)
     {
         var displayName = CleanString(request.DisplayName);

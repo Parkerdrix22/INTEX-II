@@ -512,7 +512,6 @@ export function PostPlannerPage() {
       {attribution && (
         <section className="attribution-section">
           <header className="attribution-header">
-            <span className="attribution-overline">Pipeline 3 Validation</span>
             <h2 className="attribution-title">Do likes turn into dollars?</h2>
             <p className="attribution-subtitle">
               {attribution.attributedDonations} of {attribution.totalDonations} donations
@@ -598,7 +597,7 @@ export function PostPlannerPage() {
               </div>
             </header>
             <div className="attribution-chart-wrap">
-              <ResponsiveContainer width="100%" height={Math.max(260, activeRollup.length * 38)}>
+              <ResponsiveContainer width="100%" debounce={1} height={Math.max(260, activeRollup.length * 38)}>
                 <BarChart data={activeRollup} layout="vertical" margin={{ left: 16, right: 36 }}>
                   <CartesianGrid stroke="rgba(170,190,208,0.25)" horizontal={false} />
                   <XAxis
@@ -658,7 +657,7 @@ export function PostPlannerPage() {
                 </div>
               </header>
               <div className="attribution-chart-wrap">
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" debounce={1} height={300}>
                   <ScatterChart margin={{ left: 8, right: 28, top: 12, bottom: 8 }}>
                     <CartesianGrid stroke="rgba(170,190,208,0.25)" />
                     <XAxis
