@@ -856,9 +856,21 @@ export const caseloadApi = {
     }),
 };
 
+export type ThankYouDraft = {
+  subject: string;
+  body: string;
+  tone: string;
+  model: string;
+};
+
 export const donorsContributionsApi = {
   dashboard: () =>
     apiFetch<DonorsContributionsDashboard>('/api/donors-contributions/dashboard', { method: 'GET' }),
+  draftThankYou: (supporterId: number, tone: 'warm' | 'formal' | 'playful' = 'warm') =>
+    apiFetch<ThankYouDraft>(`/api/donors-contributions/supporters/${supporterId}/draft-thank-you`, {
+      method: 'POST',
+      body: JSON.stringify({ tone }),
+    }),
   createSupporter: (payload: {
     supporterType: string;
     displayName?: string;

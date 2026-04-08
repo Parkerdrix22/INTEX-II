@@ -1975,6 +1975,139 @@ a.auth-nav-pill--solo-login:focus-visible {
   line-height: 1.55;
 }
 
+/* AI thank-you drafter modal (donors & contributions page) */
+.thank-you-trigger {
+  font-size: 0.82rem !important;
+  padding: 0.35rem 0.75rem !important;
+  white-space: nowrap;
+}
+
+.thank-you-modal {
+  max-width: 44rem;
+}
+
+.thank-you-tone-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0 1.1rem;
+  flex-wrap: wrap;
+}
+
+.thank-you-tone-label {
+  font-size: 0.78rem;
+  color: rgba(30, 44, 58, 0.7);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-right: 0.25rem;
+}
+
+.thank-you-tone-pill {
+  background: rgba(56, 95, 130, 0.08);
+  border: 1px solid rgba(56, 95, 130, 0.2);
+  color: #385f82;
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.85rem;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.thank-you-tone-pill:hover:not(:disabled) {
+  background: rgba(56, 95, 130, 0.16);
+}
+
+.thank-you-tone-pill--active {
+  background: #385f82;
+  color: #fdf8ec;
+  border-color: #385f82;
+}
+
+.thank-you-tone-pill:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.thank-you-regenerate {
+  margin-left: auto;
+  font-size: 0.82rem !important;
+  padding: 0.35rem 0.75rem !important;
+}
+
+.thank-you-status {
+  color: #385f82;
+  font-style: italic;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.thank-you-field {
+  margin-bottom: 1.1rem;
+}
+
+.thank-you-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.thank-you-field-header label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(30, 44, 58, 0.7);
+  font-weight: 700;
+  margin: 0;
+}
+
+.thank-you-copy-btn {
+  font-size: 0.78rem !important;
+  padding: 0.25rem 0.7rem !important;
+}
+
+.thank-you-subject-input {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid rgba(56, 95, 130, 0.25);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: rgba(255, 253, 247, 0.7);
+  color: #1e2c3a;
+}
+
+.thank-you-body-textarea {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(56, 95, 130, 0.25);
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  line-height: 1.55;
+  background: rgba(255, 253, 247, 0.7);
+  color: #1e2c3a;
+  resize: vertical;
+  min-height: 14rem;
+}
+
+.thank-you-subject-input:focus,
+.thank-you-body-textarea:focus {
+  outline: none;
+  border-color: #385f82;
+  box-shadow: 0 0 0 3px rgba(56, 95, 130, 0.15);
+}
+
+.thank-you-model-note {
+  font-size: 0.72rem;
+  color: rgba(30, 44, 58, 0.55);
+  text-align: right;
+  margin: 0 0 0.5rem;
+  font-style: italic;
+}
+
 .large-gift-modal__list li {
   margin-bottom: 0.35rem;
 }
