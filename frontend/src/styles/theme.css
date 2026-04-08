@@ -2712,6 +2712,7 @@ a.auth-nav-pill--solo-login:focus-visible {
 
 .auth-card input[type="email"],
 .auth-card input[type="password"],
+.auth-card input[type="search"],
 .auth-card input[type="text"],
 .auth-card input[type="tel"],
 .auth-card input[type="number"],
@@ -2723,6 +2724,18 @@ a.auth-nav-pill--solo-login:focus-visible {
   padding: 0.55rem 0.65rem;
   background: rgba(255, 255, 255, 0.86);
   font: inherit;
+}
+
+.auth-card input[type='search'] {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.auth-card input[type='search']::-webkit-search-decoration,
+.auth-card input[type='search']::-webkit-search-cancel-button,
+.auth-card input[type='search']::-webkit-search-results-button,
+.auth-card input[type='search']::-webkit-search-results-decoration {
+  -webkit-appearance: none;
 }
 
 .auth-card textarea {

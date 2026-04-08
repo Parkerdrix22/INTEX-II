@@ -31,6 +31,9 @@ export function ProfilePage() {
   const [notes, setNotes] = useState(profile.notes);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [usernameDraft, setUsernameDraft] = useState(username ?? '');
+  const [usernamePassword, setUsernamePassword] = useState('');
+  const usernameChanged = usernameDraft.trim() !== (username ?? '');
   const [emailDraft, setEmailDraft] = useState(email ?? '');
   const [emailPassword, setEmailPassword] = useState('');
   const emailChanged = emailDraft.trim() !== (email ?? '');
@@ -50,6 +53,10 @@ export function ProfilePage() {
     });
     return () => window.cancelAnimationFrame(raf);
   }, [profile.displayName, profile.phone, profile.notes]);
+
+  useEffect(() => {
+    setUsernameDraft(username ?? '');
+  }, [username]);
 
   useEffect(() => {
     setEmailDraft(email ?? '');
@@ -112,6 +119,17 @@ export function ProfilePage() {
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSaveError(null);
+
+    if (usernameChanged) {
+      try {
+        await authApi.changeUsername(usernameDraft.trim(), usernamePassword);
+        await refreshSession();
+        setUsernamePassword('');
+      } catch (err) {
+        setSaveError(err instanceof Error ? err.message : 'Failed to update username.');
+        return;
+      }
+    }
 
     if (emailChanged) {
       try {
@@ -258,6 +276,30 @@ export function ProfilePage() {
             />
           </label>
           <label>
+            Sign-in ID (username)
+            <input
+              type="text"
+              autoComplete="username"
+              placeholder="username or email"
+              value={usernameDraft}
+              onChange={(e) => setUsernameDraft(e.target.value)}
+            />
+            <span className="field-helper-text">Letters, numbers, and . _ @ + - only. You can also sign in with your email.</span>
+          </label>
+          {usernameChanged && (
+            <label>
+              Current password (required to change sign-in ID)
+              <input
+                type="password"
+                required
+                autoComplete="current-password"
+                placeholder="Your current password"
+                value={usernamePassword}
+                onChange={(e) => setUsernamePassword(e.target.value)}
+              />
+            </label>
+          )}
+          <label>
             Email
             <input
               type="email"
@@ -305,7 +347,11 @@ export function ProfilePage() {
             />
           </label>
           <button type="submit">Save profile</button>
-          {saved && <p className="profile-save-hint">{emailChanged ? 'Profile and email saved.' : 'Profile saved.'}</p>}
+          {saved && (
+            <p className="profile-save-hint">
+              {usernameChanged || emailChanged ? 'Profile and account details saved.' : 'Profile saved.'}
+            </p>
+          )}
           {saveError && <p className="error-text">{saveError}</p>}
         </form>
       </article>
