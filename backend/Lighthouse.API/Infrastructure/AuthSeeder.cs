@@ -72,6 +72,19 @@ public static class AuthSeeder
                 ADD COLUMN IF NOT EXISTS email_confirmed boolean NOT NULL DEFAULT false
                 """);
 
+            // Legacy imported rows can have null/blank stamps, but Identity requires
+            // both fields for any UpdateAsync call.
+            await db.Database.ExecuteSqlRawAsync(
+                """
+                UPDATE users
+                SET security_stamp = md5(random()::text || clock_timestamp()::text)
+                WHERE security_stamp IS NULL OR btrim(security_stamp) = '';
+
+                UPDATE users
+                SET concurrency_stamp = md5(random()::text || clock_timestamp()::text)
+                WHERE concurrency_stamp IS NULL OR btrim(concurrency_stamp) = '';
+                """);
+
             // Ensure the staff_members table exists
             await db.Database.ExecuteSqlRawAsync(
                 """
