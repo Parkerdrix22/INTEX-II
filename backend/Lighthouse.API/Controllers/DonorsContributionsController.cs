@@ -133,6 +133,7 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
     }
 
     [HttpPost("supporters/{supporterId:int}/donations")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateSupporterDonation(int supporterId, [FromBody] CreateSupporterDonationRequest request)
     {
         if (request.EstimatedValue <= 0)
@@ -220,6 +221,7 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
     }
 
     [HttpPut("donations/{donationId:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateDonation(int donationId, [FromBody] UpdateDonationRequest request)
     {
         if (request.EstimatedValue <= 0)
@@ -250,6 +252,7 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
     }
 
     [HttpDelete("donations/{donationId:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteDonation(int donationId)
     {
         try
@@ -296,6 +299,7 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
     }
 
     [HttpPost("supporters")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateSupporter([FromBody] CreateSupporterRequest request)
     {
         var displayName = CleanString(request.DisplayName);

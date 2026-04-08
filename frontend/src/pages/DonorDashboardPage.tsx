@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { useAuth } from '../auth/useAuth';
@@ -201,7 +201,7 @@ export function DonorDashboardPage() {
   const [impactLoading, setImpactLoading] = useState(true);
   const [impactError, setImpactError] = useState<string | null>(null);
 
-  const loadImpact = async () => {
+  const loadImpact = useCallback(async () => {
     setImpactLoading(true);
     setImpactError(null);
     try {
@@ -212,11 +212,11 @@ export function DonorDashboardPage() {
     } finally {
       setImpactLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     void loadImpact();
-  }, []);
+  }, [loadImpact]);
 
   const topProgramArea = useMemo(() => {
     if (!impact || impact.programAreaBreakdown.length === 0) return null;
