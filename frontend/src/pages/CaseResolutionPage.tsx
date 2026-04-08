@@ -309,7 +309,6 @@ export function CaseResolutionPage() {
     <section className={`cres-page ${visible ? 'is-visible' : ''}`}>
       {/* ── Header ───────────────────────────────────────── */}
       <header className="cres-header">
-        <span className="cres-overline">Pipeline 6 · Case Resolution Predictor</span>
         <h1 className="cres-title">Resident Graduation Readiness</h1>
         <p className="cres-subtitle">
           Find residents whose case profile most resembles past successful closures. Helps

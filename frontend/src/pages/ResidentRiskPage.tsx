@@ -312,7 +312,6 @@ export function ResidentRiskPage() {
     <section className={`rrisk-page ${visible ? 'is-visible' : ''}`}>
       {/* ── Header ───────────────────────────────────────── */}
       <header className="rrisk-header">
-        <span className="rrisk-overline">Pipeline 1 · Resident Risk Classification</span>
         <h1 className="rrisk-title">Resident Risk Triage</h1>
         <p className="rrisk-subtitle">
           Identify residents who need immediate case manager attention. Powered by a Random
