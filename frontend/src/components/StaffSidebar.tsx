@@ -28,6 +28,12 @@ export function StaffSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: ()
           <NavLink to="/caseload-inventory" className={navLinkClass} onClick={onClose}>
             Resident Services
           </NavLink>
+          <NavLink to="/process-recording" className={navLinkClass} onClick={onClose}>
+            Process Recordings
+          </NavLink>
+          <NavLink to="/home-visitation" className={navLinkClass} onClick={onClose}>
+            Home Visitations
+          </NavLink>
           <NavLink to="/reports-analytics" className={navLinkClass} onClick={onClose}>
             Reports & Analytics
           </NavLink>
