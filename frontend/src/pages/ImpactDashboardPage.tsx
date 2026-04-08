@@ -2,39 +2,17 @@ import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { publicApi } from '../lib/api';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const impactPillars = [
-  {
-    number: '01',
-    icon: '🛡',
-    title: 'Safety',
-    description:
-      'Safety is the first step of healing. Kateri focuses on immediate protection and stable support so every girl can begin recovery in a secure environment.',
-  },
-  {
-    number: '02',
-    icon: '❤',
-    title: 'Healing',
-    description:
-      'After safety is established, healing can begin. We support emotional recovery through counseling, mentorship, and consistent care.',
-  },
-  {
-    number: '03',
-    icon: '⚖',
-    title: 'Justice',
-    description:
-      'Kateri does not pressure decisions about legal action. We support each girl in pursuing the path of justice that is right for her.',
-  },
-  {
-    number: '04',
-    icon: '✦',
-    title: 'Empowerment',
-    description:
-      'Our goal is to help girls move from victimhood to leadership and advocacy through life skills, education, and confidence-building opportunities.',
-  },
-];
+  { number: '01', icon: '🛡', key: 'safety' },
+  { number: '02', icon: '❤', key: 'healing' },
+  { number: '03', icon: '⚖', key: 'justice' },
+  { number: '04', icon: '✦', key: 'empowerment' },
+] as const;
 
 export function ImpactDashboardPage() {
+  const { t } = useLanguage();
   const [impactStats, setImpactStats] = useState({
     activeResidents: 0,
     counselingSessionsFunded: 430,
@@ -127,17 +105,14 @@ export function ImpactDashboardPage() {
         />
         <div className="kateri-photo-hero__scrim" aria-hidden={true} />
         <div className="kateri-photo-hero__inner">
-          <h1 className="kateri-photo-hero__title">Our Impact</h1>
-          <p className="kateri-photo-hero__lead">
-            Kateri measures impact through protection, recovery, justice support, and long-term
-            empowerment for girls and their families.
-          </p>
+          <h1 className="kateri-photo-hero__title">{t('impact.heading')}</h1>
+          <p className="kateri-photo-hero__lead">{t('impact.lead')}</p>
           <div className="kateri-hero-actions">
             <Link className="btn-kateri-gold" to="/donor-dashboard">
-              Support Kateri
+              {t('impact.cta.support')}
             </Link>
             <Link className="btn-kateri-ghost" to="/">
-              Back to home
+              {t('impact.cta.backHome')}
             </Link>
           </div>
         </div>
@@ -145,15 +120,15 @@ export function ImpactDashboardPage() {
 
       <div className="stats-grid impact-stats scroll-reveal-skip">
         <article className="stat-card scroll-reveal-skip">
-          <p className="metric-label">Active Residents</p>
+          <p className="metric-label">{t('impact.kpi.activeResidents')}</p>
           <p className="metric-value">{animatedImpactStats.activeResidents}+</p>
         </article>
         <article className="stat-card scroll-reveal-skip">
-          <p className="metric-label">Counseling Sessions Funded</p>
+          <p className="metric-label">{t('impact.kpi.counselingSessions')}</p>
           <p className="metric-value">{animatedImpactStats.counselingSessionsFunded}+</p>
         </article>
         <article className="stat-card scroll-reveal-skip">
-          <p className="metric-label">School Reintegration Rate</p>
+          <p className="metric-label">{t('impact.kpi.reintegrationRate')}</p>
           <p className="metric-value">{animatedImpactStats.schoolReintegrationRate.toFixed(1)}%</p>
         </article>
       </div>
@@ -161,14 +136,14 @@ export function ImpactDashboardPage() {
       <article className="feature-slab scroll-reveal-skip">
         <div className="impact-highlight">
           <div className="impact-highlight__content">
-            <h2>Health & Well-being Impact</h2>
-            <p className="metric-label">Residents showing score improvement over time</p>
-            <p>{healthImpact.improvedPct.toFixed(1)}% improved from first to latest check.</p>
-            <p>Based on residents with 2+ health records.</p>
+            <h2>{t('impact.health.heading')}</h2>
+            <p className="metric-label">{t('impact.health.subtitle')}</p>
+            <p>{t('impact.health.improvedSummary', { percent: healthImpact.improvedPct.toFixed(1) })}</p>
+            <p>{t('impact.health.basis')}</p>
           </div>
           <p className="impact-highlight__value">{healthImpact.improvedPct.toFixed(1)}%</p>
         </div>
-        <div className="impact-progress" role="img" aria-label={`${healthImpact.improvedPct.toFixed(1)} percent of residents improved`}>
+        <div className="impact-progress" role="img" aria-label={t('impact.health.progressAria', { percent: healthImpact.improvedPct.toFixed(1) })}>
           <div
             className="impact-progress__fill"
             style={{ width: `${Math.max(0, Math.min(100, healthImpact.improvedPct))}%` }}
@@ -180,13 +155,13 @@ export function ImpactDashboardPage() {
 
       <div className="impact-grid scroll-reveal-skip">
         {impactPillars.map((pillar) => (
-          <article className="impact-card scroll-reveal-skip" key={pillar.title}>
+          <article className="impact-card scroll-reveal-skip" key={pillar.key}>
             <p className="impact-number">{pillar.number}</p>
             <div className="impact-icon" aria-hidden="true">
               {pillar.icon}
             </div>
-            <h2>{pillar.title}</h2>
-            <p>{pillar.description}</p>
+            <h2>{t(`impact.pillars.${pillar.key}.title`)}</h2>
+            <p>{t(`impact.pillars.${pillar.key}.description`)}</p>
           </article>
         ))}
       </div>

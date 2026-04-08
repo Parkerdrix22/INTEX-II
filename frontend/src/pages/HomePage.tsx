@@ -4,8 +4,10 @@ import backgroundImage from '../background.jpg?format=webp&quality=82&w=1920';
 import threeSistersImage from '../Three sisters in a sunlit field.png?format=webp&quality=82&w=960';
 import kateriPortraitImage from '../Kateri Tekakwitha in golden grasses.png?format=webp&quality=82&w=960';
 import { publicApi } from '../lib/api';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export function HomePage() {
+  const { t } = useLanguage();
   const [stats, setStats] = useState({
     safehomesSupported: 4,
     activeResidentCases: 60,
@@ -88,60 +90,54 @@ export function HomePage() {
     <section className="home-page">
       <div className="hero-panel hero-full-width">
         <h1 className="hero-brand">Kateri</h1>
-        <h2 className="hero-title">Safety, healing, and a path forward for every girl we serve.</h2>
-        <p className="hero-copy">
-          Kateri provides safe housing, counseling, and reintegration support for girls, with a
-          focused commitment to Native American communities.
-        </p>
+        <h2 className="hero-title">{t('home.heroTitle')}</h2>
+        <p className="hero-copy">{t('home.heroCopy')}</p>
         <div className="hero-actions">
           <Link className="btn-primary" to="/donor-dashboard">
-            Support Kateri
+            {t('home.cta.support')}
           </Link>
         </div>
       </div>
 
       <div className="stats-grid">
         <article className="stat-card">
-          <p className="metric-label">Safehomes Supported</p>
+          <p className="metric-label">{t('home.stat.safehomes')}</p>
           <p className="metric-value">{animatedStats.safehomesSupported}+</p>
         </article>
         <article className="stat-card">
-          <p className="metric-label">Active Resident Cases</p>
+          <p className="metric-label">{t('home.stat.activeCases')}</p>
           <p className="metric-value">{animatedStats.activeResidentCases}+</p>
         </article>
         <article className="stat-card">
-          <p className="metric-label">Community Partners</p>
+          <p className="metric-label">{t('home.stat.partners')}</p>
           <p className="metric-value">{animatedStats.communityPartners}+</p>
         </article>
       </div>
 
       <div className="serve-grid">
         <article className="feature-slab serve-content">
-          <h2>How Kateri serves</h2>
+          <h2>{t('home.serve.heading')}</h2>
           <ul className="mission-list">
             <li>
-              <strong>Protect:</strong> Provide immediate safety through secure housing and
-              coordinated case management.
+              <strong>{t('home.serve.protect.title')}</strong> {t('home.serve.protect.body')}
             </li>
             <li>
-              <strong>Restore:</strong> Support healing through counseling, education, and
-              individualized interventions.
+              <strong>{t('home.serve.restore.title')}</strong> {t('home.serve.restore.body')}
             </li>
             <li>
-              <strong>Reintegrate:</strong> Prepare residents for long-term success through family
-              engagement and reintegration planning.
+              <strong>{t('home.serve.reintegrate.title')}</strong> {t('home.serve.reintegrate.body')}
             </li>
           </ul>
           <div className="hero-actions">
             <Link className="btn-primary" to="/impact">
-              View Our Impact
+              {t('home.cta.viewImpact')}
             </Link>
           </div>
         </article>
         <figure className="sisters-figure">
           <img
             src={threeSistersImage}
-            alt="Three sisters sitting together in a sunlit field."
+            alt={t('home.sistersAlt')}
             width={960}
             height={540}
             loading="lazy"
@@ -156,7 +152,7 @@ export function HomePage() {
         <figure className="name-figure">
           <img
             src={kateriPortraitImage}
-            alt="Portrait of Kateri Tekakwitha in golden grasses."
+            alt={t('home.name.portraitAlt')}
             width={960}
             height={540}
             loading="lazy"
@@ -166,21 +162,14 @@ export function HomePage() {
           />
         </figure>
         <article className="feature-slab">
-          <h2>Why the name Kateri?</h2>
-          <p>
-            The organization is named in honor of Saint Kateri Tekakwitha, widely recognized as the
-            first Native American saint. The name reflects a commitment to dignity, resilience, and
-            culturally respectful care for the communities Kateri serves.
-          </p>
+          <h2>{t('home.name.heading')}</h2>
+          <p>{t('home.name.body')}</p>
         </article>
       </div>
 
       <footer className="cta-panel home-footer">
-        <h2>Contact Us</h2>
-        <p>
-          Reach out to learn more about Kateri, partnership opportunities, and ways to support our
-          mission.
-        </p>
+        <h2>{t('home.contact.heading')}</h2>
+        <p>{t('home.contact.body')}</p>
         <div className="contact-links">
           <a className="contact-link" href="https://www.instagram.com/kateri.org" target="_blank" rel="noreferrer">
             <span className="icon-circle" aria-hidden="true">
@@ -188,7 +177,7 @@ export function HomePage() {
                 <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.8A3.95 3.95 0 0 0 3.8 7.75v8.5a3.95 3.95 0 0 0 3.95 3.95h8.5a3.95 3.95 0 0 0 3.95-3.95v-8.5a3.95 3.95 0 0 0-3.95-3.95h-8.5Zm8.95 1.55a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7.1a4.9 4.9 0 1 1 0 9.8 4.9 4.9 0 0 1 0-9.8Zm0 1.8a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Z" />
               </svg>
             </span>
-            Instagram
+            {t('home.contact.instagram')}
           </a>
           <a className="contact-link" href="https://www.facebook.com/kateri.org" target="_blank" rel="noreferrer">
             <span className="icon-circle" aria-hidden="true">
@@ -196,7 +185,7 @@ export function HomePage() {
                 <path d="M13.75 22v-8h2.7l.4-3.1h-3.1v-2c0-.9.25-1.5 1.55-1.5H17V4.65A22 22 0 0 0 14.45 4C11.9 4 10.2 5.55 10.2 8.45v2.45H7.5V14h2.7v8h3.55Z" />
               </svg>
             </span>
-            Facebook
+            {t('home.contact.facebook')}
           </a>
           <a className="contact-link" href="tel:+18015551234">
             <span className="icon-circle" aria-hidden="true">
@@ -214,13 +203,13 @@ export function HomePage() {
             <span className="icon-circle" aria-hidden="true">
               P
             </span>
-            Privacy Policy
+            {t('home.contact.privacyPolicy')}
           </Link>
           <Link className="contact-link" to="/cookie-policy">
             <span className="icon-circle" aria-hidden="true">
               C
             </span>
-            Cookie Policy
+            {t('home.contact.cookiePolicy')}
           </Link>
         </div>
       </footer>

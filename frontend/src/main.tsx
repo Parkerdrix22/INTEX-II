@@ -4,16 +4,19 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './auth/AuthContext';
 import { CookieConsentProvider } from './context/CookieConsentContext';
+import { LanguageProvider } from './i18n/LanguageContext';
 import './styles/theme.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <CookieConsentProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </CookieConsentProvider>
+      <LanguageProvider>
+        <CookieConsentProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </CookieConsentProvider>
+      </LanguageProvider>
     </BrowserRouter>
   </StrictMode>,
 );

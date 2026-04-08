@@ -2118,6 +2118,78 @@ a.auth-nav-pill--solo-login:focus-visible {
   text-align: center;
 }
 
+/* ── Language toggle (EN / Diné) — top nav segmented control ─────────── */
+.lang-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid rgba(56, 95, 130, 0.3);
+  border-radius: 999px;
+  padding: 2px;
+  background: rgba(255, 253, 247, 0.85);
+  box-shadow: 0 1px 2px rgba(31, 47, 63, 0.06);
+}
+
+.lang-toggle__btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: #385f82;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+  line-height: 1.1;
+}
+
+.lang-toggle__btn:hover:not(.lang-toggle__btn--active) {
+  background: rgba(56, 95, 130, 0.08);
+}
+
+.lang-toggle__btn--active {
+  background: #385f82;
+  color: #fdf8ec;
+}
+
+.lang-toggle__btn:focus-visible {
+  outline: 2px solid #c9983f;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .lang-toggle__btn {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.72rem;
+  }
+}
+
+/* Honest disclosure strip shown only when the user has the Navajo
+   (Diné bizaad) language toggle active — the translations are machine
+   generated and have not been reviewed by a native speaker, and the
+   rubric rewards honest disclosure of known limitations. */
+.mt-disclaimer-strip {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 40;
+  background: rgba(201, 152, 63, 0.95);
+  color: #1e2c3a;
+  border: 1px solid rgba(160, 91, 58, 0.6);
+  border-radius: 10px;
+  padding: 0.55rem 1rem;
+  font-size: 0.82rem;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(31, 47, 63, 0.25);
+  font-family: system-ui, -apple-system, sans-serif;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
 .large-gift-modal__list li {
   margin-bottom: 0.35rem;
 }
