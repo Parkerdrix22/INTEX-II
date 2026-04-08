@@ -112,12 +112,6 @@ const PROGRAM_COLORS: Record<string, string> = {
   Operations: '#5f8448',
 };
 
-const money = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  maximumFractionDigits: 0,
-});
-
 const moneyDecimal = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
