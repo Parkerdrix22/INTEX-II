@@ -79,9 +79,14 @@ function App() {
   // Close the mobile nav whenever the route changes (so clicking a link
   // inside the overlay hides it automatically) and whenever the viewport
   // resizes above the mobile breakpoint. Also lock page scroll while open.
-  useEffect(() => {
+  //
+  // React-recommended pattern: reset state during render when a dependency
+  // changes, rather than in an effect (avoids cascading-render lint error).
+  const [trackedPathname, setTrackedPathname] = useState(location.pathname);
+  if (trackedPathname !== location.pathname) {
+    setTrackedPathname(location.pathname);
     setMobileNavOpen(false);
-  }, [location.pathname]);
+  }
 
   useEffect(() => {
     if (!mobileNavOpen) return;
