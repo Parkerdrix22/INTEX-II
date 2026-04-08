@@ -79,7 +79,7 @@ public class DonationsController(
                 dbContext);
             await WriteAllocationRowsAsync(insertedId, donationDate, allocationPlan);
 
-            await NotifyStaffDonationAsync(request, currency, donationDate);
+            await NotifyDonationEmailsAsync(request, currency, donationDate);
             return Ok(new
             {
                 message = "Donation recorded successfully.",
@@ -101,7 +101,7 @@ public class DonationsController(
             };
             dbContext.Donations.Add(donation);
             await dbContext.SaveChangesAsync();
-            await NotifyStaffDonationAsync(request, currency, donationDate);
+            await NotifyDonationEmailsAsync(request, currency, donationDate);
             return Ok(new { message = "Donation recorded successfully.", donationId = donation.Id });
         }
     }
@@ -203,6 +203,8 @@ public class DonationsController(
         if (!string.IsNullOrWhiteSpace(userId))
         {
             var user = await userManager.FindByIdAsync(userId);
+            if (string.IsNullOrWhiteSpace(donorEmail))
+                donorEmail = user?.Email?.Trim() ?? string.Empty;
             donorPhone = user?.PhoneNumber;
         }
 
@@ -221,18 +223,32 @@ public class DonationsController(
             details,
             cancellationToken);
 
+        await staffNotificationEmail.SendDonationReceiptAsync(
+            donorName,
+            donorEmail,
+            request.EstimatedTotalValue,
+            currency,
+            "In-kind (goods)",
+            campaignName,
+            donationDate,
+            details,
+            cancellationToken);
+
         return Ok(new { message = "In-kind donation recorded successfully.", donationId = recordedDonationId });
     }
 
-    private async Task NotifyStaffDonationAsync(CreateDonationRequest request, string currency, DateTime donationDateUtc)
+    private async Task NotifyDonationEmailsAsync(CreateDonationRequest request, string currency, DateTime donationDateUtc)
     {
         var donorEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
         var donorName = string.IsNullOrWhiteSpace(request.DonorName) ? "Donor" : request.DonorName.Trim();
+        var donationType = NormalizeDonationType(request.DonationType);
         string? donorPhone = null;
         var userId = User.FindFirstValue("user_id");
         if (!string.IsNullOrWhiteSpace(userId))
         {
             var user = await userManager.FindByIdAsync(userId);
+            if (string.IsNullOrWhiteSpace(donorEmail))
+                donorEmail = user?.Email?.Trim() ?? string.Empty;
             donorPhone = user?.PhoneNumber;
         }
 
@@ -242,7 +258,16 @@ public class DonationsController(
             donorPhone,
             request.Amount,
             currency,
-            NormalizeDonationType(request.DonationType),
+            donationType,
+            string.IsNullOrWhiteSpace(request.CampaignName) ? "Donor Portal" : request.CampaignName.Trim(),
+            donationDateUtc);
+
+        await staffNotificationEmail.SendDonationReceiptAsync(
+            donorName,
+            donorEmail,
+            request.Amount,
+            currency,
+            donationType,
             string.IsNullOrWhiteSpace(request.CampaignName) ? "Donor Portal" : request.CampaignName.Trim(),
             donationDateUtc);
     }
