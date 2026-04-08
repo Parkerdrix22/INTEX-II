@@ -12,6 +12,8 @@ type MeResponse = {
   supporterId?: string | null;
   staffMemberId?: string | null;
   twoFactorEnabled?: boolean;
+  requiresTwoFactorSetup?: boolean;
+  twoFactorBypassAllowed?: boolean;
   recoveryCodesLeft?: number;
 };
 
