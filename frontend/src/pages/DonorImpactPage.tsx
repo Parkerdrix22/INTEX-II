@@ -261,7 +261,6 @@ export function DonorImpactPage() {
     <section className={`donor-impact-page ${visible ? 'is-visible' : ''}`}>
       {/* ─── Header ───────────────────────────────────────── */}
       <header className="impact-header">
-        <span className="impact-overline">{t('donorImpact.overline')}</span>
         <h1 className="impact-title">{t('donorImpact.title')}</h1>
         <p className="impact-subtitle">{t('donorImpact.subtitle')}</p>
         {modelInfo && (

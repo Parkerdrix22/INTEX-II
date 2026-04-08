@@ -329,11 +329,6 @@ function App() {
         </main>
         {lang === 'en' && <ChatWidget />}
       </div>
-      {lang === 'nv' && (
-        <div className="mt-disclaimer-strip" role="status">
-          ⚠ {t('common.language.mtDisclaimer')}
-        </div>
-      )}
       <NonBlockingErrorBoundary>
         <CookieConsentBanner />
       </NonBlockingErrorBoundary>
