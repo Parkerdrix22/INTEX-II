@@ -22,8 +22,8 @@ function formatDate(value: string | null): string {
   return date.toLocaleDateString();
 }
 
-function formatPhp(value: number): string {
-  return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value);
+function formatUsd(value: number): string {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 }
 
 function monthLabel(value: string): string {
@@ -230,11 +230,11 @@ export function DonorsContributionsPage() {
         </article>
         <article className="stat-card">
           <p className="metric-label">Contributions (MTD)</p>
-          <p className="metric-value">{formatPhp(animatedSummary.contributionsMtd)}</p>
+          <p className="metric-value">{formatUsd(animatedSummary.contributionsMtd)}</p>
         </article>
         <article className="stat-card">
           <p className="metric-label">Total contributions</p>
-          <p className="metric-value">{formatPhp(animatedSummary.totalContributions)}</p>
+          <p className="metric-value">{formatUsd(animatedSummary.totalContributions)}</p>
         </article>
       </section>
       {loading && <p className="donor-inline-message">Loading donor dashboard...</p>}
@@ -290,16 +290,6 @@ export function DonorsContributionsPage() {
                   </option>
                 ))}
               </select>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => {
-                  resetSupporterForm();
-                  setShowAddSupporterModal(true);
-                }}
-              >
-                + Add supporter
-              </button>
             </div>
 
             <div className="donor-table-wrap">
@@ -346,7 +336,7 @@ export function DonorsContributionsPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(56,95,130,0.15)" />
                   <XAxis dataKey="label" tick={{ fill: '#385f82', fontSize: 12 }} />
                   <YAxis tick={{ fill: '#385f82', fontSize: 12 }} />
-                  <Tooltip formatter={(value) => formatPhp(Number(value))} />
+                  <Tooltip formatter={(value) => formatUsd(Number(value))} />
                   <Line
                     type="monotone"
                     dataKey="amount"

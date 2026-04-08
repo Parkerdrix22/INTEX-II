@@ -126,7 +126,7 @@ function formatWelcomeName(raw: string | null): string | null {
 }
 
 export function DonorDashboardPage() {
-  const { effectiveDisplayName, firstName, lastName, email, effectivePhone } = useAuth();
+  const { effectiveDisplayName, firstName, lastName } = useAuth();
   const welcomeName = formatWelcomeName(effectiveDisplayName);
 
   const accountVolunteerName = useMemo(() => {
@@ -136,7 +136,7 @@ export function DonorDashboardPage() {
 
   const [amount, setAmount] = useState('100');
   const [donationType, setDonationType] = useState<DonationTypeKey>('Monetary');
-  const [currency, setCurrency] = useState<'USD' | 'PHP'>('USD');
+  const currency = 'USD';
   const [programArea, setProgramArea] = useState<ProgramArea>('Education');
   const [donationSuccess, setDonationSuccess] = useState<string | null>(null);
   const [donationError, setDonationError] = useState<string | null>(null);
@@ -264,7 +264,6 @@ export function DonorDashboardPage() {
       );
       await loadImpact();
       setAmount(DONATION_TYPE_CONFIG[donationType].defaultAmount);
-      setCurrency('USD');
     } catch (err) {
       setDonationError(err instanceof Error ? err.message : 'Could not save donation.');
     } finally {
@@ -637,16 +636,7 @@ export function DonorDashboardPage() {
                 />
               </label>
               <p className="donation-type-helper">{typeConfig.helperText}</p>
-              <label>
-                Currency
-                <select
-                  value={currency}
-                  onChange={(event) => setCurrency(event.target.value as 'USD' | 'PHP')}
-                >
-                  <option value="USD">USD</option>
-                  <option value="PHP">PHP</option>
-                </select>
-              </label>
+              <p className="donation-type-helper">Currency: USD</p>
               <label>
                 Where should your gift go?
                 <select
@@ -820,25 +810,6 @@ export function DonorDashboardPage() {
           <h2>Volunteer sign-up</h2>
           <p className="auth-lead">Tell us how you would like to help the girls.</p>
           <form onSubmit={(event) => void onVolunteerSubmit(event)}>
-            <div className="volunteer-account-contact" aria-label="Your account contact">
-              <p className="volunteer-account-contact__title">Using your account</p>
-              <p className="volunteer-account-contact__line">
-                <strong>Name</strong>
-                <span>{accountVolunteerName}</span>
-              </p>
-              <p className="volunteer-account-contact__line">
-                <strong>Email</strong>
-                <span>{email?.trim() || '—'}</span>
-              </p>
-              <p className="volunteer-account-contact__line">
-                <strong>Phone</strong>
-                <span>{effectivePhone?.trim() || '—'}</span>
-              </p>
-              <p className="volunteer-account-contact__hint">
-                Phone and display preferences can be updated on your profile when needed.
-              </p>
-            </div>
-
             <fieldset className="donor-focus-fieldset volunteer-availability-fieldset">
               <legend>When are you usually available?</legend>
               <p className="volunteer-availability-hint">
