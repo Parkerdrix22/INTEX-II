@@ -24,7 +24,7 @@
   },
   "pipeline_02_donor_churn": {
     "status": "success",
-    "trained_at": "2026-04-08T04:31:11.664941+00:00",
+    "trained_at": "2026-04-08T16:41:51.682935+00:00",
     "metrics": {
       "roc_auc_mean": 0.68,
       "roc_auc_std": 0.186,
@@ -103,7 +103,7 @@
   },
   "pipeline_06_case_resolution": {
     "status": "success",
-    "trained_at": "2026-04-08T04:31:40.602537+00:00",
+    "trained_at": "2026-04-08T16:40:02.304067+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.7829,
       "cv_roc_auc_std": 0.0779,
