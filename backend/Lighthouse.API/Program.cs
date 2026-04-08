@@ -1,6 +1,7 @@
 using Lighthouse.API.Data;
 using Lighthouse.API.Data.Entities;
 using Lighthouse.API.Infrastructure;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -26,6 +27,20 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<Lighthouse.API.Services.IStaffNotificationEmailService, Lighthouse.API.Services.StaffNotificationEmailService>();
+
+// Persist Data Protection keys to Azure App Service's /home volume so OAuth
+// state, correlation cookies, and the lighthouse.auth cookie all survive
+// container restarts. Without this, every deploy or restart breaks
+// in-flight Google sign-ins with "The oauth state was missing or invalid"
+// and logs every user out. /home is a shared persistent volume on Azure
+// App Service Linux; in dev it falls back to the user's profile folder.
+var dpKeysPath = Path.Combine(
+    Environment.GetEnvironmentVariable("HOME") ?? Path.GetTempPath(),
+    "DataProtection-Keys");
+Directory.CreateDirectory(dpKeysPath);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dpKeysPath))
+    .SetApplicationName("Lighthouse");
 
 var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
 builder.Services.AddCors(options =>
