@@ -118,6 +118,85 @@ public class StaffNotificationEmailService(
         return SendToRecipientAsync(volunteerEmail.Trim(), subject, body, "volunteer confirmation", cancellationToken);
     }
 
+    public async Task<bool> SendThankYouEmailAsync(
+        string donorEmail,
+        string donorName,
+        string subject,
+        string plainTextBody,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(donorEmail))
+        {
+            logger.LogWarning("SendThankYouEmailAsync called with empty donor email for {DonorName}", donorName);
+            return false;
+        }
+
+        var host = configuration["NotificationEmail:SmtpHost"]?.Trim();
+        var from = configuration["NotificationEmail:FromAddress"]?.Trim();
+        if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(from))
+        {
+            logger.LogWarning(
+                "SendThankYouEmailAsync aborted — SMTP not configured (host={Host}, from={From})",
+                host, from);
+            return false;
+        }
+
+        // Wrap the plain-text body in a simple HTML template. We preserve the
+        // author's line breaks so the paragraphs render correctly in Gmail/
+        // Outlook, and strip anything that looks like raw HTML from the model
+        // (Claude is prompted not to include any, but belt + suspenders).
+        var htmlBody = BuildThankYouHtml(donorName, plainTextBody);
+
+        await SendToRecipientAsync(
+            donorEmail.Trim(),
+            subject,
+            htmlBody,
+            "thank-you email",
+            cancellationToken,
+            throwOnError: true);
+
+        return true;
+    }
+
+    private static string BuildThankYouHtml(string donorName, string plainTextBody)
+    {
+        // Escape any stray HTML characters from Claude's output before we drop
+        // it into our own template. Then convert \n into <br> and paragraph
+        // breaks into <p> blocks so Gmail renders it as intended.
+        var escaped = System.Net.WebUtility.HtmlEncode(plainTextBody);
+        var paragraphs = escaped
+            .Replace("\r\n", "\n")
+            .Split("\n\n", StringSplitOptions.RemoveEmptyEntries)
+            .Select(para => "<p style=\"margin: 0 0 1rem; color: #1e2c3a; line-height: 1.6; font-size: 15px;\">"
+                + para.Replace("\n", "<br>")
+                + "</p>");
+
+        var bodyHtml = string.Join("\n", paragraphs);
+
+        var sb = new StringBuilder();
+        sb.AppendLine("<!doctype html>");
+        sb.AppendLine("<html><head><meta charset=\"utf-8\"><title>Thank you</title></head>");
+        sb.AppendLine("<body style=\"margin:0; padding:0; background:#fdf8ec; font-family: Georgia, 'Times New Roman', serif;\">");
+        sb.AppendLine("<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#fdf8ec;\">");
+        sb.AppendLine("<tr><td align=\"center\" style=\"padding: 2rem 1rem;\">");
+        sb.AppendLine("<table role=\"presentation\" width=\"600\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px; background:#ffffff; border-radius:12px; box-shadow:0 4px 20px rgba(56,95,130,0.08); overflow:hidden;\">");
+        sb.AppendLine("<tr><td style=\"padding: 2rem 2.5rem 1rem; border-bottom: 3px solid #385f82;\">");
+        sb.AppendLine("<h1 style=\"margin:0; font-family: Georgia, serif; color:#385f82; font-size:1.8rem; font-weight:700;\">Kateri</h1>");
+        sb.AppendLine("<p style=\"margin:0.3rem 0 0; color: #a05b3a; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em; font-family: Arial, sans-serif;\">A message of gratitude</p>");
+        sb.AppendLine("</td></tr>");
+        sb.AppendLine("<tr><td style=\"padding: 2rem 2.5rem;\">");
+        sb.Append(bodyHtml);
+        sb.AppendLine("</td></tr>");
+        sb.AppendLine("<tr><td style=\"padding: 1rem 2.5rem 1.5rem; border-top: 1px solid rgba(56,95,130,0.15); background:#fdfbf5;\">");
+        sb.AppendLine("<p style=\"margin:0; font-size:0.8rem; color: rgba(30,44,58,0.6); font-family: Arial, sans-serif;\">");
+        sb.AppendLine("Kateri · Protecting Native American women and girls from sexual abuse and trafficking<br>");
+        sb.AppendLine("kateri.byuisresearch.com");
+        sb.AppendLine("</p>");
+        sb.AppendLine("</td></tr>");
+        sb.AppendLine("</table></td></tr></table></body></html>");
+        return sb.ToString();
+    }
+
     private async Task SendInternalAsync(string subject, string htmlBody, CancellationToken cancellationToken)
     {
         var to = configuration["NotificationEmail:StaffNotifyTo"]?.Trim();
@@ -127,12 +206,21 @@ public class StaffNotificationEmailService(
         await SendToRecipientAsync(to, subject, htmlBody, "staff notification", cancellationToken);
     }
 
-    private async Task SendToRecipientAsync(
+    private Task SendToRecipientAsync(
         string to,
         string subject,
         string htmlBody,
         string emailType,
         CancellationToken cancellationToken)
+        => SendToRecipientAsync(to, subject, htmlBody, emailType, cancellationToken, throwOnError: false);
+
+    private async Task SendToRecipientAsync(
+        string to,
+        string subject,
+        string htmlBody,
+        string emailType,
+        CancellationToken cancellationToken,
+        bool throwOnError)
     {
         if (string.IsNullOrWhiteSpace(to))
             return;
@@ -193,6 +281,7 @@ public class StaffNotificationEmailService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to send {EmailType} email to {To}. Subject: {Subject}", emailType, to, subject);
+            if (throwOnError) throw;
         }
     }
 
