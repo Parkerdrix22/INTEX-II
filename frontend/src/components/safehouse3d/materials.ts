@@ -1,0 +1,15 @@
+export const safehousePalette = {
+  foundation: '#d7d5cf',
+  outerWall: '#f0eee8',
+  innerWall: '#f8f6f1',
+  roofTrim: '#8a7d6e',
+  woodLight: '#d6b188',
+  woodDark: '#8f6b49',
+  tile: '#d3ddd8',
+  bedFrame: '#5f5449',
+  bedding: '#cddceb',
+  metal: '#a8b4bf',
+  playMat: '#e4cfa5',
+  chalkboard: '#5f785c',
+  counter: '#b9b6ae',
+} as const;
