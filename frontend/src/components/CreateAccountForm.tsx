@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/useAuth';
 import { authApi } from '../lib/api';
 
 export type CreateAccountRole = 'Resident' | 'Donor' | 'Staff';
@@ -9,6 +11,8 @@ type CreateAccountFormProps = {
 };
 
 export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account' }: CreateAccountFormProps) {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -38,6 +42,12 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
         await authApi.register(firstName, lastName, email, password, role);
       }
 
+      if (!isAdmin) {
+        await login(email, password, true);
+        navigate('/', { replace: true });
+        return;
+      }
+
       setFirstName('');
       setLastName('');
       setEmail('');
@@ -46,9 +56,7 @@ export function CreateAccountForm({ isAdmin, submitButtonLabel = 'Create account
       setConfirmPassword('');
       setRole('Resident');
       setSuccess(
-        isAdmin
-          ? 'Account created. They can sign in with this email (or the custom login id if you set one) and the password you chose. If they use Google with the same email, they can link that after signing in once.'
-          : 'Account created. You can now sign in.',
+        'Account created. They can sign in with this email (or the custom login id if you set one) and the password you chose. If they use Google with the same email, they can link that after signing in once.',
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Signup failed.';
