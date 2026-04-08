@@ -1887,6 +1887,82 @@ a.auth-nav-pill--solo-login:focus-visible {
   font-size: 0.9rem;
 }
 
+/* Read-only detail card shown when a staff member clicks a row on the
+   standalone Process Recording / Home Visitation list pages. Shares the
+   modal chrome but renders a nicely formatted presentation instead of
+   an edit form. */
+.record-detail-card {
+  max-width: 42rem;
+}
+
+.record-detail-card__header {
+  border-bottom: 1px solid rgba(56, 95, 130, 0.15);
+  padding-bottom: 0.9rem;
+  margin-bottom: 1.1rem;
+}
+
+.record-detail-card__header h2 {
+  margin: 0.15rem 0 0.35rem;
+}
+
+.record-detail-card__eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  color: #a05b3a;
+  font-weight: 600;
+}
+
+.record-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.9rem 1.5rem;
+  margin: 0 0 1.2rem;
+}
+
+.record-detail-grid > div {
+  margin: 0;
+}
+
+.record-detail-grid dt {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  color: rgba(30, 44, 58, 0.6);
+  font-weight: 600;
+}
+
+.record-detail-grid dd {
+  margin: 0.2rem 0 0;
+  color: #1e2c3a;
+  font-size: 0.95rem;
+}
+
+.record-detail-card__section {
+  margin: 1.1rem 0;
+}
+
+.record-detail-card__section h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  color: #385f82;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.record-detail-card__prose {
+  margin: 0;
+  white-space: pre-wrap;
+  color: rgba(30, 44, 58, 0.88);
+  line-height: 1.55;
+  background: rgba(56, 95, 130, 0.05);
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border-left: 3px solid rgba(56, 95, 130, 0.35);
+}
+
 .caseload-pagination {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
