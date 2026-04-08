@@ -752,6 +752,13 @@ a.auth-nav-pill--solo-login:focus-visible {
   align-items: center;
 }
 
+.reports-summary-grid .stat-card {
+  min-height: 128px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .admin-dashboard-charts-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

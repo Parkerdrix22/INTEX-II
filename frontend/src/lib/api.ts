@@ -387,6 +387,42 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
+async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
+  const requestUrl = `${API_BASE_URL}${path}`;
+  let response: Response;
+  try {
+    response = await fetch(requestUrl, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+  } catch (error) {
+    if (error instanceof TypeError) {
+      const endpointHint = API_BASE_URL.length > 0 ? API_BASE_URL : 'this website';
+      throw new Error(
+        `Unable to reach the server at ${endpointHint}. If you are running locally, start the API and try again.`,
+      );
+    }
+    throw error;
+  }
+
+  if (!response.ok) {
+    const fallback = `Request failed with status ${response.status}`;
+    let message = fallback;
+    try {
+      const data = (await response.json()) as { message?: string; title?: string; detail?: string };
+      message = data.message ?? data.detail ?? data.title ?? fallback;
+    } catch {
+      message = fallback;
+    }
+    throw new Error(message);
+  }
+
+  const raw = await response.text();
+  if (!raw.trim()) return {} as T;
+  return JSON.parse(raw) as T;
+}
+
 export const authApi = {
   login: (login: string, password: string, rememberMe: boolean) =>
     apiFetch<LoginResponse>('/api/auth/login', {
@@ -1013,6 +1049,23 @@ export const donorImpactApi = {
 export const reportsAnalyticsApi = {
   dashboard: () =>
     apiFetch<ReportsAnalyticsDashboard>('/api/reports-analytics/dashboard', { method: 'GET' }),
+  annualReportInfo: () =>
+    apiFetch<{
+      exists: boolean;
+      downloadUrl: string | null;
+      updatedAtUtc: string | null;
+      fileSizeBytes: number;
+    }>('/api/reports-analytics/annual-report', { method: 'GET' }),
+  uploadAnnualReport: (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return apiUpload<{
+      message: string;
+      downloadUrl: string;
+      updatedAtUtc: string;
+      fileSizeBytes: number;
+    }>('/api/reports-analytics/annual-report', form);
+  },
 };
 
 export const publicApi = {
