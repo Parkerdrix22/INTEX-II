@@ -1,7 +1,7 @@
 {
   "pipeline_01_resident_risk": {
     "status": "success",
-    "trained_at": "2026-04-07T04:27:32.657429+00:00",
+    "trained_at": "2026-04-08T04:30:58.637414+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.9073,
       "cv_roc_auc_std": 0.0576,
@@ -24,7 +24,7 @@
   },
   "pipeline_02_donor_churn": {
     "status": "success",
-    "trained_at": "2026-04-07T21:31:49.645764+00:00",
+    "trained_at": "2026-04-08T04:31:11.664941+00:00",
     "metrics": {
       "roc_auc_mean": 0.68,
       "roc_auc_std": 0.186,
@@ -42,7 +42,7 @@
   },
   "pipeline_03_social_media": {
     "status": "success",
-    "trained_at": "2026-04-07T04:27:55.429123+00:00",
+    "trained_at": "2026-04-08T04:31:23.616714+00:00",
     "metrics": {
       "r2": 0.7576,
       "rmse": 0.028496,
@@ -55,28 +55,28 @@
   },
   "pipeline_04_safehouse_perf": {
     "status": "success",
-    "trained_at": "2026-04-07T04:28:09.410082+00:00",
+    "trained_at": "2026-04-08T04:31:38.020502+00:00",
     "metrics": {
       "rf": {
-        "rmse": 0.1628,
-        "mae": 0.1625,
+        "rmse": 0.1632,
+        "mae": 0.1629,
         "r2": 0.0,
         "baseline_rmse": 0.1072,
         "baseline_mae": 0.0115,
         "beats_naive_baseline": false,
-        "rmse_pct_of_baseline": 151.9,
+        "rmse_pct_of_baseline": 152.2,
         "n_test": 87,
         "model_type": "RandomForestRegressor",
         "onnx_verified": true
       },
       "lr": {
-        "rmse": 0.1152,
-        "mae": 0.0966,
+        "rmse": 0.1151,
+        "mae": 0.0965,
         "r2": 0.0,
         "baseline_rmse": 0.1072,
         "baseline_mae": 0.0115,
         "beats_naive_baseline": false,
-        "rmse_pct_of_baseline": 107.4,
+        "rmse_pct_of_baseline": 107.3,
         "n_test": 87,
         "model_type": "LinearRegression"
       },
@@ -87,7 +87,7 @@
   },
   "pipeline_05_impact_attribution": {
     "status": "success",
-    "trained_at": "2026-04-07T15:32:22.140432+00:00",
+    "trained_at": "2026-04-08T04:31:39.347528+00:00",
     "metrics": {
       "ols_health_r2": 0.5082,
       "ols_health_adj_r2": 0.4814,
@@ -117,28 +117,28 @@
   },
   "pipeline_04_safehouse_performance": {
     "status": "success",
-    "trained_at": "2026-04-07T04:28:09.408855+00:00",
+    "trained_at": "2026-04-08T04:31:38.019153+00:00",
     "metrics": {
       "rf": {
-        "rmse": 0.1628,
-        "mae": 0.1625,
+        "rmse": 0.1632,
+        "mae": 0.1629,
         "r2": 0.0,
         "baseline_rmse": 0.1072,
         "baseline_mae": 0.0115,
         "beats_naive_baseline": false,
-        "rmse_pct_of_baseline": 151.9,
+        "rmse_pct_of_baseline": 152.2,
         "n_test": 87,
         "model_type": "RandomForestRegressor",
         "onnx_verified": true
       },
       "lr": {
-        "rmse": 0.1152,
-        "mae": 0.0966,
+        "rmse": 0.1151,
+        "mae": 0.0965,
         "r2": 0.0,
         "baseline_rmse": 0.1072,
         "baseline_mae": 0.0115,
         "beats_naive_baseline": false,
-        "rmse_pct_of_baseline": 107.4,
+        "rmse_pct_of_baseline": 107.3,
         "n_test": 87,
         "model_type": "LinearRegression"
       },
@@ -149,29 +149,25 @@
   },
   "pipeline_06_reintegration_readiness": {
     "status": "success",
-    "trained_at": "2026-04-07T17:18:38.443101+00:00",
+    "trained_at": "2026-04-08T04:31:40.604822+00:00",
     "metrics": {
-      "lr_cv_roc_auc_mean": 0.3861,
-      "lr_cv_roc_auc_std": 0.1681,
-      "lr_cv_f1_mean": 0.2599,
-      "lr_cv_precision_mean": 0.231,
-      "lr_cv_recall_mean": 0.3333,
-      "rf_cv_roc_auc_mean": 0.4873,
-      "rf_cv_roc_auc_std": 0.0958,
-      "rf_cv_f1_mean": 0.261,
-      "rf_cv_precision_mean": 0.4,
-      "rf_cv_recall_mean": 0.2333,
-      "winning_model": "RandomForestClassifier",
+      "cv_roc_auc_mean": 0.7829,
+      "cv_roc_auc_std": 0.0779,
+      "cv_f1_mean": 0.4745,
+      "cv_precision_mean": 0.3857,
+      "cv_recall_mean": 0.65,
+      "winning_model": "LogisticRegression",
       "n_samples": 60,
       "n_positives": 19,
       "positive_class_pct": 31.67,
-      "n_features": 45,
-      "onnx_verified": true
+      "n_features": 8,
+      "onnx_verified": true,
+      "target": "case_status == 'Closed'"
     }
   },
   "pipeline_06_case_resolution": {
     "status": "success",
-    "trained_at": "2026-04-07T17:33:33.855218+00:00",
+    "trained_at": "2026-04-08T04:31:40.602537+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.7829,
       "cv_roc_auc_std": 0.0779,
@@ -189,14 +185,14 @@
   },
   "pipeline_07_donor_archetypes": {
     "status": "success",
-    "trained_at": "2026-04-07T18:20:30.272378+00:00",
+    "trained_at": "2026-04-08T04:31:40.999122+00:00",
     "metrics": {
-      "n_donors": 61,
+      "n_donors": 62,
       "n_clusters": 4,
-      "silhouette": 0.3268,
-      "inertia": 137.83,
+      "silhouette": 0.3021,
+      "inertia": 158.71,
       "cluster_sizes": [
-        12,
+        13,
         15,
         31,
         3
@@ -205,7 +201,7 @@
         "The Lapsed Faithful",
         "The Loyal Sustainers",
         "The Active Engaged",
-        "The New Sparks"
+        "The Active Engaged"
       ]
     }
   }
