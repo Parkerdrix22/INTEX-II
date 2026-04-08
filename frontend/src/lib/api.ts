@@ -707,9 +707,19 @@ export type AllocationPlan = {
   safehouseAllocations: SafehouseAllocation[];
 };
 
+export type DonationValuation = {
+  canonicalType: string;   // Monetary | Time | Skills | InKind | SocialMedia
+  impactUnit: string;      // hours | items | campaigns | USD
+  rawAmount: number;       // what the donor typed
+  estimatedValue: number;  // computed dollar equivalent
+  ratePerUnit: number;     // multiplier used
+  rateSource: string;      // human-readable source
+};
+
 export type CreateDonationResponse = {
   message: string;
   donationId: number;
+  valuation: DonationValuation;
   allocation: AllocationPlan;
 };
 

@@ -116,6 +116,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 builder.Services.AddScoped<IPasswordHasher<Lighthouse.API.Data.Entities.AppUser>, PasswordHasher<Lighthouse.API.Data.Entities.AppUser>>();
 builder.Services.AddScoped<Lighthouse.API.Services.IWebsiteChatService, Lighthouse.API.Services.AnthropicWebsiteChatService>();
 builder.Services.AddScoped<Lighthouse.API.Services.INeedBasedAllocationService, Lighthouse.API.Services.NeedBasedAllocationService>();
+builder.Services.AddScoped<Lighthouse.API.Services.IDonationValuationService, Lighthouse.API.Services.DonationValuationService>();
 
 var app = builder.Build();
 

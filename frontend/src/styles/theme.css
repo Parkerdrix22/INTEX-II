@@ -1246,6 +1246,36 @@ a.auth-nav-pill--solo-login:focus-visible {
   color: var(--text-muted);
 }
 
+.donation-type-helper {
+  margin: -0.35rem 0 0.85rem;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 0 0.1rem;
+}
+
+.allocation-plan-card__conversion {
+  margin: 0 0 0.7rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text);
+  background: rgba(201, 152, 63, 0.10);
+  border: 1px solid rgba(201, 152, 63, 0.25);
+  border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.allocation-plan-card__conversion-source {
+  display: block;
+  margin-top: 0.18rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-style: italic;
+  font-variant-numeric: normal;
+}
+
 .donor-history-table-wrap {
   overflow-x: auto;
   margin: 0 -0.15rem;
