@@ -110,6 +110,37 @@ export type HomeVisitation = {
   visitOutcome: string | null;
 };
 
+// Lean summary rows returned by the cross-resident list endpoints. Used by
+// the standalone /process-recording and /home-visitation staff pages.
+export type ProcessRecordingSummary = {
+  recordKey: string;
+  residentId: number;
+  residentLabel: string;
+  caseStatus: string | null;
+  sessionDate: string;
+  socialWorker: string | null;
+  sessionType: string;
+  emotionalStateObserved: string | null;
+  concernsFlagged: boolean | null;
+  progressNoted: boolean | null;
+  narrativePreview: string | null;
+};
+
+export type HomeVisitationSummary = {
+  recordKey: string;
+  residentId: number;
+  residentLabel: string;
+  caseStatus: string | null;
+  visitDate: string;
+  socialWorker: string | null;
+  visitType: string;
+  familyCooperationLevel: string | null;
+  safetyConcernsNoted: boolean | null;
+  followUpNeeded: boolean | null;
+  visitOutcome: string | null;
+  observationsPreview: string | null;
+};
+
 export type IncidentReport = {
   id: number;
   recordKey: string;
@@ -539,6 +570,12 @@ export const caseloadApi = {
     apiFetch<{ message: string }>(`/api/caseload/residents/${residentId}`, {
       method: 'DELETE',
     }),
+  // Cross-resident list — powers the standalone /process-recording page.
+  listAllProcessRecordings: () =>
+    apiFetch<ProcessRecordingSummary[]>(`/api/caseload/process-recordings`, { method: 'GET' }),
+  // Cross-resident list — powers the standalone /home-visitation page.
+  listAllHomeVisitations: () =>
+    apiFetch<HomeVisitationSummary[]>(`/api/caseload/home-visitations`, { method: 'GET' }),
   processRecordings: (residentId: number) =>
     apiFetch<ProcessRecording[]>(`/api/caseload/residents/${residentId}/process-recordings`, { method: 'GET' }),
   addProcessRecording: (
