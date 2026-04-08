@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useScrollReveal } from './hooks/useScrollReveal';
 import { useAuth } from './auth/useAuth';
+import { AdminStaffTwoFactorGate } from './auth/AdminStaffTwoFactorGate';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { CaseloadInventoryPage } from './pages/CaseloadInventoryPage';
@@ -53,8 +54,13 @@ function App() {
   const mainRef = useRef<HTMLElement>(null);
   const location = useLocation();
   useScrollReveal(mainRef, location.pathname);
-  const { isAuthenticated, logout, roles } = useAuth();
-  const accentNavRoutes = ['/profile'];
+  const { isAuthenticated, isLoading, logout, roles, twoFactorEnabled } = useAuth();
+  const needsProfileOnlyGate =
+    isAuthenticated &&
+    !isLoading &&
+    (roles.includes('Admin') || roles.includes('Staff')) &&
+    !twoFactorEnabled;
+  const accentNavRoutes = ['/impact', '/donor-dashboard', '/profile'];
   const useAccentNav = accentNavRoutes.includes(location.pathname);
   const isStaffLike = roles.includes('Admin') || roles.includes('Staff');
   const isDonor = roles.includes('Donor');
@@ -151,6 +157,9 @@ function App() {
           </>
         )}
         <main ref={mainRef} className="page-container">
+          {needsProfileOnlyGate && location.pathname !== '/profile' ? (
+            <Navigate to="/profile?requiresTwoFactorSetup=true#profile-security" replace />
+          ) : (
           <Routes>
           <Route path="/" element={<HomePage />} />
           <Route
@@ -297,12 +306,14 @@ function App() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          )}
         </main>
         <ChatWidget />
       </div>
       <NonBlockingErrorBoundary>
         <CookieConsentBanner />
       </NonBlockingErrorBoundary>
+      <AdminStaffTwoFactorGate />
     </div>
   );
 }

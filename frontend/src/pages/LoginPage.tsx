@@ -1,19 +1,26 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import { authApi } from '../lib/api';
 import backgroundImage from '../background.jpg?format=webp&quality=82&w=1920';
 
 export function LoginPage() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, refreshSession } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loginInput, setLoginInput] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [challengeToken, setChallengeToken] = useState<string | null>(null);
+  const [requiresTwoFactorSetup, setRequiresTwoFactorSetup] = useState(false);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [providers, setProviders] = useState<Array<{ name: string; displayName: string }>>([]);
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  /** When true, do not auto-redirect logged-in users away from /login until submit finishes (avoids racing profile redirect). */
+  const [blockAuthenticatedRedirect, setBlockAuthenticatedRedirect] = useState(false);
 
   useEffect(() => {
     document.body.classList.add('home-background');
@@ -46,17 +53,54 @@ export function LoginPage() {
     };
   }, []);
 
-  if (isAuthenticated) {
+  useEffect(() => {
+    const challengeFromQuery = searchParams.get('challengeToken');
+    const requiresSetupFromQuery = searchParams.get('requiresTwoFactorSetup');
+    const messageFromQuery = searchParams.get('message') ?? searchParams.get('externalError');
+
+    if (challengeFromQuery) {
+      setChallengeToken(challengeFromQuery);
+      setRequiresTwoFactorSetup(false);
+    }
+
+    if (requiresSetupFromQuery === 'true') {
+      setRequiresTwoFactorSetup(true);
+      setChallengeToken(null);
+    }
+
+    if (messageFromQuery) {
+      if (challengeFromQuery || requiresSetupFromQuery === 'true') {
+        setInfoMessage(messageFromQuery);
+      } else {
+        setError(messageFromQuery);
+      }
+    }
+  }, [searchParams]);
+
+  if (isAuthenticated && !blockAuthenticatedRedirect) {
     return <Navigate to="/" replace />;
   }
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
+    setInfoMessage(null);
     setSubmitting(true);
+    setBlockAuthenticatedRedirect(true);
 
     try {
-      await login(loginInput, password, rememberMe);
+      const result = await login(loginInput, password, rememberMe);
+      if (result.requiresTwoFactor && result.challengeToken) {
+        setChallengeToken(result.challengeToken);
+        setInfoMessage('Success, one more step: enter your authenticator code to finish signing in.');
+        return;
+      }
+
+      if (result.requiresTwoFactorSetup) {
+        navigate('/profile?requiresTwoFactorSetup=true#profile-security', { replace: true });
+        return;
+      }
+
       navigate('/', { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed.');
@@ -65,56 +109,118 @@ export function LoginPage() {
     }
   };
 
+  const onSubmitTwoFactor = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!challengeToken) return;
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      await authApi.twoFactorChallenge(challengeToken, twoFactorCode);
+      await refreshSession();
+      navigate('/', { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Two-factor verification failed.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <section className="auth-page">
+    <section className="auth-page kateri-landing-section">
       <article className="auth-card">
         <h1>Sign in</h1>
         <p className="auth-lead">
           Welcome back to Kateri. Donor and Resident users can sign up directly. Staff and Admin accounts are
           created by an administrator.
         </p>
-        <form onSubmit={onSubmit}>
-          <label>
-            Username or Email
-            <input
-              required
-              type="text"
-              value={loginInput}
-              onChange={(event) => setLoginInput(event.target.value)}
-            />
-          </label>
-          <label>
-            Password
-            <div className="password-input-wrapper">
+        {!challengeToken && (
+          <form onSubmit={onSubmit}>
+            <label>
+              Username or Email
               <input
                 required
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                type="text"
+                value={loginInput}
+                onChange={(event) => setLoginInput(event.target.value)}
               />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
-          </label>
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(event) => setRememberMe(event.target.checked)}
-            />
-            Keep me signed in
-          </label>
-          {error && <p className="error-text">{error}</p>}
-          <button type="submit" disabled={submitting}>
-            {submitting ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
+            </label>
+            <label>
+              Password
+              <div className="password-input-wrapper">
+                <input
+                  required
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(event) => setRememberMe(event.target.checked)}
+              />
+              Keep me signed in
+            </label>
+            {requiresTwoFactorSetup && (
+              <p className="auth-info-text" role="status">
+                Admin and Staff accounts must enable two-factor authentication. After you sign in with your password,
+                you will be taken to Profile to finish setup.
+              </p>
+            )}
+            {error && <p className="error-text">{error}</p>}
+            <button type="submit" disabled={submitting}>
+              {submitting ? 'Signing in...' : 'Sign in'}
+            </button>
+          </form>
+        )}
+        {challengeToken && (
+          <form onSubmit={onSubmitTwoFactor}>
+            <h2>Success, one more step</h2>
+            <p className="auth-lead">
+              Enter your 6-digit authenticator code, or a one-time recovery code (format{' '}
+              <strong>XXXXX-XXXXX</strong>). Use this same field for both.
+            </p>
+            {infoMessage && <p className="auth-info-text">{infoMessage}</p>}
+            <label>
+              Authenticator or recovery code
+              <input
+                required
+                type="text"
+                autoComplete="one-time-code"
+                inputMode="text"
+                value={twoFactorCode}
+                onChange={(event) => setTwoFactorCode(event.target.value)}
+                placeholder="123456 or XXXXX-XXXXX"
+              />
+            </label>
+            {error && <p className="error-text">{error}</p>}
+            <button type="submit" disabled={submitting}>
+              {submitting ? 'Verifying...' : 'Verify and sign in'}
+            </button>
+            <button
+              type="button"
+              className="profile-security-button profile-security-button--secondary login-2fa-back"
+              onClick={() => {
+                setChallengeToken(null);
+                setTwoFactorCode('');
+                setInfoMessage(null);
+              }}
+            >
+              Back to password login
+            </button>
+          </form>
+        )}
         {providers.length > 0 && (
           <div className="external-login-group">
             <p>Or continue with</p>

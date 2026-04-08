@@ -1,16 +1,106 @@
-import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import QRCode from 'qrcode';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { useAuth } from '../auth/useAuth';
-import { CreateAccountForm } from '../components/CreateAccountForm';
+import { AdminAdministratorsPanel } from '../components/AdminAdministratorsPanel';
+import { ManageableUsersPanel } from '../components/ManageableUsersPanel';
+import { authApi } from '../lib/api';
 
 export function ProfilePage() {
-  const { username, firstName, lastName, email, roles, profile, updateProfile, effectiveDisplayName } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const setupHintFromUrl = useRef(false);
+  const {
+    username,
+    firstName,
+    lastName,
+    email,
+    roles,
+    profile,
+    updateProfile,
+    effectiveDisplayName,
+    twoFactorEnabled,
+    recoveryCodesLeft,
+    refreshSession,
+  } = useAuth();
   const isAdmin = roles.includes('Admin');
+  const isStaff = roles.includes('Staff');
+  const requiresTwoFactor = isAdmin || isStaff;
   const [displayName, setDisplayName] = useState(profile.displayName);
   const [phone, setPhone] = useState(profile.phone);
   const [notes, setNotes] = useState(profile.notes);
   const [saved, setSaved] = useState(false);
+  const [setupKey, setSetupKey] = useState<string | null>(null);
+  const [setupUri, setSetupUri] = useState<string | null>(null);
+  const [setupCode, setSetupCode] = useState('');
+  const [setupQrCodeDataUrl, setSetupQrCodeDataUrl] = useState<string | null>(null);
+  const [securityMessage, setSecurityMessage] = useState<string | null>(null);
+  const [securityError, setSecurityError] = useState<string | null>(null);
+  const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
+
+  useEffect(() => {
+    setDisplayName(profile.displayName);
+    setPhone(profile.phone);
+    setNotes(profile.notes);
+  }, [profile.displayName, profile.phone, profile.notes]);
+
+  useEffect(() => {
+    if (setupHintFromUrl.current) {
+      return;
+    }
+    if (searchParams.get('requiresTwoFactorSetup') !== 'true') {
+      return;
+    }
+    setupHintFromUrl.current = true;
+    const msg = searchParams.get('message');
+    if (msg) {
+      setSecurityMessage(msg);
+    }
+    window.requestAnimationFrame(() => {
+      document.getElementById('profile-security')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('requiresTwoFactorSetup');
+        next.delete('message');
+        return next;
+      },
+      { replace: true },
+    );
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    let isDisposed = false;
+
+    const generateQrCode = async () => {
+      if (!setupUri || twoFactorEnabled) {
+        setSetupQrCodeDataUrl(null);
+        return;
+      }
+
+      try {
+        const dataUrl = await QRCode.toDataURL(setupUri, {
+          width: 220,
+          margin: 1,
+          errorCorrectionLevel: 'M',
+        });
+        if (!isDisposed) {
+          setSetupQrCodeDataUrl(dataUrl);
+        }
+      } catch {
+        if (!isDisposed) {
+          setSetupQrCodeDataUrl(null);
+        }
+      }
+    };
+
+    void generateQrCode();
+
+    return () => {
+      isDisposed = true;
+    };
+  }, [setupUri, twoFactorEnabled]);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -20,6 +110,63 @@ export function ProfilePage() {
   };
 
   const rolesLabel = roles.length > 0 ? roles.join(', ') : '—';
+
+  const startTwoFactorSetup = async () => {
+    setSecurityError(null);
+    setSecurityMessage(null);
+    try {
+      const setup = await authApi.twoFactorSetupStart();
+      setSetupKey(setup.sharedKey);
+      setSetupUri(setup.otpauthUri);
+      setRecoveryCodes([]);
+    } catch (err) {
+      setSecurityError(err instanceof Error ? err.message : 'Unable to start 2FA setup.');
+    }
+  };
+
+  const verifyTwoFactorSetup = async (event: FormEvent) => {
+    event.preventDefault();
+    setSecurityError(null);
+    setSecurityMessage(null);
+    try {
+      const result = await authApi.twoFactorSetupVerify(setupCode);
+      setRecoveryCodes(result.recoveryCodes);
+      setSetupCode('');
+      setSecurityMessage('Two-factor authentication enabled.');
+      await refreshSession();
+    } catch (err) {
+      setSecurityError(err instanceof Error ? err.message : 'Unable to verify authenticator code.');
+    }
+  };
+
+  const disableTwoFactor = async () => {
+    setSecurityError(null);
+    setSecurityMessage(null);
+    try {
+      const result = await authApi.twoFactorDisable();
+      setRecoveryCodes([]);
+      setSetupKey(null);
+      setSetupUri(null);
+      setSetupQrCodeDataUrl(null);
+      setSecurityMessage(result.message);
+      await refreshSession();
+    } catch (err) {
+      setSecurityError(err instanceof Error ? err.message : 'Unable to disable two-factor authentication.');
+    }
+  };
+
+  const regenerateRecoveryCodes = async () => {
+    setSecurityError(null);
+    setSecurityMessage(null);
+    try {
+      const result = await authApi.twoFactorRecoveryCodesRegenerate();
+      setRecoveryCodes(result.recoveryCodes);
+      setSecurityMessage(result.message);
+      await refreshSession();
+    } catch (err) {
+      setSecurityError(err instanceof Error ? err.message : 'Unable to regenerate recovery codes.');
+    }
+  };
 
   return (
     <section className="profile-page kateri-landing-section">
@@ -42,8 +189,8 @@ export function ProfilePage() {
               Edit profile
             </a>
             {isAdmin && (
-              <a className="btn-kateri-ghost" href="#admin-create-account">
-                Create accounts
+              <a className="btn-kateri-ghost" href="#admin-accounts-manage">
+                Manage accounts
               </a>
             )}
             <Link className="btn-kateri-ghost" to="/">
@@ -95,7 +242,7 @@ export function ProfilePage() {
             <input type="email" value={email ?? ''} readOnly disabled className="profile-field--readonly" />
           </label>
           <label>
-            Account username (read-only)
+            Sign-in id (read-only)
             <input
               type="text"
               value={username ?? ''}
@@ -113,6 +260,7 @@ export function ProfilePage() {
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
             />
+            <span className="field-helper-text">Optional.</span>
           </label>
           <label>
             Roles
@@ -132,14 +280,101 @@ export function ProfilePage() {
         </form>
       </article>
 
+      <article className="auth-card profile-security-card" id="profile-security">
+        <h2>Two-factor authentication</h2>
+        <p className="auth-lead">
+          {requiresTwoFactor
+            ? 'Your role requires 2FA. Complete setup to keep account access active.'
+            : '2FA is optional for your role, but strongly recommended.'}
+        </p>
+        <p className="auth-lead">
+          Status: <strong>{twoFactorEnabled ? 'Enabled' : 'Disabled'}</strong>
+          {twoFactorEnabled && ` • Recovery codes left: ${recoveryCodesLeft}`}
+        </p>
+        {!twoFactorEnabled && (
+          <button type="button" className="profile-security-button" onClick={() => void startTwoFactorSetup()}>
+            Start 2FA setup
+          </button>
+        )}
+        {setupUri && !twoFactorEnabled && (
+          <div className="profile-2fa-setup">
+            <p className="auth-lead">
+              Scan this QR code in your authenticator app, then enter the current 6-digit code to verify:
+            </p>
+            {setupQrCodeDataUrl && (
+              <img
+                className="profile-2fa-qr"
+                src={setupQrCodeDataUrl}
+                alt="QR code for two-factor authenticator setup"
+              />
+            )}
+            <code>{setupUri}</code>
+            <p className="auth-lead">Manual key: {setupKey}</p>
+            <form onSubmit={verifyTwoFactorSetup}>
+              <label>
+                Verification code
+                <input
+                  required
+                  type="text"
+                  value={setupCode}
+                  onChange={(event) => setSetupCode(event.target.value)}
+                  placeholder="123456"
+                />
+              </label>
+              <button type="submit">Verify and enable 2FA</button>
+            </form>
+          </div>
+        )}
+        {twoFactorEnabled && (
+          <div className="profile-2fa-actions">
+            <button type="button" className="profile-security-button" onClick={() => void regenerateRecoveryCodes()}>
+              Regenerate recovery codes
+            </button>
+            <button
+              type="button"
+              className="profile-security-button profile-security-button--secondary"
+              onClick={() => void disableTwoFactor()}
+            >
+              Disable 2FA
+            </button>
+          </div>
+        )}
+        {recoveryCodes.length > 0 && (
+          <div className="profile-2fa-codes">
+            <p className="auth-lead">
+              Save these recovery codes now. Each code can be used once.
+            </p>
+            <ul>
+              {recoveryCodes.map((code) => (
+                <li key={code}>
+                  <code>{code}</code>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {securityError && <p className="error-text">{securityError}</p>}
+        {securityMessage && <p className="success-text">{securityMessage}</p>}
+      </article>
+
       {isAdmin && (
-        <article className="auth-card profile-admin-create-card" id="admin-create-account">
-          <h2>Create accounts</h2>
+        <article className="auth-card profile-admin-create-card" id="admin-accounts-admins">
+          <h2>Administrators</h2>
           <p className="auth-lead">
-            Register new residents, donors, staff, or other admins. They can sign in as soon as the account
-            is created.
+            Demote an administrator to staff or donor. You cannot demote yourself or remove the last administrator.
           </p>
-          <CreateAccountForm isAdmin={true} submitButtonLabel="Create account" />
+          <AdminAdministratorsPanel />
+        </article>
+      )}
+      {isAdmin && (
+        <article className="auth-card profile-admin-create-card" id="admin-accounts-manage">
+          <h2>Residents, donors & staff</h2>
+          <p className="auth-lead">
+            Search and manage accounts. Use <strong>Add account</strong> to create a user, <strong>Edit</strong> to update
+            details, or <strong>Make admin</strong> on a donor to grant administrator access (they must enable 2FA on
+            their profile).
+          </p>
+          <ManageableUsersPanel />
         </article>
       )}
     </section>
