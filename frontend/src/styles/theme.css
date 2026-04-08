@@ -1868,6 +1868,18 @@ a.auth-nav-pill--solo-login:focus-visible {
   margin: 0.7rem 0 0;
 }
 
+/* Narrative/observation preview cells in the standalone process-recording
+   and home-visitation list pages. Keeps long text from blowing up row
+   height — the full text lives on the resident detail page anyway. */
+.caseload-narrative-cell {
+  max-width: 24rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(30, 44, 58, 0.75);
+  font-size: 0.9rem;
+}
+
 .caseload-pagination {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

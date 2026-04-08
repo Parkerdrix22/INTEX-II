@@ -666,6 +666,82 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         return Ok(new { message = "Incident report deleted." });
     }
 
+    // -------------------------------------------------------------------------
+    // GET /api/caseload/process-recordings
+    //   Cross-resident list of every process recording in the system, joined
+    //   with the residents table so the UI can show who each record belongs
+    //   to. Used by the standalone /process-recording staff page.
+    // -------------------------------------------------------------------------
+    [HttpGet("process-recordings")]
+    public async Task<IActionResult> GetAllProcessRecordings()
+    {
+        try
+        {
+            var rows = await dbContext.Database.SqlQueryRaw<ProcessRecordingSummaryRow>(
+                """
+                SELECT
+                    pr.ctid::text AS "RecordKey",
+                    pr.resident_id AS "ResidentId",
+                    COALESCE(r.case_control_no, 'R-' || pr.resident_id::text) AS "ResidentLabel",
+                    r.case_status AS "CaseStatus",
+                    pr.session_date AS "SessionDate",
+                    pr.social_worker AS "SocialWorker",
+                    pr.session_type AS "SessionType",
+                    pr.emotional_state_observed AS "EmotionalStateObserved",
+                    pr.concerns_flagged AS "ConcernsFlagged",
+                    pr.progress_noted AS "ProgressNoted",
+                    LEFT(COALESCE(pr.session_narrative, ''), 240) AS "NarrativePreview"
+                FROM lighthouse.process_recordings pr
+                LEFT JOIN lighthouse.residents r ON r.resident_id = pr.resident_id
+                ORDER BY pr.session_date DESC
+                """)
+                .ToListAsync();
+            return Ok(rows);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /api/caseload/home-visitations
+    //   Cross-resident list of every home visitation. Powers the standalone
+    //   /home-visitation staff page.
+    // -------------------------------------------------------------------------
+    [HttpGet("home-visitations")]
+    public async Task<IActionResult> GetAllHomeVisitations()
+    {
+        try
+        {
+            var rows = await dbContext.Database.SqlQueryRaw<HomeVisitationSummaryRow>(
+                """
+                SELECT
+                    hv.ctid::text AS "RecordKey",
+                    hv.resident_id AS "ResidentId",
+                    COALESCE(r.case_control_no, 'R-' || hv.resident_id::text) AS "ResidentLabel",
+                    r.case_status AS "CaseStatus",
+                    hv.visit_date AS "VisitDate",
+                    hv.social_worker AS "SocialWorker",
+                    hv.visit_type AS "VisitType",
+                    hv.family_cooperation_level AS "FamilyCooperationLevel",
+                    hv.safety_concerns_noted AS "SafetyConcernsNoted",
+                    hv.follow_up_needed AS "FollowUpNeeded",
+                    hv.visit_outcome AS "VisitOutcome",
+                    LEFT(COALESCE(hv.observations, ''), 240) AS "ObservationsPreview"
+                FROM lighthouse.home_visitations hv
+                LEFT JOIN lighthouse.residents r ON r.resident_id = hv.resident_id
+                ORDER BY hv.visit_date DESC
+                """)
+                .ToListAsync();
+            return Ok(rows);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
     [HttpGet("residents/{residentId:int}/process-recordings")]
     public async Task<IActionResult> GetProcessRecordings(int residentId)
     {
@@ -1279,6 +1355,41 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         public bool? FollowUpNeeded { get; set; }
         public string? FollowUpNotes { get; set; }
         public string? VisitOutcome { get; set; }
+    }
+
+    // DTOs for the cross-resident summary list endpoints. Deliberately leaner
+    // than the per-resident Row DTOs — the list views only need enough to
+    // identify the record, show a short preview, and link back to the
+    // resident detail page for the full form.
+    private sealed class ProcessRecordingSummaryRow
+    {
+        public string RecordKey { get; set; } = string.Empty;
+        public int ResidentId { get; set; }
+        public string ResidentLabel { get; set; } = string.Empty;
+        public string? CaseStatus { get; set; }
+        public DateTime SessionDate { get; set; }
+        public string? SocialWorker { get; set; }
+        public string SessionType { get; set; } = string.Empty;
+        public string? EmotionalStateObserved { get; set; }
+        public bool? ConcernsFlagged { get; set; }
+        public bool? ProgressNoted { get; set; }
+        public string? NarrativePreview { get; set; }
+    }
+
+    private sealed class HomeVisitationSummaryRow
+    {
+        public string RecordKey { get; set; } = string.Empty;
+        public int ResidentId { get; set; }
+        public string ResidentLabel { get; set; } = string.Empty;
+        public string? CaseStatus { get; set; }
+        public DateTime VisitDate { get; set; }
+        public string? SocialWorker { get; set; }
+        public string VisitType { get; set; } = string.Empty;
+        public string? FamilyCooperationLevel { get; set; }
+        public bool? SafetyConcernsNoted { get; set; }
+        public bool? FollowUpNeeded { get; set; }
+        public string? VisitOutcome { get; set; }
+        public string? ObservationsPreview { get; set; }
     }
 
     private sealed class IncidentReportRow
