@@ -27,6 +27,7 @@ import { ReportsAnalyticsPage } from './pages/ReportsAnalyticsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { CookiePolicyPage } from './pages/CookiePolicyPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { SafehouseTourPage } from './pages/SafehouseTourPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { StaffSidebar } from './components/StaffSidebar';
 import { ChatWidget } from './components/ChatWidget';
@@ -105,6 +106,9 @@ function App() {
             <Link className="nav-link" to="/impact">
               Our Impact
             </Link>
+            <Link className="nav-link" to="/safehouse-tour">
+              See the Safehouse
+            </Link>
             {(isDonor || isStaffLike) && (
               <Link className="nav-link" to="/donor-dashboard">
                 Donor Portal
@@ -171,6 +175,7 @@ function App() {
             }
           />
           <Route path="/impact" element={<ImpactDashboardPage />} />
+          <Route path="/safehouse-tour" element={<SafehouseTourPage />} />
           <Route
             path="/donor-churn"
             element={
