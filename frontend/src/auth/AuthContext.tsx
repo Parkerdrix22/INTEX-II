@@ -156,7 +156,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       refreshSession,
       logout: async () => {
-        await authApi.logout();
+        try {
+          await authApi.logout();
+        } catch {
+          // best-effort: clear client state regardless of server response
+        }
         setIsAuthenticated(false);
         setUsername(null);
         setFirstName(null);
