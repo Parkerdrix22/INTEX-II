@@ -3034,8 +3034,10 @@ a.auth-nav-pill--solo-login:focus-visible {
 }
 
 .home-page {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
+  min-height: calc(100vh - var(--site-header-height));
 }
 
 /* Match Donor/Impact: DM Sans body (global), Playfair for headings; script Kateri wordmark unchanged */
@@ -3327,6 +3329,7 @@ input[type='reset']:disabled {
 }
 
 .home-footer {
+  margin-top: auto;
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
