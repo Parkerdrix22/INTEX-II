@@ -1,26 +1,28 @@
 import { Link } from 'react-router-dom';
 import { useCookieConsent } from '../context/CookieConsentContext';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export function CookieConsentBanner() {
   const { hasAcknowledgedConsent, acceptAllCookies, acceptNecessaryCookies } = useCookieConsent();
+  const { t } = useLanguage();
 
   if (hasAcknowledgedConsent) {
     return null;
   }
 
   return (
-    <aside className="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie consent">
+    <aside className="cookie-banner" role="dialog" aria-live="polite" aria-label={t('cookieBanner.ariaLabel')}>
       <p>
-        Kateri uses essential cookies for authentication and security. If you accept all cookies, we also save your
-        theme preference in an optional browser cookie. You can review details in our{' '}
-        <Link to="/cookie-policy">Cookie Policy</Link>.
+        {t('cookieBanner.messageBefore')}
+        <Link to="/cookie-policy">{t('cookieBanner.messageLinkText')}</Link>
+        {t('cookieBanner.messageAfter')}
       </p>
       <div className="cookie-banner__actions">
         <button type="button" className="cookie-banner__button cookie-banner__button--ghost" onClick={acceptNecessaryCookies}>
-          Accept necessary only
+          {t('cookieBanner.acceptNecessary')}
         </button>
         <button type="button" className="cookie-banner__button" onClick={acceptAllCookies}>
-          Accept all cookies
+          {t('cookieBanner.acceptAll')}
         </button>
       </div>
     </aside>

@@ -3,8 +3,10 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import { authApi } from '../lib/api';
 import backgroundImage from '../background.jpg?format=webp&quality=82&w=1920';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export function LoginPage() {
+  const { t } = useLanguage();
   const { login, isAuthenticated, refreshSession } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -92,7 +94,7 @@ export function LoginPage() {
       const result = await login(loginInput, password, rememberMe);
       if (result.requiresTwoFactor && result.challengeToken) {
         setChallengeToken(result.challengeToken);
-        setInfoMessage('Success, one more step: enter your authenticator code to finish signing in.');
+        setInfoMessage(t('login.twoFactor.infoMessage'));
         return;
       }
 
@@ -103,7 +105,7 @@ export function LoginPage() {
 
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed.');
+      setError(err instanceof Error ? err.message : t('login.errors.loginFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -120,7 +122,7 @@ export function LoginPage() {
       await refreshSession();
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Two-factor verification failed.');
+      setError(err instanceof Error ? err.message : t('login.errors.twoFactorFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -129,15 +131,12 @@ export function LoginPage() {
   return (
     <section className="auth-page kateri-landing-section">
       <article className="auth-card">
-        <h1>Sign in</h1>
-        <p className="auth-lead">
-          Welcome back to Kateri. Donor and Resident users can sign up directly. Staff and Admin accounts are
-          created by an administrator.
-        </p>
+        <h1>{t('login.title')}</h1>
+        <p className="auth-lead">{t('login.lead')}</p>
         {!challengeToken && (
           <form onSubmit={onSubmit}>
             <label>
-              Username or Email
+              {t('login.form.usernameOrEmailLabel')}
               <input
                 required
                 type="text"
@@ -146,7 +145,7 @@ export function LoginPage() {
               />
             </label>
             <label>
-              Password
+              {t('login.form.passwordLabel')}
               <div className="password-input-wrapper">
                 <input
                   required
@@ -158,9 +157,9 @@ export function LoginPage() {
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? t('login.form.hidePasswordAria') : t('login.form.showPasswordAria')}
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {showPassword ? t('login.form.hidePassword') : t('login.form.showPassword')}
                 </button>
               </div>
             </label>
@@ -170,30 +169,26 @@ export function LoginPage() {
                 checked={rememberMe}
                 onChange={(event) => setRememberMe(event.target.checked)}
               />
-              Keep me signed in
+              {t('login.form.rememberMe')}
             </label>
             {requiresTwoFactorSetup && (
               <p className="auth-info-text" role="status">
-                Admin and Staff accounts must enable two-factor authentication. After you sign in with your password,
-                you will be taken to Profile to finish setup.
+                {t('login.twoFactor.requiresSetupNotice')}
               </p>
             )}
             {error && <p className="error-text">{error}</p>}
             <button type="submit" disabled={submitting}>
-              {submitting ? 'Signing in...' : 'Sign in'}
+              {submitting ? t('login.form.submitting') : t('login.form.submit')}
             </button>
           </form>
         )}
         {challengeToken && (
           <form onSubmit={onSubmitTwoFactor}>
-            <h2>Success, one more step</h2>
-            <p className="auth-lead">
-              Enter your 6-digit authenticator code, or a one-time recovery code (format{' '}
-              <strong>XXXXX-XXXXX</strong>). Use this same field for both.
-            </p>
+            <h2>{t('login.twoFactor.successHeading')}</h2>
+            <p className="auth-lead">{t('login.twoFactor.successLead')}</p>
             {infoMessage && <p className="auth-info-text">{infoMessage}</p>}
             <label>
-              Authenticator or recovery code
+              {t('login.twoFactor.codeLabel')}
               <input
                 required
                 type="text"
@@ -201,12 +196,12 @@ export function LoginPage() {
                 inputMode="text"
                 value={twoFactorCode}
                 onChange={(event) => setTwoFactorCode(event.target.value)}
-                placeholder="123456 or XXXXX-XXXXX"
+                placeholder={t('login.twoFactor.codePlaceholder')}
               />
             </label>
             {error && <p className="error-text">{error}</p>}
             <button type="submit" disabled={submitting}>
-              {submitting ? 'Verifying...' : 'Verify and sign in'}
+              {submitting ? t('login.twoFactor.verifying') : t('login.twoFactor.verifySubmit')}
             </button>
             <button
               type="button"
@@ -217,13 +212,13 @@ export function LoginPage() {
                 setInfoMessage(null);
               }}
             >
-              Back to password login
+              {t('login.twoFactor.backToPassword')}
             </button>
           </form>
         )}
         {providers.length > 0 && (
           <div className="external-login-group">
-            <p>Or continue with</p>
+            <p>{t('login.external.heading')}</p>
             {providers.map((provider) => (
               <button
                 key={provider.name}
@@ -263,7 +258,7 @@ export function LoginPage() {
                       </svg>
                     </span>
                   )}
-                  <span>{provider.name.toLowerCase() === 'google' ? 'Sign in with Google' : `Sign in with ${provider.displayName}`}</span>
+                  <span>{provider.name.toLowerCase() === 'google' ? t('login.external.google') : t('login.external.generic', { provider: provider.displayName })}</span>
                 </span>
               </button>
             ))}

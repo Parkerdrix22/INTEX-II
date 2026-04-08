@@ -14,6 +14,7 @@ import {
   YAxis,
 } from 'recharts';
 import './DonorImpactPage.css';
+import { useLanguage } from '../i18n/LanguageContext';
 
 // =============================================================================
 // API types — match the C# DonorImpactController DTOs
@@ -151,6 +152,7 @@ function prettyVar(v: string): string {
 // =============================================================================
 
 export function DonorImpactPage() {
+  const { t } = useLanguage();
   const [donors, setDonors] = useState<DonorBrief[]>([]);
   const [report, setReport] = useState<DonorImpactReport | null>(null);
   const [research, setResearch] = useState<ResearchContext | null>(null);
@@ -172,7 +174,7 @@ export function DonorImpactPage() {
           fetch('/api/donor-impact/model-info', { credentials: 'include' }),
         ]);
         if (!donorsRes.ok || !infoRes.ok) {
-          throw new Error('Failed to load donor data');
+          throw new Error(t('donorImpact.errors.failedLoadDonors'));
         }
         const donorList: DonorBrief[] = await donorsRes.json();
         setDonors(donorList);
@@ -189,7 +191,7 @@ export function DonorImpactPage() {
           setSelectedId(donorList[0].supporterId);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        setError(err instanceof Error ? err.message : t('common.error'));
       } finally {
         setLoading(false);
         setTimeout(() => setVisible(true), 60);
@@ -207,11 +209,11 @@ export function DonorImpactPage() {
         const res = await fetch(`/api/donor-impact/${selectedId}`, {
           credentials: 'include',
         });
-        if (!res.ok) throw new Error('Failed to load impact report');
+        if (!res.ok) throw new Error(t('donorImpact.errors.failedLoadReport'));
         const data: DonorImpactReport = await res.json();
         setReport(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        setError(err instanceof Error ? err.message : t('common.error'));
       } finally {
         setReportLoading(false);
       }
@@ -241,7 +243,7 @@ export function DonorImpactPage() {
     return (
       <div className="impact-loading">
         <div className="impact-spinner" />
-        <p>Loading donor impact data…</p>
+        <p>{t('donorImpact.loading')}</p>
       </div>
     );
   }
@@ -249,7 +251,7 @@ export function DonorImpactPage() {
   if (error) {
     return (
       <div className="impact-error">
-        <h2>Couldn’t load impact dashboard</h2>
+        <h2>{t('donorImpact.errors.couldntLoad')}</h2>
         <p>{error}</p>
       </div>
     );
@@ -259,22 +261,20 @@ export function DonorImpactPage() {
     <section className={`donor-impact-page ${visible ? 'is-visible' : ''}`}>
       {/* ─── Header ───────────────────────────────────────── */}
       <header className="impact-header">
-        <span className="impact-overline">Pipeline 5 · Donation Impact Attribution</span>
-        <h1 className="impact-title">Where your generosity goes</h1>
-        <p className="impact-subtitle">
-          Trace every dollar a donor has given through the safehouses they’ve funded — see the
-          residents reached, the programs supported, and the outcomes the data shows.
-        </p>
+        <span className="impact-overline">{t('donorImpact.overline')}</span>
+        <h1 className="impact-title">{t('donorImpact.title')}</h1>
+        <p className="impact-subtitle">{t('donorImpact.subtitle')}</p>
         {modelInfo && (
           <p className="impact-model-meta">
-            Trained on{' '}
-            <strong>{modelInfo.nObservations.toLocaleString()}</strong> safehouse-month
-            observations · OLS R² ={' '}
-            <strong>{(modelInfo.healthR2 * 100).toFixed(0)}%</strong> for health outcomes
+            {t('donorImpact.trainedOnPre')}{' '}
+            <strong>{modelInfo.nObservations.toLocaleString()}</strong>{' '}
+            {t('donorImpact.trainedOnMid')}{' '}
+            <strong>{(modelInfo.healthR2 * 100).toFixed(0)}%</strong>{' '}
+            {t('donorImpact.trainedOnSuffix')}
             {modelInfo.trainedAt && (
               <>
-                {' '}
-                · last refresh{' '}
+                {' · '}
+                {t('donorImpact.lastRefresh')}{' '}
                 {new Date(modelInfo.trainedAt).toLocaleDateString(undefined, {
                   dateStyle: 'medium',
                 })}
@@ -288,12 +288,12 @@ export function DonorImpactPage() {
         {/* ─── Left rail: donor selector ─────────────────────────── */}
         <aside className="impact-sidebar">
           <div className="impact-sidebar-head">
-            <h2>Choose a donor</h2>
+            <h2>{t('donorImpact.chooseDonor')}</h2>
             <span className="impact-sidebar-count">{filteredDonors.length}</span>
           </div>
           <input
             type="search"
-            placeholder="Search donors…"
+            placeholder={t('donorImpact.searchDonors')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="impact-search"
@@ -309,13 +309,13 @@ export function DonorImpactPage() {
                   onClick={() => setSelectedId(d.supporterId)}
                 >
                   <div className="impact-donor-card__top">
-                    <span className="impact-donor-name">{d.displayName || `Donor #${d.supporterId}`}</span>
+                    <span className="impact-donor-name">{d.displayName || `${t('donorImpact.donorPrefix')} #${d.supporterId}`}</span>
                     <span className="impact-donor-amount">{money.format(d.totalContributed)}</span>
                   </div>
                   <div className="impact-donor-card__meta">
-                    <span>{d.supporterType || 'Supporter'}</span>
+                    <span>{d.supporterType || t('donorImpact.supporter')}</span>
                     <span>·</span>
-                    <span>{d.donationCount} gifts</span>
+                    <span>{d.donationCount} {t('donorImpact.gifts')}</span>
                     {d.country && (
                       <>
                         <span>·</span>
@@ -327,7 +327,7 @@ export function DonorImpactPage() {
               </li>
             ))}
             {filteredDonors.length === 0 && (
-              <li className="impact-donor-empty">No donors match your search.</li>
+              <li className="impact-donor-empty">{t('donorImpact.noMatches')}</li>
             )}
           </ul>
         </aside>
@@ -345,9 +345,9 @@ export function DonorImpactPage() {
               {/* ── Donor hero ─────────────────────────── */}
               <div className="impact-report-hero">
                 <div className="impact-report-hero__text">
-                  <span className="impact-report-overline">Personal Impact Report</span>
+                  <span className="impact-report-overline">{t('donorImpact.personalReport')}</span>
                   <h2 className="impact-report-name">
-                    {report.displayName || `Donor #${report.supporterId}`}
+                    {report.displayName || `${t('donorImpact.donorPrefix')} #${report.supporterId}`}
                   </h2>
                   <p className="impact-report-subtitle">
                     {report.supporterType}
@@ -356,16 +356,16 @@ export function DonorImpactPage() {
                   </p>
                 </div>
                 <div className="impact-report-hero__total">
-                  <span className="impact-hero-total-label">Total Contributed</span>
+                  <span className="impact-hero-total-label">{t('donorImpact.totalContributed')}</span>
                   <span className="impact-hero-total-amount">
                     {moneyDecimal.format(report.totalContributed)}
                   </span>
                   <span className="impact-hero-total-meta">
-                    {report.donationCount} gift{report.donationCount === 1 ? '' : 's'}
+                    {report.donationCount} {report.donationCount === 1 ? t('donorImpact.gift') : t('donorImpact.gifts')}
                     {report.firstDonationDate && (
                       <>
                         {' '}
-                        since{' '}
+                        {t('donorImpact.since')}{' '}
                         {new Date(report.firstDonationDate).toLocaleDateString(undefined, {
                           dateStyle: 'medium',
                         })}
@@ -378,7 +378,7 @@ export function DonorImpactPage() {
               {/* ── Stat cards ─────────────────────────── */}
               <div className="impact-stat-grid">
                 <StatCard
-                  label="Safehouses Supported"
+                  label={t('donorImpact.stat.safehousesSupported')}
                   value={report.safehousesSupported.length.toString()}
                   caption={
                     report.safehousesSupported.length > 0
@@ -386,35 +386,35 @@ export function DonorImpactPage() {
                           .slice(0, 2)
                           .map((s) => s.name)
                           .join(', ') +
-                        (report.safehousesSupported.length > 2 ? ` +${report.safehousesSupported.length - 2} more` : '')
-                      : 'No allocations yet'
+                        (report.safehousesSupported.length > 2 ? ` +${report.safehousesSupported.length - 2} ${t('donorImpact.more')}` : '')
+                      : t('donorImpact.stat.noAllocations')
                   }
                 />
                 <StatCard
-                  label="Residents in care (avg)"
+                  label={t('donorImpact.stat.residentsInCare')}
                   value={
                     report.avgActiveResidents != null
                       ? Math.round(report.avgActiveResidents).toString()
                       : '—'
                   }
-                  caption="At funded safehouses, during your support period"
+                  caption={t('donorImpact.stat.residentsCaption')}
                 />
                 <StatCard
-                  label="Education Progress"
+                  label={t('donorImpact.stat.educationProgress')}
                   value={
                     report.avgEducationProgress != null
                       ? `${report.avgEducationProgress.toFixed(0)}%`
                       : '—'
                   }
-                  caption="Avg progress at funded safehouses"
+                  caption={t('donorImpact.stat.educationCaption')}
                   accent
                 />
                 <StatCard
-                  label="Health Score (avg)"
+                  label={t('donorImpact.stat.healthScore')}
                   value={
                     report.avgHealthScore != null ? `${report.avgHealthScore.toFixed(1)} / 5` : '—'
                   }
-                  caption="Resident wellbeing at funded safehouses"
+                  caption={t('donorImpact.stat.healthCaption')}
                 />
               </div>
 
@@ -423,8 +423,8 @@ export function DonorImpactPage() {
                 {/* Donut: program area allocation */}
                 <article className="impact-chart-card">
                   <header>
-                    <h3>Where your dollars go</h3>
-                    <p>Breakdown by program area</p>
+                    <h3>{t('donorImpact.whereDollarsGo')}</h3>
+                    <p>{t('donorImpact.breakdownByArea')}</p>
                   </header>
                   {report.programAreaBreakdown.length > 0 ? (
                     <div className="impact-chart-wrap">
@@ -471,15 +471,15 @@ export function DonorImpactPage() {
                       </ResponsiveContainer>
                     </div>
                   ) : (
-                    <p className="impact-empty">No program-area allocation data yet.</p>
+                    <p className="impact-empty">{t('donorImpact.empty.programArea')}</p>
                   )}
                 </article>
 
                 {/* Line: monthly contribution timeline */}
                 <article className="impact-chart-card">
                   <header>
-                    <h3>Your giving over time</h3>
-                    <p>Monthly contribution timeline</p>
+                    <h3>{t('donorImpact.givingOverTime')}</h3>
+                    <p>{t('donorImpact.monthlyTimeline')}</p>
                   </header>
                   {report.monthlyTimeline.length > 0 ? (
                     <div className="impact-chart-wrap">
@@ -501,7 +501,7 @@ export function DonorImpactPage() {
                               typeof label === 'string' ? formatMonthLabel(label) : String(label ?? '')) as never}
                             formatter={((value: unknown) => {
                               const num = typeof value === 'number' ? value : Number(value ?? 0);
-                              return [moneyDecimal.format(num), 'Contributed'];
+                              return [moneyDecimal.format(num), t('donorImpact.contributed')];
                             }) as never}
                             contentStyle={{
                               background: 'rgba(255,253,247,0.96)',
@@ -522,7 +522,7 @@ export function DonorImpactPage() {
                       </ResponsiveContainer>
                     </div>
                   ) : (
-                    <p className="impact-empty">No timeline data.</p>
+                    <p className="impact-empty">{t('donorImpact.empty.timelineShort')}</p>
                   )}
                 </article>
               </div>
@@ -531,8 +531,8 @@ export function DonorImpactPage() {
               {report.safehousesSupported.length > 0 && (
                 <article className="impact-chart-card impact-chart-card--wide">
                   <header>
-                    <h3>Safehouses you’ve funded</h3>
-                    <p>Total allocated by safehouse</p>
+                    <h3>{t('donorImpact.safehousesFunded')}</h3>
+                    <p>{t('donorImpact.totalAllocatedBySafehouse')}</p>
                   </header>
                   <div className="impact-chart-wrap">
                     <ResponsiveContainer width="100%" height={Math.max(200, report.safehousesSupported.length * 42)}>
@@ -557,7 +557,7 @@ export function DonorImpactPage() {
                         <Tooltip
                           formatter={((value: unknown) => {
                             const num = typeof value === 'number' ? value : Number(value ?? 0);
-                            return [moneyDecimal.format(num), 'Allocated'];
+                            return [moneyDecimal.format(num), t('donorImpact.allocated')];
                           }) as never}
                           labelFormatter={((label: unknown, payload: Array<{ payload?: SafehouseSummary }>) => {
                             const p = payload?.[0]?.payload;
@@ -582,37 +582,35 @@ export function DonorImpactPage() {
               {research && significantHealthFindings.length > 0 && (
                 <article className="impact-research-card">
                   <header>
-                    <span className="impact-research-overline">📊 What the data shows</span>
-                    <h3>Research-backed context</h3>
+                    <span className="impact-research-overline">{t('donorImpact.research.overline')}</span>
+                    <h3>{t('donorImpact.research.heading')}</h3>
                     <p>
-                      Based on {research.health.n_obs} safehouse-month observations, our OLS model
-                      explains {(research.health.r_squared * 100).toFixed(0)}% of the variance in
-                      resident health scores.
+                      {t('donorImpact.research.basedOnPre')} {research.health.n_obs}{' '}
+                      {t('donorImpact.research.basedOnMidOls')}{' '}
+                      {(research.health.r_squared * 100).toFixed(0)}%{' '}
+                      {t('donorImpact.research.basedOnSuffix')}
                     </p>
                   </header>
                   <ul className="impact-research-list">
                     {significantHealthFindings.slice(0, 3).map((c) => {
-                      const direction = c.coef > 0 ? 'increase' : 'decrease';
+                      const direction = c.coef > 0 ? t('donorImpact.research.increase') : t('donorImpact.research.decrease');
                       const magnitude = Math.abs(c.coef * 1000);
                       const sig =
                         c.p_value < 0.01
-                          ? 'highly significant (p < 0.01)'
+                          ? t('donorImpact.research.highlySig')
                           : c.p_value < 0.05
-                            ? 'significant (p < 0.05)'
-                            : 'marginally significant (p < 0.10)';
+                            ? t('donorImpact.research.sig')
+                            : t('donorImpact.research.marginalSig');
                       return (
                         <li key={c.variable}>
-                          <strong>{prettyVar(c.variable)}:</strong> Each $1,000 is associated with
-                          a {magnitude.toFixed(3)}-point {direction} in average health score (
-                          {sig}).
+                          <strong>{prettyVar(c.variable)}:</strong> {t('donorImpact.research.each1000Pre')}{' '}
+                          {magnitude.toFixed(3)}{t('donorImpact.research.each1000Mid')} {direction}{' '}
+                          {t('donorImpact.research.each1000Suffix')} ({sig}).
                         </li>
                       );
                     })}
                   </ul>
-                  <p className="impact-research-disclaimer">
-                    Statistical association — not causal. Many factors influence resident outcomes
-                    beyond donations.
-                  </p>
+                  <p className="impact-research-disclaimer">{t('donorImpact.research.disclaimer')}</p>
                 </article>
               )}
 
@@ -624,7 +622,7 @@ export function DonorImpactPage() {
 
           {!report && !reportLoading && (
             <div className="impact-report-empty">
-              <p>Select a donor on the left to see their personalized impact report.</p>
+              <p>{t('donorImpact.selectPrompt')}</p>
             </div>
           )}
         </div>

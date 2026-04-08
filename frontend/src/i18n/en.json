@@ -1,0 +1,434 @@
+{
+  "nav": {
+    "brand": "Kateri",
+    "staffMenu": "Staff menu",
+    "ourImpact": "Our Impact",
+    "safehouseTour": "See the Safehouse",
+    "donorPortal": "Donor Portal",
+    "residentDashboard": "Resident Dashboard",
+    "login": "Login",
+    "signup": "Sign up",
+    "logout": "Logout",
+    "profile": "Profile"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong.",
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "back": "Back",
+    "language.en": "English",
+    "language.nv": "Diné",
+    "language.toggleLabel": "Language",
+    "language.mtDisclaimer": "Diné bizaad translations are machine-generated and pending native-speaker review."
+  },
+  "home": {
+    "heroTitle": "Safety, healing, and a path forward for every girl we serve.",
+    "heroCopy": "Kateri provides safe housing, counseling, and reintegration support for girls, with a focused commitment to Native American communities.",
+    "cta": {
+      "support": "Support Kateri",
+      "viewImpact": "View Our Impact"
+    },
+    "stat": {
+      "safehomes": "Safehomes Supported",
+      "activeCases": "Active Resident Cases",
+      "partners": "Community Partners"
+    },
+    "serve": {
+      "heading": "How Kateri serves",
+      "protect": {
+        "title": "Protect:",
+        "body": "Provide immediate safety through secure housing and coordinated case management."
+      },
+      "restore": {
+        "title": "Restore:",
+        "body": "Support healing through counseling, education, and individualized interventions."
+      },
+      "reintegrate": {
+        "title": "Reintegrate:",
+        "body": "Prepare residents for long-term success through family engagement and reintegration planning."
+      }
+    },
+    "sistersAlt": "Three sisters sitting together in a sunlit field.",
+    "name": {
+      "heading": "Why the name Kateri?",
+      "body": "The organization is named in honor of Saint Kateri Tekakwitha, widely recognized as the first Native American saint. The name reflects a commitment to dignity, resilience, and culturally respectful care for the communities Kateri serves.",
+      "portraitAlt": "Portrait of Kateri Tekakwitha in golden grasses."
+    },
+    "contact": {
+      "heading": "Contact Us",
+      "body": "Reach out to learn more about Kateri, partnership opportunities, and ways to support our mission.",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "privacyPolicy": "Privacy Policy",
+      "cookiePolicy": "Cookie Policy"
+    }
+  },
+  "login": {
+    "title": "Sign in",
+    "lead": "Welcome back to Kateri. Donor and Resident users can sign up directly. Staff and Admin accounts are created by an administrator.",
+    "form": {
+      "usernameOrEmailLabel": "Username or Email",
+      "passwordLabel": "Password",
+      "showPassword": "Show",
+      "hidePassword": "Hide",
+      "showPasswordAria": "Show password",
+      "hidePasswordAria": "Hide password",
+      "rememberMe": "Keep me signed in",
+      "submit": "Sign in",
+      "submitting": "Signing in..."
+    },
+    "twoFactor": {
+      "requiresSetupNotice": "Admin and Staff accounts must enable two-factor authentication. After you sign in with your password, you will be taken to Profile to finish setup.",
+      "successHeading": "Success, one more step",
+      "successLead": "Enter your 6-digit authenticator code, or a one-time recovery code (format XXXXX-XXXXX). Use this same field for both.",
+      "codeLabel": "Authenticator or recovery code",
+      "codePlaceholder": "123456 or XXXXX-XXXXX",
+      "verifySubmit": "Verify and sign in",
+      "verifying": "Verifying...",
+      "backToPassword": "Back to password login",
+      "infoMessage": "Success, one more step: enter your authenticator code to finish signing in."
+    },
+    "errors": {
+      "loginFailed": "Login failed.",
+      "twoFactorFailed": "Two-factor verification failed."
+    },
+    "external": {
+      "heading": "Or continue with",
+      "google": "Sign in with Google",
+      "generic": "Sign in with {provider}"
+    }
+  },
+  "signup": {
+    "title": "Create account",
+    "lead": "New users can sign up as Donor or Resident. Staff and Admin accounts are created by administrators.",
+    "submitLabel": "Create account",
+    "external": {
+      "heading": "Or continue with",
+      "google": "Create account with Google",
+      "generic": "Create account with {provider}"
+    }
+  },
+  "privacy": {
+    "heading": "Privacy Policy",
+    "body": "Kateri collects personal data needed to operate resident support workflows, donor reporting, and secure account access. This includes account identifiers, contact details, donation records, and authorized operational case information.\n\nWe process data for service delivery, safeguarding, recordkeeping, and security. We do not sell personal data. Access is limited through role-based permissions and authenticated sessions.\n\nData may be retained only as long as needed for operational, legal, and safeguarding requirements. When retention periods expire, records are deleted or anonymized where feasible.\n\nYou may request access, correction, or deletion of your personal data, and you may ask questions about processing or consent choices. Contact support to submit requests so the team can respond according to applicable privacy obligations.\n\nCookie and consent details are documented in the Cookie Policy. Essential security cookies are required for protected areas, while optional preferences can be managed through the cookie banner.\n\nLast updated: April 2026."
+  },
+  "cookiePolicy": {
+    "heading": "Cookie Policy",
+    "body": "Kateri uses essential cookies to keep users signed in, protect account sessions, and maintain secure site behavior. These cookies are required for authentication and cannot be disabled while using protected features.\n\nYou can choose between accepting all cookies or accepting necessary cookies only. Necessary cookies support login, session continuity, and security controls. Optional cookies will only be enabled when accepted.\n\nLast updated: April 2026."
+  },
+  "cookieBanner": {
+    "ariaLabel": "Cookie consent",
+    "messageBefore": "Kateri uses essential cookies for authentication and security. You can review details in our ",
+    "messageLinkText": "Cookie Policy",
+    "messageAfter": ".",
+    "acceptNecessary": "Accept necessary only",
+    "acceptAll": "Accept all cookies"
+  },
+  "unauthorized": {
+    "heading": "Unauthorized",
+    "body": "You do not have permission to view this page."
+  },
+  "impact": {
+    "heading": "Our Impact",
+    "lead": "Kateri measures impact through protection, recovery, justice support, and long-term empowerment for girls and their families.",
+    "cta": {
+      "support": "Support Kateri",
+      "backHome": "Back to home"
+    },
+    "kpi": {
+      "activeResidents": "Active Residents",
+      "counselingSessions": "Counseling Sessions Funded",
+      "reintegrationRate": "School Reintegration Rate"
+    },
+    "health": {
+      "heading": "Health & Well-being Impact",
+      "subtitle": "Residents showing score improvement over time",
+      "improvedSummary": "{percent}% improved from first to latest check.",
+      "basis": "Based on residents with 2+ health records.",
+      "progressAria": "{percent} percent of residents improved"
+    },
+    "pillars": {
+      "safety": {
+        "title": "Safety",
+        "description": "Safety is the first step of healing. Kateri focuses on immediate protection and stable support so every girl can begin recovery in a secure environment."
+      },
+      "healing": {
+        "title": "Healing",
+        "description": "After safety is established, healing can begin. We support emotional recovery through counseling, mentorship, and consistent care."
+      },
+      "justice": {
+        "title": "Justice",
+        "description": "Kateri does not pressure decisions about legal action. We support each girl in pursuing the path of justice that is right for her."
+      },
+      "empowerment": {
+        "title": "Empowerment",
+        "description": "Our goal is to help girls move from victimhood to leadership and advocacy through life skills, education, and confidence-building opportunities."
+      }
+    }
+  },
+  "safehouse": {
+    "heading": "See the Safehouse",
+    "lead": "Explore a modeled safehouse layout featuring bedrooms, bathrooms, a kitchen, a playroom, and a learning room. Drag to rotate and pinch or scroll to zoom.",
+    "modelAria": "Interactive 3D dollhouse model",
+    "noWebgl": "Your browser does not support WebGL, so the 3D model cannot load here. Try a modern browser version on desktop or mobile.",
+    "summaryAria": "Safehouse summary",
+    "insideHeading": "Inside this model",
+    "insideBody": "This concept house includes 10 bedrooms with two bunk-bed sets in each room, 5 bathrooms, central circulation space, and shared areas for meals, play, and learning. The design is intentionally simple to spotlight capacity, flow, and a warm environment for residents."
+  },
+  "donorImpact": {
+    "loading": "Loading donor impact data…",
+    "overline": "Pipeline 5 · Donation Impact Attribution",
+    "title": "Where your generosity goes",
+    "subtitle": "Trace every dollar a donor has given through the safehouses they've funded — see the residents reached, the programs supported, and the outcomes the data shows.",
+    "trainedOnPre": "Trained on",
+    "trainedOnMid": "safehouse-month observations · OLS R² =",
+    "trainedOnSuffix": "for health outcomes",
+    "lastRefresh": "last refresh",
+    "chooseDonor": "Choose a donor",
+    "searchDonors": "Search donors…",
+    "donorPrefix": "Donor",
+    "supporter": "Supporter",
+    "gift": "gift",
+    "gifts": "gifts",
+    "noMatches": "No donors match your search.",
+    "personalReport": "Personal Impact Report",
+    "totalContributed": "Total Contributed",
+    "since": "since",
+    "more": "more",
+    "selectPrompt": "Select a donor on the left to see their personalized impact report.",
+    "whereDollarsGo": "Where your dollars go",
+    "breakdownByArea": "Breakdown by program area",
+    "givingOverTime": "Your giving over time",
+    "monthlyTimeline": "Monthly contribution timeline",
+    "contributed": "Contributed",
+    "allocated": "Allocated",
+    "safehousesFunded": "Safehouses you've funded",
+    "totalAllocatedBySafehouse": "Total allocated by safehouse",
+    "stat": {
+      "safehousesSupported": "Safehouses Supported",
+      "noAllocations": "No allocations yet",
+      "residentsInCare": "Residents in care (avg)",
+      "residentsCaption": "At funded safehouses, during your support period",
+      "educationProgress": "Education Progress",
+      "educationCaption": "Avg progress at funded safehouses",
+      "healthScore": "Health Score (avg)",
+      "healthCaption": "Resident wellbeing at funded safehouses"
+    },
+    "empty": {
+      "programArea": "No program-area allocation data yet.",
+      "timeline": "No timeline data yet.",
+      "timelineShort": "No timeline data."
+    },
+    "research": {
+      "overline": "📊 What the data shows",
+      "heading": "Research-backed context",
+      "basedOnPre": "Based on",
+      "basedOnMid": "safehouse-month observations, our model explains",
+      "basedOnMidOls": "safehouse-month observations, our OLS model explains",
+      "basedOnSuffix": "of the variance in resident health scores.",
+      "increase": "increase",
+      "decrease": "decrease",
+      "highlySig": "highly significant (p < 0.01)",
+      "sig": "significant (p < 0.05)",
+      "marginalSig": "marginally significant (p < 0.10)",
+      "each1000Pre": "Each $1,000 is associated with a",
+      "each1000Mid": "-point",
+      "each1000Suffix": "in average health score",
+      "disclaimer": "Statistical association — not causal. Many factors influence resident outcomes beyond donations."
+    },
+    "errors": {
+      "failedLoadDonors": "Failed to load donor data",
+      "failedLoadReport": "Failed to load impact report",
+      "couldntLoad": "Couldn't load impact dashboard"
+    }
+  },
+  "myImpact": {
+    "loading": "Loading your impact report…",
+    "backToDashboard": "← Back to dashboard",
+    "backToDashboardArrow": "← Back to your dashboard",
+    "overline": "Your Personal Impact Report",
+    "title": "Where your generosity goes",
+    "subtitle": "Trace every dollar you've given through the safehouses you've funded — see the residents reached, the programs supported, and the outcomes the data shows.",
+    "poweredByPre": "Powered by",
+    "poweredByMid": "safehouse-month observations · OLS R² =",
+    "poweredBySuffix": "for health outcomes",
+    "lastRefresh": "last refresh",
+    "noDonations": "You haven't made any donations yet.",
+    "makeFirstGift": "Make your first gift →",
+    "errors": {
+      "notLinked": "Your account is not linked to a donor profile yet. Contact us to connect your giving record.",
+      "failedLoad": "Failed to load your impact report",
+      "couldntLoad": "Couldn't load your impact report"
+    }
+  },
+  "profile": {
+    "heroTitle": "Your profile",
+    "signedInAs": "Signed in as",
+    "updateLead": "Update how Kateri should address you and your contact details below.",
+    "updateLeadShort": "Update how Kateri should address you and your contact details.",
+    "editProfile": "Edit profile",
+    "manageAccounts": "Manage accounts",
+    "backHome": "Back to home",
+    "information": "Profile information",
+    "informationLead": "Changes are saved on this device and applied across the app for your account. Your first name and last name come from your login and are not editable here.",
+    "yourName": "Your name",
+    "saveButton": "Save profile",
+    "savedFull": "Profile and account details saved.",
+    "savedShort": "Profile saved.",
+    "field": {
+      "displayName": "Display name",
+      "firstNameRO": "First name (read-only)",
+      "lastNameRO": "Last name (read-only)",
+      "signInId": "Sign-in ID (username)",
+      "signInIdPlaceholder": "username or email",
+      "signInIdHelper": "Letters, numbers, and . _ @ + - only. You can also sign in with your email.",
+      "currentPasswordUsername": "Current password (required to change sign-in ID)",
+      "currentPasswordEmail": "Current password (required to change email)",
+      "currentPasswordPlaceholder": "Your current password",
+      "email": "Email",
+      "phone": "Phone",
+      "optional": "Optional",
+      "roles": "Roles",
+      "notes": "Notes for staff (optional)",
+      "notesPlaceholder": "Anything you would like your coordinator to know — availability, preferences, etc."
+    },
+    "twoFactor": {
+      "heading": "Two-factor authentication"
+    },
+    "admin": {
+      "administratorsHeading": "Administrators",
+      "administratorsLead": "Demote an administrator to staff or donor. You cannot demote yourself or remove the last administrator.",
+      "manageHeading": "Residents, donors & staff",
+      "manageLead": "Search and manage accounts. Use Add account to create a user, Edit to update details, or Make admin on a donor to grant administrator access (they must enable 2FA on their profile)."
+    }
+  },
+  "donorDashboard": {
+    "defaultVolunteerName": "user",
+    "welcomeBack": "Welcome back",
+    "donorPortal": "Donor Portal",
+    "heroLead": "Your support helps provide safe housing, counseling, education, and reintegration services for the girls in Kateri's care.",
+    "makeDonation": "Make a donation",
+    "viewOurImpact": "View Our Impact",
+    "givingOverview": "Your giving overview",
+    "seeFullReport": "See full impact report →",
+    "loadingHistory": "Loading your giving history…",
+    "noDonationsYet": "You haven't made any donations yet. Use the form below to make your first gift!",
+    "realImpactLead": "Here's the real impact of your support — pulled directly from your linked giving record.",
+    "totalContributed": "Total contributed",
+    "overGivingPre": "over",
+    "overGivingSuffix": "of giving",
+    "giftsOnRecord": "Gifts on record",
+    "lastGift": "last gift",
+    "safehousesYouFund": "Safehouses you fund",
+    "incl": "incl.",
+    "topProgramArea": "Top program area",
+    "whereDollarsGo": "Where your dollars go",
+    "outcomesHeading": "Outcomes at your funded safehouses",
+    "avgHealthScore": "Avg health score",
+    "avgEducationProgress": "Avg education progress",
+    "residentsInCare": "Residents in care",
+    "month": "month",
+    "months": "months",
+    "year": "year",
+    "years": "years",
+    "howHelpHeading": "How donations help",
+    "help25": "helps cover school supplies and basic learning materials.",
+    "help50": "supports transportation and case follow-up visits.",
+    "help100": "funds meals, hygiene, and daily care essentials.",
+    "help250": "helps provide professional counseling and trauma-informed support.",
+    "donateHeading": "Donate",
+    "donateLead": "Choose how you'd like to give. Cash, volunteer time, or skilled work — all are automatically routed to safehouses with the greatest current need in your chosen program area. (To donate physical goods, use the In-kind form on the right.)",
+    "currencyLabel": "Currency",
+    "howThisWorks": "how this works",
+    "transparencyPre": "Your gift is automatically routed to the safehouses with the greatest current need in",
+    "transparencyMid": "using a data-driven need score",
+    "transparencySuffix": "10% goes to our General Operating Fund and 5% to a Rainy Day Reserve; the remaining 85% is split across the top 2 most-needy safehouses.",
+    "submitting": "Submitting…",
+    "submitDonation": "Submit donation",
+    "submitGoods": "Submit goods pledge",
+    "submitVolunteer": "Submit volunteer interest",
+    "donateGoodsHeading": "Donate goods",
+    "donateGoodsLead": "Tell us what you would like to give. Fields match our in-kind data: category, quantity, unit, total estimated value, intended use, and condition. Value currency is the same as in the monetary section above",
+    "volunteerHeading": "Volunteer sign-up",
+    "volunteerLead": "Tell us how you would like to help the girls.",
+    "field": {
+      "donationType": "Donation type",
+      "whereShouldGo": "Where should your gift go?"
+    },
+    "type": {
+      "monetary": "Monetary",
+      "volunteerTime": "Volunteer Time",
+      "skilledTime": "Skilled Volunteer Time",
+      "socialMedia": "Social Media"
+    },
+    "goods": {
+      "itemDescription": "Item description",
+      "itemPlaceholder": "e.g. School supplies, hygiene kits, rice",
+      "itemCategory": "Item category",
+      "quantity": "Quantity",
+      "unitOfMeasure": "Unit of measure",
+      "approxValue": "Approximate total value",
+      "totalValuePlaceholder": "Total estimated value for this pledge",
+      "perUnitHint": "We save per-unit value as total ÷ quantity (same structure as our in-kind import).",
+      "intendedUse": "Intended use",
+      "receivedCondition": "Received condition"
+    },
+    "volunteer": {
+      "whenAvailable": "When are you usually available?",
+      "whenHint": "Pick days and times of day so we can match you to opportunities. Staff can follow up for exact times.",
+      "flexibleDays": "Flexible on which days I volunteer",
+      "timeOfDay": "Time of day (select all that apply)",
+      "additionalNotes": "Additional notes (optional)",
+      "notesPlaceholder": "e.g. Only during school year, prefer virtual for tutoring, etc.",
+      "helpWith": "What would you like to help with?",
+      "flexibleSummary": "flexible on days",
+      "successPrefix": "Thank you",
+      "successRecorded": "We recorded your interests",
+      "successAvailability": "availability",
+      "successSuffix": "Staff will reach out using your account email."
+    },
+    "allocation": {
+      "titlePre": "Where your",
+      "titleSuffix": "went",
+      "generalFund": "General Operating Fund",
+      "reserve10": "10% reserve",
+      "rainyDay": "Rainy Day Reserve",
+      "reserve5": "5% emergency fund"
+    },
+    "success": {
+      "yourGiftOf": "Your gift of",
+      "yourPrefix": "Your",
+      "valuedAt": "valued at",
+      "thankYou": "Thank you",
+      "supporter": "supporter",
+      "allocatedTail": "has been allocated based on current safehouse needs."
+    },
+    "goodsSuccess": {
+      "prefix": "Thank you! We recorded your in-kind pledge for",
+      "suffix": "Our team may contact you at your account email to coordinate delivery."
+    },
+    "largeGift": {
+      "eyebrow": "Let's talk — this is a big gift",
+      "heading": "Please contact a staff member",
+      "bodyPre": "Thank you for your extraordinary generosity. Individual donations above",
+      "bodySuffix": "need a quick conversation with our team first. This lets us handle tax paperwork, discuss allocation, and clear compliance review.",
+      "gotIt": "Got it, I'll reach out"
+    },
+    "errors": {
+      "loadHistory": "Could not load your giving history.",
+      "loadHistoryRetry": "We couldn't load your giving history right now. Try refreshing the page.",
+      "invalidAmount": "Please enter a valid donation amount.",
+      "saveDonation": "Could not save donation.",
+      "goodsItem": "Please describe the item you would like to donate.",
+      "goodsQuantity": "Please enter a valid quantity (whole number, at least 1).",
+      "goodsValue": "Please enter an approximate total value greater than zero.",
+      "saveGoods": "Could not save goods donation.",
+      "volunteerFocus": "Please select at least one area you would like to help with.",
+      "volunteerDays": "Please choose at least one day you are usually available, or check 'Flexible on days'.",
+      "volunteerTimes": "Please choose at least one time of day you are usually available.",
+      "saveVolunteer": "Could not submit volunteer interest."
+    }
+  }
+}

@@ -1,4 +1,5 @@
 using Lighthouse.API.Data;
+using Lighthouse.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,126 @@ namespace Lighthouse.API.Controllers;
 [Authorize(Roles = "Admin,Staff")]
 public class DonorsContributionsController(AppDbContext dbContext) : ControllerBase
 {
+    // -------------------------------------------------------------------------
+    // POST /api/donors-contributions/supporters/{id}/draft-thank-you
+    //
+    // Claude-drafted thank-you email for the given donor, personalized from
+    // their giving history + program allocations. The staff member reviews
+    // and edits before sending — the API never sends email itself.
+    //
+    // Body (optional): { "tone": "warm" | "formal" | "playful" }  default "warm"
+    // -------------------------------------------------------------------------
+    [HttpPost("supporters/{supporterId:int}/draft-thank-you")]
+    public async Task<IActionResult> DraftThankYou(
+        int supporterId,
+        [FromBody] DraftThankYouRequest? request,
+        [FromServices] IThankYouDrafterService drafter,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var tone = request?.Tone ?? "warm";
+            var draft = await drafter.DraftAsync(supporterId, tone, dbContext, cancellationToken);
+            return Ok(draft);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Failed to draft thank-you email.", error = ex.Message });
+        }
+    }
+
+    public sealed class DraftThankYouRequest
+    {
+        public string? Tone { get; set; }
+    }
+
+    // -------------------------------------------------------------------------
+    // POST /api/donors-contributions/supporters/{id}/send-thank-you
+    //
+    // Sends a (possibly edited) thank-you email to the donor through the
+    // configured SMTP transport. The donor's email address is looked up
+    // server-side from the supporters table — the frontend never provides it.
+    // -------------------------------------------------------------------------
+    [HttpPost("supporters/{supporterId:int}/send-thank-you")]
+    public async Task<IActionResult> SendThankYou(
+        int supporterId,
+        [FromBody] SendThankYouRequest request,
+        [FromServices] IStaffNotificationEmailService emailService,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request?.Subject) || string.IsNullOrWhiteSpace(request?.Body))
+            return BadRequest(new { message = "Subject and body are required." });
+
+        // Look up the donor's name + email from lighthouse.supporters. We
+        // deliberately re-query rather than trust anything from the client so
+        // staff can't be tricked into spamming an arbitrary address.
+        var supporter = await dbContext.Database.SqlQueryRaw<SupporterContactRow>(
+            """
+            SELECT
+                display_name AS "DisplayName",
+                email        AS "Email"
+            FROM lighthouse.supporters
+            WHERE supporter_id = {0}
+            """, (long)supporterId).FirstOrDefaultAsync(cancellationToken);
+
+        if (supporter is null)
+            return NotFound(new { message = $"Supporter {supporterId} not found." });
+
+        if (string.IsNullOrWhiteSpace(supporter.Email))
+            return BadRequest(new
+            {
+                message =
+                    $"Supporter {supporter.DisplayName} does not have an email address on file. " +
+                    "Add one to their supporter profile before sending the thank-you.",
+            });
+
+        try
+        {
+            var sent = await emailService.SendThankYouEmailAsync(
+                supporter.Email!,
+                supporter.DisplayName ?? "",
+                request.Subject.Trim(),
+                request.Body.Trim(),
+                cancellationToken);
+
+            if (!sent)
+                return StatusCode(500, new
+                {
+                    message = "Email was not sent — check that SMTP is configured (NotificationEmail__SmtpHost and NotificationEmail__FromAddress).",
+                });
+
+            return Ok(new
+            {
+                message = $"Thank-you email sent to {supporter.DisplayName}.",
+                recipient = supporter.Email,
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = "SMTP transport failed while sending the thank-you email.",
+                error = ex.Message,
+            });
+        }
+    }
+
+    public sealed class SendThankYouRequest
+    {
+        public string? Subject { get; set; }
+        public string? Body { get; set; }
+    }
+
+    private sealed class SupporterContactRow
+    {
+        public string? DisplayName { get; set; }
+        public string? Email { get; set; }
+    }
+
     [HttpPost("supporters/{supporterId:int}/donations")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateSupporterDonation(int supporterId, [FromBody] CreateSupporterDonationRequest request)

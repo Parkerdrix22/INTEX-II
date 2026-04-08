@@ -6,8 +6,10 @@ import { useAuth } from '../auth/useAuth';
 import { AdminAdministratorsPanel } from '../components/AdminAdministratorsPanel';
 import { ManageableUsersPanel } from '../components/ManageableUsersPanel';
 import { authApi } from '../lib/api';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export function ProfilePage() {
+  const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const setupHintFromUrl = useRef(false);
   const {
@@ -212,47 +214,44 @@ export function ProfilePage() {
         />
         <div className="kateri-photo-hero__scrim" aria-hidden={true} />
         <div className="kateri-photo-hero__inner">
-          <h1 className="kateri-photo-hero__title">Your profile</h1>
+          <h1 className="kateri-photo-hero__title">{t('profile.heroTitle')}</h1>
           <p className="kateri-photo-hero__lead">
             {effectiveDisplayName
-              ? `Signed in as ${effectiveDisplayName}. Update how Kateri should address you and your contact details below.`
-              : 'Update how Kateri should address you and your contact details.'}
+              ? `${t('profile.signedInAs')} ${effectiveDisplayName}. ${t('profile.updateLead')}`
+              : t('profile.updateLeadShort')}
           </p>
           <div className="kateri-hero-actions">
             <a className="btn-kateri-gold" href="#profile-form">
-              Edit profile
+              {t('profile.editProfile')}
             </a>
             {isAdmin && (
               <a className="btn-kateri-ghost" href="#admin-accounts-manage">
-                Manage accounts
+                {t('profile.manageAccounts')}
               </a>
             )}
             <Link className="btn-kateri-ghost" to="/">
-              Back to home
+              {t('profile.backHome')}
             </Link>
           </div>
         </div>
       </header>
 
       <article className="auth-card profile-form-card" id="profile-form">
-        <h2>Profile information</h2>
-        <p className="auth-lead">
-          Changes are saved on this device and applied across the app for your account. Your first name and last name
-          come from your login and are not editable here.
-        </p>
+        <h2>{t('profile.information')}</h2>
+        <p className="auth-lead">{t('profile.informationLead')}</p>
         <form onSubmit={(e) => void onSubmit(e)}>
           <label>
-            Display name
+            {t('profile.field.displayName')}
             <input
               type="text"
               autoComplete="nickname"
-              placeholder={firstName ?? username ?? 'Your name'}
+              placeholder={firstName ?? username ?? t('profile.yourName')}
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
             />
           </label>
           <label>
-            First name (read-only)
+            {t('profile.field.firstNameRO')}
             <input
               type="text"
               value={firstName ?? ''}
@@ -262,7 +261,7 @@ export function ProfilePage() {
             />
           </label>
           <label>
-            Last name (read-only)
+            {t('profile.field.lastNameRO')}
             <input
               type="text"
               value={lastName ?? ''}
@@ -272,31 +271,31 @@ export function ProfilePage() {
             />
           </label>
           <label>
-            Sign-in ID (username)
+            {t('profile.field.signInId')}
             <input
               type="text"
               autoComplete="username"
-              placeholder="username or email"
+              placeholder={t('profile.field.signInIdPlaceholder')}
               value={usernameDraftValue}
               onChange={(e) => setUsernameDraft(e.target.value)}
             />
-            <span className="field-helper-text">Letters, numbers, and . _ @ + - only. You can also sign in with your email.</span>
+            <span className="field-helper-text">{t('profile.field.signInIdHelper')}</span>
           </label>
           {usernameChanged && (
             <label>
-              Current password (required to change sign-in ID)
+              {t('profile.field.currentPasswordUsername')}
               <input
                 type="password"
                 required
                 autoComplete="current-password"
-                placeholder="Your current password"
+                placeholder={t('profile.field.currentPasswordPlaceholder')}
                 value={usernamePassword}
                 onChange={(e) => setUsernamePassword(e.target.value)}
               />
             </label>
           )}
           <label>
-            Email
+            {t('profile.field.email')}
             <input
               type="email"
               autoComplete="email"
@@ -307,45 +306,45 @@ export function ProfilePage() {
           </label>
           {emailChanged && (
             <label>
-              Current password (required to change email)
+              {t('profile.field.currentPasswordEmail')}
               <input
                 type="password"
                 required
                 autoComplete="current-password"
-                placeholder="Your current password"
+                placeholder={t('profile.field.currentPasswordPlaceholder')}
                 value={emailPassword}
                 onChange={(e) => setEmailPassword(e.target.value)}
               />
             </label>
           )}
           <label>
-            Phone
+            {t('profile.field.phone')}
             <input
               type="tel"
               autoComplete="tel"
-              placeholder="Optional"
+              placeholder={t('profile.field.optional')}
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
             />
-            <span className="field-helper-text">Optional.</span>
+            <span className="field-helper-text">{t('profile.field.optional')}.</span>
           </label>
           <label>
-            Roles
+            {t('profile.field.roles')}
             <input type="text" value={rolesLabel} readOnly disabled className="profile-field--readonly" />
           </label>
           <label>
-            Notes for staff (optional)
+            {t('profile.field.notes')}
             <textarea
               rows={4}
-              placeholder="Anything you would like your coordinator to know — availability, preferences, etc."
+              placeholder={t('profile.field.notesPlaceholder')}
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
             />
           </label>
-          <button type="submit">Save profile</button>
+          <button type="submit">{t('profile.saveButton')}</button>
           {saved && (
             <p className="profile-save-hint">
-              {usernameChanged || emailChanged ? 'Profile and account details saved.' : 'Profile saved.'}
+              {usernameChanged || emailChanged ? t('profile.savedFull') : t('profile.savedShort')}
             </p>
           )}
           {saveError && <p className="error-text">{saveError}</p>}
@@ -353,7 +352,7 @@ export function ProfilePage() {
       </article>
 
       <article className="auth-card profile-security-card" id="profile-security">
-        <h2>Two-factor authentication</h2>
+        <h2>{t('profile.twoFactor.heading')}</h2>
         <p className="auth-lead">
           {requiresTwoFactor
             ? 'Your role requires 2FA. Complete setup to keep account access active.'
@@ -431,21 +430,15 @@ export function ProfilePage() {
 
       {isAdmin && (
         <article className="auth-card profile-admin-create-card" id="admin-accounts-admins">
-          <h2>Administrators</h2>
-          <p className="auth-lead">
-            Demote an administrator to staff or donor. You cannot demote yourself or remove the last administrator.
-          </p>
+          <h2>{t('profile.admin.administratorsHeading')}</h2>
+          <p className="auth-lead">{t('profile.admin.administratorsLead')}</p>
           <AdminAdministratorsPanel />
         </article>
       )}
       {isAdmin && (
         <article className="auth-card profile-admin-create-card" id="admin-accounts-manage">
-          <h2>Residents, donors & staff</h2>
-          <p className="auth-lead">
-            Search and manage accounts. Use <strong>Add account</strong> to create a user, <strong>Edit</strong> to update
-            details, or <strong>Make admin</strong> on a donor to grant administrator access (they must enable 2FA on
-            their profile).
-          </p>
+          <h2>{t('profile.admin.manageHeading')}</h2>
+          <p className="auth-lead">{t('profile.admin.manageLead')}</p>
           <ManageableUsersPanel />
         </article>
       )}

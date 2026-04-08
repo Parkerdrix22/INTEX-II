@@ -32,6 +32,8 @@ import { SafehouseTourPage } from './pages/SafehouseTourPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { StaffSidebar } from './components/StaffSidebar';
 import { ChatWidget } from './components/ChatWidget';
+import { LanguageToggle } from './components/LanguageToggle';
+import { useLanguage } from './i18n/LanguageContext';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { NonBlockingErrorBoundary } from './components/NonBlockingErrorBoundary';
 import { useCookieConsent } from './context/CookieConsentContext';
@@ -69,6 +71,7 @@ function App() {
   const showStaffSidebar = isAuthenticated && isStaffLike;
   const [staffSidebarOpen, setStaffSidebarOpen] = useState(false);
   const { themePreference, toggleThemePreference, consentChoice } = useCookieConsent();
+  const { lang, t } = useLanguage();
 
   useEffect(() => {
     if (!staffSidebarOpen || !showStaffSidebar) return;
@@ -87,7 +90,7 @@ function App() {
         <nav className="top-nav">
           <div className="nav-left">
             <Link className="brand-mark" to="/">
-              Kateri
+              {t('nav.brand')}
             </Link>
             {showStaffSidebar && (
               <button
@@ -98,51 +101,52 @@ function App() {
                 aria-controls="staff-sidebar-panel"
                 title={staffSidebarOpen ? 'Close staff menu' : 'Open staff menu'}
               >
-                Staff menu
+                {t('nav.staffMenu')}
               </button>
             )}
           </div>
 
           <div className="nav-right">
             <Link className="nav-link" to="/impact">
-              Our Impact
+              {t('nav.ourImpact')}
             </Link>
             <Link className="nav-link" to="/safehouse-tour">
-              See the Safehouse
+              {t('nav.safehouseTour')}
             </Link>
             {(isDonor || isStaffLike) && (
               <Link className="nav-link" to="/donor-dashboard">
-                Donor Portal
+                {t('nav.donorPortal')}
               </Link>
             )}
             {isAuthenticated && isResident && !isStaffLike && (
               <Link className="nav-link" to="/resident-dashboard">
-                Resident Dashboard
+                {t('nav.residentDashboard')}
               </Link>
             )}
+            <LanguageToggle />
             {!isAuthenticated && (
               <div className="auth-nav-pill" role="group" aria-label="Authentication">
                 <Link className="auth-nav-pill__link" to="/signup">
-                  Sign up
+                  {t('nav.signup')}
                 </Link>
                 <span className="auth-nav-pill__sep" aria-hidden="true">
                   |
                 </span>
                 <Link className="auth-nav-pill__link" to="/login">
-                  Login
+                  {t('nav.login')}
                 </Link>
               </div>
             )}
             {isAuthenticated && (
               <div className="auth-nav-pill auth-nav-pill--session" role="group" aria-label="Account menu">
-                <Link className="auth-nav-pill__icon-link" to="/profile" aria-label="Profile settings" title="Profile">
+                <Link className="auth-nav-pill__icon-link" to="/profile" aria-label={t('nav.profile')} title={t('nav.profile')}>
                   <ProfileNavIcon />
                 </Link>
                 <span className="auth-nav-pill__sep" aria-hidden="true">
                   |
                 </span>
                 <button type="button" className="auth-nav-pill__logout" onClick={() => void logout()}>
-                  Logout
+                  {t('nav.logout')}
                 </button>
               </div>
             )}
@@ -231,7 +235,7 @@ function App() {
           <Route
             path="/donor-impact"
             element={
-              <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Donor']}>
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
                 <DonorImpactPage />
               </ProtectedRoute>
             }
@@ -349,8 +353,13 @@ function App() {
           </Routes>
           )}
         </main>
-        <ChatWidget />
+        {lang === 'en' && <ChatWidget />}
       </div>
+      {lang === 'nv' && (
+        <div className="mt-disclaimer-strip" role="status">
+          ⚠ {t('common.language.mtDisclaimer')}
+        </div>
+      )}
       <NonBlockingErrorBoundary>
         <CookieConsentBanner />
       </NonBlockingErrorBoundary>
