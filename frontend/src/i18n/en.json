@@ -199,6 +199,7 @@
     "more": "more",
     "selectPrompt": "Select a donor on the left to see their personalized impact report.",
     "whereDollarsGo": "Where your dollars go",
+    "programAreaOther": "Other",
     "breakdownByArea": "Breakdown by program area",
     "givingOverTime": "Your giving over time",
     "monthlyTimeline": "Monthly contribution timeline",
@@ -221,22 +222,15 @@
       "timeline": "No timeline data yet.",
       "timelineShort": "No timeline data."
     },
-    "research": {
-      "overline": "📊 What the data shows",
-      "heading": "Research-backed context",
-      "basedOnPre": "Based on",
-      "basedOnMid": "safehouse-month observations, our model explains",
-      "basedOnMidOls": "safehouse-month observations, our OLS model explains",
-      "basedOnSuffix": "of the variance in resident health scores.",
-      "increase": "increase",
-      "decrease": "decrease",
-      "highlySig": "highly significant (p < 0.01)",
-      "sig": "significant (p < 0.05)",
-      "marginalSig": "marginally significant (p < 0.10)",
-      "each1000Pre": "Each $1,000 is associated with a",
-      "each1000Mid": "-point",
-      "each1000Suffix": "in average health score",
-      "disclaimer": "Statistical association — not causal. Many factors influence resident outcomes beyond donations."
+    "howGiftsHelp": {
+      "overline": "Your generosity at work",
+      "heading": "How we put donations to use",
+      "lead": "Gifts are routed into care on the ground—not held in a generic fund. Here's how your support typically helps.",
+      "point1": "Safe shelter, food, clothing, and daily structure so children have stability while they heal.",
+      "point2": "Counseling, education, life-skills, and family support so residents can move forward with confidence.",
+      "point3": "Program supplies, local partnerships, and staff costs that keep each safehouse running day to day.",
+      "point4": "Flex funding for emergencies and operations when a site needs backup or a crisis drives up demand.",
+      "closing": "Every contribution stacks with others to pay for real beds, real sessions, and real meals—thank you for fueling that mission."
     },
     "errors": {
       "failedLoadDonors": "Failed to load donor data",

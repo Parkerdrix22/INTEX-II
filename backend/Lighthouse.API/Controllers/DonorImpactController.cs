@@ -39,6 +39,18 @@ public class DonorImpactController : ControllerBase
         ["Operations"] = ["Operation", "Admin"],
     };
 
+    private static bool ProgramAreaMatchesAnyBucket(string? programArea)
+    {
+        var area = programArea ?? string.Empty;
+        foreach (var keywords in ProgramAreaMap.Values)
+        {
+            if (keywords.Any(k => area.Contains(k, StringComparison.OrdinalIgnoreCase)))
+                return true;
+        }
+
+        return false;
+    }
+
     // -------------------------------------------------------------------------
     // GET /api/donor-impact/donors
     // Returns a brief list of all donors who have at least one donation,
@@ -242,6 +254,19 @@ public class DonorImpactController : ControllerBase
                         Percent = Math.Round(bucketTotal / totalAllocated * 100, 1),
                     });
                 }
+            }
+
+            var otherTotal = allocations
+                .Where(a => !ProgramAreaMatchesAnyBucket(a.programArea))
+                .Sum(a => a.amount);
+            if (otherTotal > 0.000001)
+            {
+                programAreaBreakdown.Add(new ProgramAreaSlice
+                {
+                    Name = "Other",
+                    Amount = Math.Round(otherTotal, 2),
+                    Percent = Math.Round(otherTotal / totalAllocated * 100, 1),
+                });
             }
         }
         report.ProgramAreaBreakdown = programAreaBreakdown;

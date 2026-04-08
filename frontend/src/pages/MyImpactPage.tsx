@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Bar,
@@ -64,36 +64,6 @@ type DonorImpactReport = {
   message?: string;
 };
 
-type ResearchCoefficient = {
-  variable: string;
-  coef: number;
-  std_err: number;
-  t_stat: number;
-  p_value: number;
-  ci_lower: number;
-  ci_upper: number;
-};
-
-type ResearchContext = {
-  trained_at_utc: string;
-  model: string;
-  interpretation: string;
-  health: {
-    target: string;
-    n_obs: number;
-    r_squared: number;
-    adj_r_squared: number;
-    coefficients: ResearchCoefficient[];
-  };
-  education: {
-    target: string;
-    n_obs: number;
-    r_squared: number;
-    adj_r_squared: number;
-    coefficients: ResearchCoefficient[];
-  };
-};
-
 type ImpactModelInfo = {
   donorCount: number;
   healthR2: number;
@@ -112,6 +82,7 @@ const PROGRAM_COLORS: Record<string, string> = {
   Education: '#c9983f',
   Counseling: '#a05b3a',
   Operations: '#5f8448',
+  Other: '#7e7468',
 };
 
 const moneyDecimal = new Intl.NumberFormat('en-US', {
@@ -125,29 +96,33 @@ function formatMonthLabel(yyyymm: string): string {
   return d.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
 }
 
-function prettyVar(v: string): string {
-  return v
-    .replace(/_lag1$/, '')
-    .replace(/donation_to_/, '$ to ')
-    .replace(/_/g, ' ')
-    .replace(/^\$/, '$')
-    .replace(/^./, (c) => c.toUpperCase());
-}
-
 // =============================================================================
 // Page component
 // =============================================================================
 
 export function MyImpactPage() {
   const { t } = useLanguage();
+  const programAreaLabel = (name: string) =>
+    name === 'Other' ? t('donorImpact.programAreaOther') : name;
   const { isLoading: authLoading, roles } = useAuth();
   const canViewModelContext = roles.includes('Admin') || roles.includes('Staff');
   const [report, setReport] = useState<DonorImpactReport | null>(null);
-  const [research, setResearch] = useState<ResearchContext | null>(null);
   const [modelInfo, setModelInfo] = useState<ImpactModelInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
+
+  const refreshImpactReport = useCallback(async () => {
+    if (authLoading) return;
+    try {
+      const reportRes = await fetch('/api/donor-impact/me', { credentials: 'include' });
+      if (!reportRes.ok) return;
+      const data: DonorImpactReport = await reportRes.json();
+      setReport(data);
+    } catch {
+      /* keep current report if refresh fails */
+    }
+  }, [authLoading]);
 
   useEffect(() => {
     if (authLoading) {
@@ -169,20 +144,7 @@ export function MyImpactPage() {
         setReport(data);
 
         if (canViewModelContext) {
-          const [researchRes, infoRes] = await Promise.all([
-            fetch('/api/donor-impact/research-context', { credentials: 'include' }),
-            fetch('/api/donor-impact/model-info', { credentials: 'include' }),
-          ]);
-
-          if (researchRes.ok) {
-            const researchData = await researchRes.json();
-            if (!researchData?.available || researchData.health) {
-              setResearch(researchData);
-            }
-          } else {
-            setResearch(null);
-          }
-
+          const infoRes = await fetch('/api/donor-impact/model-info', { credentials: 'include' });
           if (infoRes.ok) {
             const info: ImpactModelInfo = await infoRes.json();
             setModelInfo(info);
@@ -190,7 +152,6 @@ export function MyImpactPage() {
             setModelInfo(null);
           }
         } else {
-          setResearch(null);
           setModelInfo(null);
         }
       } catch (err) {
@@ -200,15 +161,16 @@ export function MyImpactPage() {
         setTimeout(() => setVisible(true), 60);
       }
     };
-    load();
+    void load();
   }, [authLoading, canViewModelContext, t]);
 
-  const significantHealthFindings = useMemo(() => {
-    if (!research?.health) return [];
-    return research.health.coefficients
-      .filter((c) => c.variable.startsWith('donation_to_') && c.p_value < 0.10)
-      .sort((a, b) => Math.abs(b.t_stat) - Math.abs(a.t_stat));
-  }, [research]);
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === 'visible') void refreshImpactReport();
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [refreshImpactReport]);
 
   if (loading) {
     return (
@@ -383,7 +345,7 @@ export function MyImpactPage() {
                         const num = typeof value === 'number' ? value : Number(value ?? 0);
                         return [
                           `${moneyDecimal.format(num)} (${(slice?.percent ?? 0).toFixed(1)}%)`,
-                          slice?.name ?? '',
+                          programAreaLabel(slice?.name ?? ''),
                         ];
                       }) as never}
                       contentStyle={{
@@ -397,6 +359,7 @@ export function MyImpactPage() {
                       verticalAlign="bottom"
                       iconType="circle"
                       wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                      formatter={(value: string) => programAreaLabel(value)}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -514,38 +477,20 @@ export function MyImpactPage() {
         )}
 
         {/* ── Research context card ─────────────────────────── */}
-        {research && significantHealthFindings.length > 0 && (
+        {report.donationCount > 0 && (
           <article className="impact-research-card">
             <header>
-              <span className="impact-research-overline">{t('donorImpact.research.overline')}</span>
-              <h3>{t('donorImpact.research.heading')}</h3>
-              <p>
-                {t('donorImpact.research.basedOnPre')} {research.health.n_obs}{' '}
-                {t('donorImpact.research.basedOnMid')}{' '}
-                {(research.health.r_squared * 100).toFixed(0)}%{' '}
-                {t('donorImpact.research.basedOnSuffix')}
-              </p>
+              <span className="impact-research-overline">{t('donorImpact.howGiftsHelp.overline')}</span>
+              <h3>{t('donorImpact.howGiftsHelp.heading')}</h3>
+              <p>{t('donorImpact.howGiftsHelp.lead')}</p>
             </header>
             <ul className="impact-research-list">
-              {significantHealthFindings.slice(0, 3).map((c) => {
-                const direction = c.coef > 0 ? t('donorImpact.research.increase') : t('donorImpact.research.decrease');
-                const magnitude = Math.abs(c.coef * 1000);
-                const sig =
-                  c.p_value < 0.01
-                    ? t('donorImpact.research.highlySig')
-                    : c.p_value < 0.05
-                      ? t('donorImpact.research.sig')
-                      : t('donorImpact.research.marginalSig');
-                return (
-                  <li key={c.variable}>
-                    <strong>{prettyVar(c.variable)}:</strong> {t('donorImpact.research.each1000Pre')}{' '}
-                    {magnitude.toFixed(3)}{t('donorImpact.research.each1000Mid')} {direction}{' '}
-                    {t('donorImpact.research.each1000Suffix')} ({sig}).
-                  </li>
-                );
-              })}
+              <li>{t('donorImpact.howGiftsHelp.point1')}</li>
+              <li>{t('donorImpact.howGiftsHelp.point2')}</li>
+              <li>{t('donorImpact.howGiftsHelp.point3')}</li>
+              <li>{t('donorImpact.howGiftsHelp.point4')}</li>
             </ul>
-            <p className="impact-research-disclaimer">{t('donorImpact.research.disclaimer')}</p>
+            <p className="impact-research-disclaimer">{t('donorImpact.howGiftsHelp.closing')}</p>
           </article>
         )}
 

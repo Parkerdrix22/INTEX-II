@@ -71,36 +71,6 @@ type DonorImpactReport = {
   message?: string;
 };
 
-type ResearchCoefficient = {
-  variable: string;
-  coef: number;
-  std_err: number;
-  t_stat: number;
-  p_value: number;
-  ci_lower: number;
-  ci_upper: number;
-};
-
-type ResearchContext = {
-  trained_at_utc: string;
-  model: string;
-  interpretation: string;
-  health: {
-    target: string;
-    n_obs: number;
-    r_squared: number;
-    adj_r_squared: number;
-    coefficients: ResearchCoefficient[];
-  };
-  education: {
-    target: string;
-    n_obs: number;
-    r_squared: number;
-    adj_r_squared: number;
-    coefficients: ResearchCoefficient[];
-  };
-};
-
 type ImpactModelInfo = {
   donorCount: number;
   healthR2: number;
@@ -119,6 +89,7 @@ const PROGRAM_COLORS: Record<string, string> = {
   Education: '#c9983f',
   Counseling: '#a05b3a',
   Operations: '#5f8448',
+  Other: '#7e7468',
 };
 
 const money = new Intl.NumberFormat('en-US', {
@@ -138,24 +109,16 @@ function formatMonthLabel(yyyymm: string): string {
   return d.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
 }
 
-function prettyVar(v: string): string {
-  return v
-    .replace(/_lag1$/, '')
-    .replace(/donation_to_/, '$ to ')
-    .replace(/_/g, ' ')
-    .replace(/^\$/, '$')
-    .replace(/^./, (c) => c.toUpperCase());
-}
-
 // =============================================================================
 // Page component
 // =============================================================================
 
 export function DonorImpactPage() {
   const { t } = useLanguage();
+  const programAreaLabel = (name: string) =>
+    name === 'Other' ? t('donorImpact.programAreaOther') : name;
   const [donors, setDonors] = useState<DonorBrief[]>([]);
   const [report, setReport] = useState<DonorImpactReport | null>(null);
-  const [research, setResearch] = useState<ResearchContext | null>(null);
   const [modelInfo, setModelInfo] = useState<ImpactModelInfo | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -164,13 +127,12 @@ export function DonorImpactPage() {
   const [search, setSearch] = useState('');
   const [visible, setVisible] = useState(false);
 
-  // ── Initial load: donor list + research context + model info ──────────
+  // ── Initial load: donor list + model info ───────────────────────────────
   useEffect(() => {
     const load = async () => {
       try {
-        const [donorsRes, researchRes, infoRes] = await Promise.all([
+        const [donorsRes, infoRes] = await Promise.all([
           fetch('/api/donor-impact/donors', { credentials: 'include' }),
-          fetch('/api/donor-impact/research-context', { credentials: 'include' }),
           fetch('/api/donor-impact/model-info', { credentials: 'include' }),
         ]);
         if (!donorsRes.ok || !infoRes.ok) {
@@ -178,12 +140,6 @@ export function DonorImpactPage() {
         }
         const donorList: DonorBrief[] = await donorsRes.json();
         setDonors(donorList);
-        if (researchRes.ok) {
-          const researchData = await researchRes.json();
-          if (!researchData?.available || researchData.health) {
-            setResearch(researchData);
-          }
-        }
         const info: ImpactModelInfo = await infoRes.json();
         setModelInfo(info);
         // Auto-select the top donor for an immediate "wow" view
@@ -230,14 +186,6 @@ export function DonorImpactPage() {
       ),
     [donors, search],
   );
-
-  // Top donation findings: positive, statistically significant donation→outcome links
-  const significantHealthFindings = useMemo(() => {
-    if (!research?.health) return [];
-    return research.health.coefficients
-      .filter((c) => c.variable.startsWith('donation_to_') && c.p_value < 0.10)
-      .sort((a, b) => Math.abs(b.t_stat) - Math.abs(a.t_stat));
-  }, [research]);
 
   if (loading) {
     return (
@@ -451,7 +399,7 @@ export function DonorImpactPage() {
                               const num = typeof value === 'number' ? value : Number(value ?? 0);
                               return [
                                 `${moneyDecimal.format(num)} (${(slice?.percent ?? 0).toFixed(1)}%)`,
-                                slice?.name ?? '',
+                                programAreaLabel(slice?.name ?? ''),
                               ];
                             }) as never}
                             contentStyle={{
@@ -465,6 +413,7 @@ export function DonorImpactPage() {
                             verticalAlign="bottom"
                             iconType="circle"
                             wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                            formatter={(value: string) => programAreaLabel(value)}
                           />
                         </PieChart>
                       </ResponsiveContainer>
@@ -578,38 +527,20 @@ export function DonorImpactPage() {
               )}
 
               {/* ── Research context card ────────────────── */}
-              {research && significantHealthFindings.length > 0 && (
+              {report.donationCount > 0 && (
                 <article className="impact-research-card">
                   <header>
-                    <span className="impact-research-overline">{t('donorImpact.research.overline')}</span>
-                    <h3>{t('donorImpact.research.heading')}</h3>
-                    <p>
-                      {t('donorImpact.research.basedOnPre')} {research.health.n_obs}{' '}
-                      {t('donorImpact.research.basedOnMidOls')}{' '}
-                      {(research.health.r_squared * 100).toFixed(0)}%{' '}
-                      {t('donorImpact.research.basedOnSuffix')}
-                    </p>
+                    <span className="impact-research-overline">{t('donorImpact.howGiftsHelp.overline')}</span>
+                    <h3>{t('donorImpact.howGiftsHelp.heading')}</h3>
+                    <p>{t('donorImpact.howGiftsHelp.lead')}</p>
                   </header>
                   <ul className="impact-research-list">
-                    {significantHealthFindings.slice(0, 3).map((c) => {
-                      const direction = c.coef > 0 ? t('donorImpact.research.increase') : t('donorImpact.research.decrease');
-                      const magnitude = Math.abs(c.coef * 1000);
-                      const sig =
-                        c.p_value < 0.01
-                          ? t('donorImpact.research.highlySig')
-                          : c.p_value < 0.05
-                            ? t('donorImpact.research.sig')
-                            : t('donorImpact.research.marginalSig');
-                      return (
-                        <li key={c.variable}>
-                          <strong>{prettyVar(c.variable)}:</strong> {t('donorImpact.research.each1000Pre')}{' '}
-                          {magnitude.toFixed(3)}{t('donorImpact.research.each1000Mid')} {direction}{' '}
-                          {t('donorImpact.research.each1000Suffix')} ({sig}).
-                        </li>
-                      );
-                    })}
+                    <li>{t('donorImpact.howGiftsHelp.point1')}</li>
+                    <li>{t('donorImpact.howGiftsHelp.point2')}</li>
+                    <li>{t('donorImpact.howGiftsHelp.point3')}</li>
+                    <li>{t('donorImpact.howGiftsHelp.point4')}</li>
                   </ul>
-                  <p className="impact-research-disclaimer">{t('donorImpact.research.disclaimer')}</p>
+                  <p className="impact-research-disclaimer">{t('donorImpact.howGiftsHelp.closing')}</p>
                 </article>
               )}
 
