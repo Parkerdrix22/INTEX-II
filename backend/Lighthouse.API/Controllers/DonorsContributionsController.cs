@@ -219,38 +219,64 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
         }
     }
 
-    [HttpPut("donations/{donationId:int}")]
-    public async Task<IActionResult> UpdateDonation(int donationId, [FromBody] UpdateDonationRequest request)
+    [HttpPut("donations/{donationId:long}")]
+    public async Task<IActionResult> UpdateDonation(long donationId, [FromBody] UpdateDonationRequest request)
     {
         if (request.EstimatedValue <= 0)
         {
             return BadRequest(new { message = "Donation amount must be greater than zero." });
         }
 
-        var donationDate = DateOnly.FromDateTime(request.DonationDate.Date);
+        var donationType = string.IsNullOrWhiteSpace(request.DonationType)
+            ? "Monetary"
+            : request.DonationType.Trim();
+        var donationDate = request.DonationDate;
+        var campaignName = CleanString(request.CampaignName);
 
-        var affected = await dbContext.Database.ExecuteSqlRawAsync(
-            """
-            UPDATE lighthouse.donations
-            SET
-                donation_type = {1},
-                donation_date = {2},
-                estimated_value = {3},
-                campaign_name = {4}
-            WHERE donation_id = {0}
-            """,
-            donationId,
-            request.DonationType.Trim(),
-            donationDate,
-            request.EstimatedValue,
-            CleanString(request.CampaignName));
+        try
+        {
+            var affected = await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                UPDATE lighthouse.donations
+                SET
+                    donation_type = {1},
+                    donation_date = {2},
+                    estimated_value = {3},
+                    campaign_name = {4}
+                WHERE donation_id = {0}
+                """,
+                donationId,
+                donationType,
+                donationDate,
+                request.EstimatedValue,
+                campaignName);
 
-        if (affected == 0) return NotFound(new { message = "Donation not found." });
-        return Ok(new { message = "Donation updated successfully." });
+            if (affected == 0) return NotFound(new { message = "Donation not found." });
+            return Ok(new { message = "Donation updated successfully." });
+        }
+        catch
+        {
+            if (donationId is < int.MinValue or > int.MaxValue)
+            {
+                return NotFound(new { message = "Donation not found." });
+            }
+
+            var id32 = (int)donationId;
+            var donation = await dbContext.Donations.FirstOrDefaultAsync(d => d.Id == id32);
+            if (donation is null) return NotFound(new { message = "Donation not found." });
+
+            donation.Amount = request.EstimatedValue;
+            donation.DonatedAt = DateTime.SpecifyKind(
+                donationDate.ToDateTime(TimeOnly.MinValue),
+                DateTimeKind.Utc);
+            donation.CampaignName = campaignName;
+            await dbContext.SaveChangesAsync();
+            return Ok(new { message = "Donation updated successfully." });
+        }
     }
 
-    [HttpDelete("donations/{donationId:int}")]
-    public async Task<IActionResult> DeleteDonation(int donationId)
+    [HttpDelete("donations/{donationId:long}")]
+    public async Task<IActionResult> DeleteDonation(long donationId)
     {
         try
         {
@@ -286,7 +312,13 @@ public class DonorsContributionsController(AppDbContext dbContext) : ControllerB
         catch
         {
             // Fallback for local/non-lighthouse DB shape.
-            var donation = await dbContext.Donations.FirstOrDefaultAsync(d => d.Id == donationId);
+            if (donationId is < int.MinValue or > int.MaxValue)
+            {
+                return NotFound(new { message = "Donation not found." });
+            }
+
+            var id32 = (int)donationId;
+            var donation = await dbContext.Donations.FirstOrDefaultAsync(d => d.Id == id32);
             if (donation is null) return NotFound(new { message = "Donation not found." });
 
             dbContext.Donations.Remove(donation);
@@ -692,7 +724,7 @@ public sealed class UpdateDonationRequest
     public decimal EstimatedValue { get; set; }
 
     [Required]
-    public DateTime DonationDate { get; set; }
+    public DateOnly DonationDate { get; set; }
 
     [StringLength(120)]
     public string? CampaignName { get; set; }

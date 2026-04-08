@@ -128,6 +128,8 @@ function formatWelcomeName(raw: string | null): string | null {
 
 export function DonorDashboardPage() {
   const { t } = useLanguage();
+  const programAreaLabel = (name: string) =>
+    name === 'Other' ? t('donorImpact.programAreaOther') : name;
   const { effectiveDisplayName, firstName, lastName } = useAuth();
   const welcomeName = formatWelcomeName(effectiveDisplayName);
 
@@ -523,7 +525,7 @@ export function DonorDashboardPage() {
               <div className="donor-history-summary__item">
                 <p className="metric-label">{t('donorDashboard.topProgramArea')}</p>
                 <p className="metric-value donor-history-summary__value donor-overview-program">
-                  {topProgramArea ? topProgramArea.name : '—'}
+                  {topProgramArea ? programAreaLabel(topProgramArea.name) : '—'}
                 </p>
                 {topProgramArea && (
                   <p className="donor-overview-meta">
@@ -538,30 +540,46 @@ export function DonorDashboardPage() {
                 <p className="metric-label">{t('donorDashboard.whereDollarsGo')}</p>
                 <div className="donor-overview-bar">
                   {impact.programAreaBreakdown.map((slice, idx) => {
-                    const colors = ['#385f82', '#c9983f', '#a05b3a', '#5f8448', '#7e7468'];
+                    const colors: Record<string, string> = {
+                      Health: '#385f82',
+                      Education: '#c9983f',
+                      Counseling: '#a05b3a',
+                      Operations: '#5f8448',
+                      Other: '#7e7468',
+                    };
+                    const fallback = ['#385f82', '#c9983f', '#a05b3a', '#5f8448', '#7e7468'];
+                    const bg = colors[slice.name] ?? fallback[idx % fallback.length];
                     return (
                       <div
                         key={slice.name}
                         className="donor-overview-bar__segment"
                         style={{
                           width: `${slice.percent}%`,
-                          background: colors[idx % colors.length],
+                          background: bg,
                         }}
-                        title={`${slice.name}: ${money.format(slice.amount)} (${slice.percent.toFixed(1)}%)`}
+                        title={`${programAreaLabel(slice.name)}: ${money.format(slice.amount)} (${slice.percent.toFixed(1)}%)`}
                       />
                     );
                   })}
                 </div>
                 <ul className="donor-overview-legend">
                   {impact.programAreaBreakdown.map((slice, idx) => {
-                    const colors = ['#385f82', '#c9983f', '#a05b3a', '#5f8448', '#7e7468'];
+                    const colors: Record<string, string> = {
+                      Health: '#385f82',
+                      Education: '#c9983f',
+                      Counseling: '#a05b3a',
+                      Operations: '#5f8448',
+                      Other: '#7e7468',
+                    };
+                    const fallback = ['#385f82', '#c9983f', '#a05b3a', '#5f8448', '#7e7468'];
+                    const bg = colors[slice.name] ?? fallback[idx % fallback.length];
                     return (
                       <li key={slice.name}>
                         <span
                           className="donor-overview-legend__dot"
-                          style={{ background: colors[idx % colors.length] }}
+                          style={{ background: bg }}
                         />
-                        <span className="donor-overview-legend__label">{slice.name}</span>
+                        <span className="donor-overview-legend__label">{programAreaLabel(slice.name)}</span>
                         <span className="donor-overview-legend__pct">
                           {slice.percent.toFixed(0)}%
                         </span>
