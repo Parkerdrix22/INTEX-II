@@ -487,6 +487,11 @@ export const authApi = {
     apiFetch<TwoFactorRegenerateResponse>('/api/auth/2fa/recovery-codes/regenerate', {
       method: 'POST',
     }),
+  changeUsername: (newUsername: string, currentPassword: string) =>
+    apiFetch<{ message: string; username: string }>('/api/auth/change-username', {
+      method: 'POST',
+      body: JSON.stringify({ newUsername, currentPassword }),
+    }),
   changeEmail: (newEmail: string, currentPassword: string) =>
     apiFetch<{ message: string; email: string }>('/api/auth/change-email', {
       method: 'POST',

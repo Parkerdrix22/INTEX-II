@@ -255,6 +255,57 @@ public class AuthController(
             });
     }
 
+    [HttpPost("change-username")]
+    [Authorize]
+    public async Task<IActionResult> ChangeUsername([FromBody] ChangeUsernameRequest request)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user is null)
+        {
+            return Unauthorized(new { message = "User session is invalid." });
+        }
+
+        var newUsername = request.NewUsername.Trim();
+
+        if (!UserAccountIdentityHelper.ContainsOnlyAllowedIdentityUserNameChars(newUsername) || newUsername.Length == 0)
+        {
+            return BadRequest(new { message = "Username may only contain letters, numbers, and . _ @ + - (no spaces)." });
+        }
+
+        if (newUsername.Length > 256)
+        {
+            return BadRequest(new { message = "Username is too long." });
+        }
+
+        var passwordCheck = await signInManager.CheckPasswordSignInAsync(user, request.CurrentPassword, lockoutOnFailure: false);
+        if (!passwordCheck.Succeeded)
+        {
+            return BadRequest(new { message = "Current password is incorrect." });
+        }
+
+        var normalizedNew = userManager.NormalizeName(newUsername);
+        var duplicate = await userManager.Users.AnyAsync(u => u.Id != user.Id && u.NormalizedUserName == normalizedNew);
+        if (duplicate)
+        {
+            return Conflict(new { message = "Another account already uses this username." });
+        }
+
+        user.UserName = newUsername;
+
+        UserAccountIdentityHelper.EnsureIdentityStamps(user);
+        var updateResult = await userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            return BadRequest(new { message = string.Join(" ", updateResult.Errors.Select(e => e.Description)) });
+        }
+
+        var auth = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        var persistent = auth.Properties?.IsPersistent == true;
+        await SignInWithAppCookieAsync(user, persistent);
+
+        return Ok(new { message = "Username updated successfully.", username = newUsername });
+    }
+
     [HttpPost("change-email")]
     [Authorize]
     public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest request)
@@ -950,6 +1001,15 @@ public class AuthController(
 }
 
 public readonly record struct TwoFactorChallengeState(int UserId, bool RememberMe, DateTimeOffset ExpiresAt);
+
+public class ChangeUsernameRequest
+{
+    [Required]
+    public string NewUsername { get; set; } = string.Empty;
+
+    [Required]
+    public string CurrentPassword { get; set; } = string.Empty;
+}
 
 public class ChangeEmailRequest
 {
