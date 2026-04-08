@@ -1,5 +1,5 @@
 {
-  "trained_at_utc": "2026-04-08T16:40:02.303021+00:00",
+  "trained_at_utc": "2026-04-08T16:57:42.708130+00:00",
   "model": "LogisticRegression on standardized features",
   "interpretation": "Positive coefficients push the model toward 'case will be resolved'. Negative coefficients push it toward 'case still open'. Coefficients are in standardized feature space (each feature mean-centered and scaled to unit variance), so magnitudes are comparable across features.",
   "n_features": 8,
@@ -16,50 +16,50 @@
   "coefficients": [
     {
       "feature": "length_of_stay_days",
-      "coef": -0.8272,
-      "abs_coef": 0.8272,
+      "coef": -0.8288,
+      "abs_coef": 0.8288,
       "direction": "negative",
       "interpretation": "decreases case-resolution probability"
     },
     {
       "feature": "session_count",
-      "coef": -0.7,
-      "abs_coef": 0.7,
+      "coef": -0.6961,
+      "abs_coef": 0.6961,
       "direction": "negative",
       "interpretation": "decreases case-resolution probability"
     },
     {
       "feature": "achieved_rate",
-      "coef": -0.4456,
-      "abs_coef": 0.4456,
+      "coef": -0.4449,
+      "abs_coef": 0.4449,
       "direction": "negative",
       "interpretation": "decreases case-resolution probability"
     },
     {
       "feature": "case_cat_Surrendered",
-      "coef": 0.0923,
-      "abs_coef": 0.0923,
+      "coef": 0.0921,
+      "abs_coef": 0.0921,
       "direction": "positive",
       "interpretation": "increases case-resolution probability"
     },
     {
       "feature": "case_cat_Foundling",
-      "coef": -0.0855,
-      "abs_coef": 0.0855,
+      "coef": -0.0856,
+      "abs_coef": 0.0856,
       "direction": "negative",
       "interpretation": "decreases case-resolution probability"
     },
     {
       "feature": "case_cat_Abandoned",
-      "coef": -0.0638,
-      "abs_coef": 0.0638,
+      "coef": -0.0636,
+      "abs_coef": 0.0636,
       "direction": "negative",
       "interpretation": "decreases case-resolution probability"
     },
     {
       "feature": "case_cat_Neglected",
-      "coef": 0.0492,
-      "abs_coef": 0.0492,
+      "coef": 0.0493,
+      "abs_coef": 0.0493,
       "direction": "positive",
       "interpretation": "increases case-resolution probability"
     },

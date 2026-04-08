@@ -103,7 +103,7 @@
   },
   "pipeline_06_case_resolution": {
     "status": "success",
-    "trained_at": "2026-04-08T16:40:02.304067+00:00",
+    "trained_at": "2026-04-08T16:57:42.709229+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.7829,
       "cv_roc_auc_std": 0.0779,
@@ -121,23 +121,23 @@
   },
   "pipeline_07_donor_archetypes": {
     "status": "success",
-    "trained_at": "2026-04-08T04:31:40.999122+00:00",
+    "trained_at": "2026-04-08T16:59:26.744678+00:00",
     "metrics": {
-      "n_donors": 62,
+      "n_donors": 65,
       "n_clusters": 4,
-      "silhouette": 0.3021,
-      "inertia": 158.71,
+      "silhouette": 0.405,
+      "inertia": 164.2,
       "cluster_sizes": [
-        13,
-        15,
-        31,
-        3
+        4,
+        39,
+        18,
+        4
       ],
       "archetype_labels": [
-        "The Lapsed Faithful",
-        "The Loyal Sustainers",
+        "The New Sparks",
         "The Active Engaged",
-        "The Active Engaged"
+        "The Loyal Sustainers",
+        "The Micro Donors"
       ]
     }
   }

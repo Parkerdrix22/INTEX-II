@@ -135,6 +135,20 @@ def label_clusters(df: pd.DataFrame) -> dict[int, dict]:
                 "story has the highest reactivation rate. Don't waste a generic "
                 "appeal on them."
             )
+        elif mean_avg < 200:
+            # Catches the newer/smaller-gift micro-donor segment that the earlier
+            # branches miss — these look nothing like the $500+ Active Engaged
+            # crowd and deserve their own messaging.
+            label = "The Micro Donors"
+            tagline = "Small but consistent givers — grassroots support"
+            color = "#7a5a8f"
+            strategy = (
+                "Community messaging. These donors give modest amounts but show "
+                "up reliably. Don't ask them to upgrade the gift size — instead, "
+                "invite them into peer-to-peer fundraising, volunteer events, "
+                "and social sharing. Their value to the org is reach and "
+                "grassroots advocacy, not wallet size."
+            )
         else:
             label = "The Active Engaged"
             tagline = "Frequent one-time donors — your largest segment"

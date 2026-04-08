@@ -1,10 +1,10 @@
 {
-  "trained_at_utc": "2026-04-08T04:31:40.997694+00:00",
+  "trained_at_utc": "2026-04-08T16:59:26.744005+00:00",
   "snapshot_date": "2026-04-07T00:00:00",
-  "n_donors": 62,
+  "n_donors": 65,
   "n_clusters": 4,
-  "silhouette": 0.3021,
-  "inertia": 158.71,
+  "silhouette": 0.405,
+  "inertia": 164.2,
   "feature_order": [
     "frequency",
     "log_monetary_total",
@@ -15,118 +15,118 @@
   ],
   "scaler": {
     "mean": [
-      7.177419,
-      8.113973,
-      6.368228,
-      208.419355,
-      941.048387,
-      0.290323
+      7.015385,
+      8.145521,
+      6.433023,
+      198.738462,
+      897.661538,
+      0.276923
     ],
     "scale": [
-      4.903995,
-      1.065071,
-      0.651174,
-      189.760252,
-      284.238112,
-      0.453911
+      4.978391,
+      1.065679,
+      0.803987,
+      190.483214,
+      340.537506,
+      0.447478
     ]
   },
   "centroids": [
     [
-      -0.55381,
-      -0.552943,
-      -0.398664,
-      1.319701,
-      0.242313,
-      -0.300668
+      -1.057648,
+      0.630359,
+      2.319098,
+      -0.716538,
+      -2.259403,
+      -0.618853
     ],
     [
-      1.336852,
-      0.883447,
-      0.217386,
-      -0.494059,
-      0.516298,
-      1.563472
+      -0.348171,
+      -0.120995,
+      -0.003093,
+      0.178655,
+      0.218674,
+      -0.618853
     ],
     [
-      -0.358496,
-      0.076957,
-      0.366825,
-      -0.349677,
-      -0.125917,
-      -0.568535
+      1.101684,
+      0.682643,
+      0.037101,
+      -0.23866,
+      0.477528,
+      1.615893
     ],
     [
-      -0.579953,
-      -2.81637,
-      -3.149908,
-      0.36492,
-      -2.330376,
-      -0.639602
+      -0.505261,
+      -2.522549,
+      -2.455894,
+      0.048621,
+      -2.021544,
+      -0.618853
     ]
   ],
   "archetypes": {
     "0": {
       "cluster_id": 0,
-      "label": "The Lapsed Faithful",
-      "tagline": "Long-tenured donors who've gone quiet over a year ago",
-      "color": "#a05b3a",
-      "strategy": "Reactivation campaign. These donors gave consistently in the past but have stopped \u2014 maybe a life event, maybe missed communication. A personal phone call or 'we miss you' email with a fresh impact story has the highest reactivation rate. Don't waste a generic appeal on them.",
-      "size": 13,
+      "label": "The New Sparks",
+      "tagline": "First-time donors who recently entered the funnel",
+      "color": "#c9983f",
+      "strategy": "Make them feel welcome. Send a thank-you within 24 hours, share an impact story within 2 weeks, and invite them to a recurring gift after their second donation. The goal is to convert sparks into sustainers.",
+      "size": 4,
       "characteristics": {
-        "mean_frequency": 4.46,
-        "mean_monetary_total": 2167.02,
-        "mean_monetary_avg": 492.83,
-        "mean_recency_days": 459.0,
-        "mean_tenure_days": 1010.0,
-        "recurring_pct": 0.154
+        "mean_frequency": 1.75,
+        "mean_monetary_total": 7178.71,
+        "mean_monetary_avg": 4589.35,
+        "mean_recency_days": 62.0,
+        "mean_tenure_days": 128.0,
+        "recurring_pct": 0.0
       }
     },
     "1": {
       "cluster_id": 1,
-      "label": "The Loyal Sustainers",
-      "tagline": "Recurring monthly donors \u2014 the org's bread and butter",
-      "color": "#385f82",
-      "strategy": "Steward fiercely. These donors are your most reliable income. Send personalized impact updates and recognize their consistency. Avoid asking them to upgrade until they're highly engaged \u2014 they already give regularly.",
-      "size": 15,
+      "label": "The Active Engaged",
+      "tagline": "Frequent one-time donors \u2014 your largest segment",
+      "color": "#5f8448",
+      "strategy": "Upgrade pathway. These donors give regularly but not on a recurring schedule. Test a 'become a sustainer' ask \u2014 converting even 20% of this segment to monthly recurring would meaningfully stabilize cash flow.",
+      "size": 39,
       "characteristics": {
-        "mean_frequency": 13.73,
-        "mean_monetary_total": 9099.03,
-        "mean_monetary_avg": 692.22,
-        "mean_recency_days": 115.0,
-        "mean_tenure_days": 1088.0,
-        "recurring_pct": 1.0
+        "mean_frequency": 5.28,
+        "mean_monetary_total": 3756.65,
+        "mean_monetary_avg": 689.08,
+        "mean_recency_days": 233.0,
+        "mean_tenure_days": 972.0,
+        "recurring_pct": 0.0
       }
     },
     "2": {
       "cluster_id": 2,
-      "label": "The Active Engaged",
-      "tagline": "Frequent one-time donors \u2014 your largest segment",
-      "color": "#5f8448",
-      "strategy": "Upgrade pathway. These donors give regularly but not on a recurring schedule. Test a 'become a sustainer' ask \u2014 converting even 20% of this segment to monthly recurring would meaningfully stabilize cash flow.",
-      "size": 31,
+      "label": "The Loyal Sustainers",
+      "tagline": "Recurring monthly donors \u2014 the org's bread and butter",
+      "color": "#385f82",
+      "strategy": "Steward fiercely. These donors are your most reliable income. Send personalized impact updates and recognize their consistency. Avoid asking them to upgrade until they're highly engaged \u2014 they already give regularly.",
+      "size": 18,
       "characteristics": {
-        "mean_frequency": 5.42,
-        "mean_monetary_total": 4291.74,
-        "mean_monetary_avg": 821.06,
-        "mean_recency_days": 142.0,
-        "mean_tenure_days": 905.0,
-        "recurring_pct": 0.032
+        "mean_frequency": 12.5,
+        "mean_monetary_total": 8084.3,
+        "mean_monetary_avg": 665.56,
+        "mean_recency_days": 153.0,
+        "mean_tenure_days": 1060.0,
+        "recurring_pct": 1.0
       }
     },
     "3": {
       "cluster_id": 3,
-      "label": "The Active Engaged",
-      "tagline": "Frequent one-time donors \u2014 your largest segment",
-      "color": "#5f8448",
-      "strategy": "Upgrade pathway. These donors give regularly but not on a recurring schedule. Test a 'become a sustainer' ask \u2014 converting even 20% of this segment to monthly recurring would meaningfully stabilize cash flow.",
-      "size": 3,
+      "label": "The Micro Donors",
+      "tagline": "Small but consistent givers \u2014 grassroots support",
+      "color": "#7a5a8f",
+      "strategy": "Community messaging. These donors give modest amounts but show up reliably. Don't ask them to upgrade the gift size \u2014 instead, invite them into peer-to-peer fundraising, volunteer events, and social sharing. Their value to the org is reach and grassroots advocacy, not wallet size.",
+      "size": 4,
       "characteristics": {
-        "mean_frequency": 4.33,
-        "mean_monetary_total": 582.71,
-        "mean_monetary_avg": 91.49,
-        "mean_recency_days": 278.0,
-        "mean_tenure_days": 279.0,
+        "mean_frequency": 4.5,
+        "mean_monetary_total": 600.78,
+        "mean_monetary_avg": 101.37,
+        "mean_recency_days": 208.0,
+        "mean_tenure_days": 209.0,
         "recurring_pct": 0.0
       }
     }
