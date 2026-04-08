@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL?.trim() ?? '').replace(/\/+$/, '');
 
 type MeResponse = {
   isAuthenticated: boolean;
@@ -284,14 +284,28 @@ export type ReportsAnalyticsDashboard = {
 };
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers ?? {}),
-    },
-  });
+  const requestUrl = `${API_BASE_URL}${path}`;
+  let response: Response;
+
+  try {
+    response = await fetch(requestUrl, {
+      ...init,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(init?.headers ?? {}),
+      },
+    });
+  } catch (error) {
+    if (error instanceof TypeError) {
+      const endpointHint = API_BASE_URL.length > 0 ? API_BASE_URL : 'this website';
+      throw new Error(
+        `Unable to reach the server at ${endpointHint}. If you are running locally, start the API and try again.`,
+      );
+    }
+
+    throw error;
+  }
 
   if (!response.ok) {
     const fallback = `Request failed with status ${response.status}`;
