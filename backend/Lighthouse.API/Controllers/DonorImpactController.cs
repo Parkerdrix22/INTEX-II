@@ -111,20 +111,10 @@ public class DonorImpactController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetMyImpact([FromServices] AppDbContext dbContext)
     {
-        var email = User.FindFirstValue(ClaimTypes.Email);
-        if (!string.IsNullOrWhiteSpace(email))
+        var supporterIdValue = User.FindFirstValue("supporter_id");
+        if (int.TryParse(supporterIdValue, out var supporterId))
         {
-            var connectionString = dbContext.Database.GetConnectionString()!;
-            await using var conn = new NpgsqlConnection(connectionString);
-            await conn.OpenAsync();
-            await using var cmd = new NpgsqlCommand(
-                "SELECT supporter_id FROM lighthouse.supporters WHERE LOWER(email) = LOWER(@email) LIMIT 1", conn);
-            cmd.Parameters.AddWithValue("email", email);
-            var result = await cmd.ExecuteScalarAsync();
-            if (result is long lighthouseId)
-            {
-                return await GetDonorImpact((int)lighthouseId, dbContext);
-            }
+            return await GetDonorImpact(supporterId, dbContext);
         }
 
         return NotFound(new

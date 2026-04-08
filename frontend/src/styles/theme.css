@@ -2618,6 +2618,7 @@ a.auth-nav-pill--solo-login:focus-visible {
 .auth-card input[type="email"],
 .auth-card input[type="password"],
 .auth-card input[type="text"],
+.auth-card input[type="tel"],
 .auth-card input[type="number"],
 .auth-card select,
 .auth-card textarea {
