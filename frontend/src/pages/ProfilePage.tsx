@@ -31,12 +31,14 @@ export function ProfilePage() {
   const [notes, setNotes] = useState(profile.notes);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [usernameDraft, setUsernameDraft] = useState(username ?? '');
+  const [usernameDraft, setUsernameDraft] = useState<string | null>(null);
+  const usernameDraftValue = usernameDraft ?? (username ?? '');
   const [usernamePassword, setUsernamePassword] = useState('');
-  const usernameChanged = usernameDraft.trim() !== (username ?? '');
-  const [emailDraft, setEmailDraft] = useState(email ?? '');
+  const usernameChanged = usernameDraftValue.trim() !== (username ?? '');
+  const [emailDraft, setEmailDraft] = useState<string | null>(null);
+  const emailDraftValue = emailDraft ?? (email ?? '');
   const [emailPassword, setEmailPassword] = useState('');
-  const emailChanged = emailDraft.trim() !== (email ?? '');
+  const emailChanged = emailDraftValue.trim() !== (email ?? '');
   const [setupKey, setSetupKey] = useState<string | null>(null);
   const [setupUri, setSetupUri] = useState<string | null>(null);
   const [setupCode, setSetupCode] = useState('');
@@ -53,14 +55,6 @@ export function ProfilePage() {
     });
     return () => window.cancelAnimationFrame(raf);
   }, [profile.displayName, profile.phone, profile.notes]);
-
-  useEffect(() => {
-    setUsernameDraft(username ?? '');
-  }, [username]);
-
-  useEffect(() => {
-    setEmailDraft(email ?? '');
-  }, [email]);
 
   useEffect(() => {
     if (setupHintFromUrl.current) {
@@ -122,8 +116,9 @@ export function ProfilePage() {
 
     if (usernameChanged) {
       try {
-        await authApi.changeUsername(usernameDraft.trim(), usernamePassword);
+        await authApi.changeUsername(usernameDraftValue.trim(), usernamePassword);
         await refreshSession();
+        setUsernameDraft(null);
         setUsernamePassword('');
       } catch (err) {
         setSaveError(err instanceof Error ? err.message : 'Failed to update username.');
@@ -133,8 +128,9 @@ export function ProfilePage() {
 
     if (emailChanged) {
       try {
-        await authApi.changeEmail(emailDraft.trim(), emailPassword);
+        await authApi.changeEmail(emailDraftValue.trim(), emailPassword);
         await refreshSession();
+        setEmailDraft(null);
         setEmailPassword('');
       } catch (err) {
         setSaveError(err instanceof Error ? err.message : 'Failed to update email.');
@@ -281,7 +277,7 @@ export function ProfilePage() {
               type="text"
               autoComplete="username"
               placeholder="username or email"
-              value={usernameDraft}
+              value={usernameDraftValue}
               onChange={(e) => setUsernameDraft(e.target.value)}
             />
             <span className="field-helper-text">Letters, numbers, and . _ @ + - only. You can also sign in with your email.</span>
@@ -305,7 +301,7 @@ export function ProfilePage() {
               type="email"
               autoComplete="email"
               placeholder="your@email.com"
-              value={emailDraft}
+              value={emailDraftValue}
               onChange={(e) => setEmailDraft(e.target.value)}
             />
           </label>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { useAuth } from '../auth/useAuth';
@@ -163,12 +163,12 @@ export function DonorDashboardPage() {
   // Pre-fill the amount with a sensible default whenever the type changes
   // (e.g. switching to Time pre-fills "5", switching to Monetary pre-fills "100").
   // Skipped if the donor has already typed something custom.
-  const lastAutoFilledType = useMemo(() => ({ value: donationType }), []);
+  const lastAutoFilledType = useRef(donationType);
   useEffect(() => {
-    if (lastAutoFilledType.value === donationType) return;
+    if (lastAutoFilledType.current === donationType) return;
     setAmount(DONATION_TYPE_CONFIG[donationType].defaultAmount);
-    lastAutoFilledType.value = donationType;
-  }, [donationType, lastAutoFilledType]);
+    lastAutoFilledType.current = donationType;
+  }, [donationType]);
 
   const typeConfig = DONATION_TYPE_CONFIG[donationType];
   const [donationSubmitting, setDonationSubmitting] = useState(false);

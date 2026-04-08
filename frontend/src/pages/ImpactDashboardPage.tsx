@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { publicApi } from '../lib/api';
 
@@ -45,6 +45,7 @@ export function ImpactDashboardPage() {
     counselingSessionsFunded: 0,
     schoolReintegrationRate: 0,
   });
+  const animatedImpactStatsRef = useRef(animatedImpactStats);
   const [healthImpact, setHealthImpact] = useState<{
     monthly: Array<{ month: string; general: number; nutrition: number; sleep: number; energy: number }>;
     avgChange: number;
@@ -68,9 +69,13 @@ export function ImpactDashboardPage() {
   }, []);
 
   useEffect(() => {
+    animatedImpactStatsRef.current = animatedImpactStats;
+  }, [animatedImpactStats]);
+
+  useEffect(() => {
     const durationMs = 900;
     const start = performance.now();
-    const initial = { ...animatedImpactStats };
+    const initial = { ...animatedImpactStatsRef.current };
     let rafId = 0;
 
     const tick = (now: number) => {

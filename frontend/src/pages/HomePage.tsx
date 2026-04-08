@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import backgroundImage from '../background.jpg?format=webp&quality=82&w=1920';
 import threeSistersImage from '../Three sisters in a sunlit field.png?format=webp&quality=82&w=960';
 import kateriPortraitImage from '../Kateri Tekakwitha in golden grasses.png?format=webp&quality=82&w=960';
@@ -16,6 +16,7 @@ export function HomePage() {
     activeResidentCases: 0,
     communityPartners: 0,
   });
+  const animatedStatsRef = useRef(animatedStats);
 
   useLayoutEffect(() => {
     const id = 'preload-kateri-home-bg';
@@ -30,7 +31,7 @@ export function HomePage() {
     return () => {
       link.remove();
     };
-  }, [backgroundImage]);
+  }, []);
 
   useEffect(() => {
     document.body.classList.add('home-background');
@@ -60,9 +61,13 @@ export function HomePage() {
   }, []);
 
   useEffect(() => {
+    animatedStatsRef.current = animatedStats;
+  }, [animatedStats]);
+
+  useEffect(() => {
     const durationMs = 900;
     const start = performance.now();
-    const initial = { ...animatedStats };
+    const initial = { ...animatedStatsRef.current };
     let rafId = 0;
 
     const tick = (now: number) => {
