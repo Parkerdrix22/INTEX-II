@@ -8,9 +8,53 @@ import {
   donorVolunteerApi,
   PROGRAM_AREAS,
   type AllocationPlan,
+  type DonationValuation,
   type DonorImpactReport,
   type ProgramArea,
 } from '../lib/api';
+
+type DonationTypeKey = 'Monetary' | 'InKind' | 'Time' | 'Skills' | 'SocialMedia';
+
+// Per-type form configuration. Drives the Amount field label, the inline
+// helper text, and the conversion footnote in the success card. Backend
+// applies the same rates server-side; this is purely for the donor's UX.
+const DONATION_TYPE_CONFIG: Record<DonationTypeKey, {
+  amountLabel: string;
+  helperText: string;
+  unitNoun: string;
+  defaultAmount: string;
+}> = {
+  Monetary: {
+    amountLabel: 'Amount (USD)',
+    helperText: 'Enter the dollar amount you\u2019d like to give.',
+    unitNoun: 'dollars',
+    defaultAmount: '100',
+  },
+  Time: {
+    amountLabel: 'Hours volunteered',
+    helperText: 'Each volunteer hour is valued at $33.49 (Independent Sector\u2019s 2024 standard rate).',
+    unitNoun: 'hours',
+    defaultAmount: '5',
+  },
+  Skills: {
+    amountLabel: 'Hours of skilled volunteer work',
+    helperText: 'Skilled hours (accounting, legal, design, IT) are valued at the median historical rate from our records.',
+    unitNoun: 'hours',
+    defaultAmount: '3',
+  },
+  InKind: {
+    amountLabel: 'Estimated value of donated items (USD)',
+    helperText: 'Enter the fair market value of what you\u2019re donating (e.g. $200 for $200 worth of school supplies).',
+    unitNoun: 'dollars',
+    defaultAmount: '250',
+  },
+  SocialMedia: {
+    amountLabel: 'Number of campaigns or posts',
+    helperText: 'Each social media campaign is valued at the median historical rate from our records.',
+    unitNoun: 'campaigns',
+    defaultAmount: '1',
+  },
+};
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
@@ -91,11 +135,25 @@ export function DonorDashboardPage() {
   }, [firstName, lastName]);
 
   const [amount, setAmount] = useState('100');
+  const [donationType, setDonationType] = useState<DonationTypeKey>('Monetary');
   const [currency, setCurrency] = useState<'USD' | 'PHP'>('USD');
   const [programArea, setProgramArea] = useState<ProgramArea>('Education');
   const [donationSuccess, setDonationSuccess] = useState<string | null>(null);
   const [donationError, setDonationError] = useState<string | null>(null);
   const [allocationPlan, setAllocationPlan] = useState<AllocationPlan | null>(null);
+  const [valuation, setValuation] = useState<DonationValuation | null>(null);
+
+  // Pre-fill the amount with a sensible default whenever the type changes
+  // (e.g. switching to Time pre-fills "5", switching to Monetary pre-fills "100").
+  // Skipped if the donor has already typed something custom.
+  const lastAutoFilledType = useMemo(() => ({ value: donationType }), []);
+  useEffect(() => {
+    if (lastAutoFilledType.value === donationType) return;
+    setAmount(DONATION_TYPE_CONFIG[donationType].defaultAmount);
+    lastAutoFilledType.value = donationType;
+  }, [donationType, lastAutoFilledType]);
+
+  const typeConfig = DONATION_TYPE_CONFIG[donationType];
   const [donationSubmitting, setDonationSubmitting] = useState(false);
 
   const [goodsItemName, setGoodsItemName] = useState('');
@@ -164,6 +222,7 @@ export function DonorDashboardPage() {
     setDonationError(null);
     setDonationSuccess(null);
     setAllocationPlan(null);
+    setValuation(null);
     setDonationSubmitting(true);
 
     const numericAmount = Number.parseFloat(amount);
@@ -174,7 +233,7 @@ export function DonorDashboardPage() {
     }
 
     const confirmed = window.confirm(
-      `Confirm monetary donation of ${money.format(numericAmount)} (${currency})?`,
+      `Confirm ${donationType} donation of ${numericAmount} ${typeConfig.unitNoun}?`,
     );
     if (!confirmed) {
       setDonationSubmitting(false);
@@ -184,7 +243,7 @@ export function DonorDashboardPage() {
     try {
       const response = await donationsApi.create({
         amount: numericAmount,
-        donationType: 'Monetary',
+        donationType,
         frequency: 'one-time',
         currency,
         donationDate: new Date().toISOString(),
@@ -194,11 +253,17 @@ export function DonorDashboardPage() {
       });
 
       setAllocationPlan(response.allocation);
+      setValuation(response.valuation);
+
+      const v = response.valuation;
+      const conversionLine = v.canonicalType === 'Monetary' || v.canonicalType === 'InKind'
+        ? `Your gift of ${money.format(v.estimatedValue)}`
+        : `Your ${v.rawAmount} ${v.impactUnit} (valued at ${money.format(v.estimatedValue)})`;
       setDonationSuccess(
-        `Thank you, ${effectiveDisplayName || 'supporter'}! Your ${money.format(numericAmount)} gift has been allocated based on current safehouse needs.`,
+        `Thank you, ${effectiveDisplayName || 'supporter'}! ${conversionLine} has been allocated based on current safehouse needs.`,
       );
       await loadImpact();
-      setAmount('100');
+      setAmount(DONATION_TYPE_CONFIG[donationType].defaultAmount);
       setCurrency('USD');
     } catch (err) {
       setDonationError(err instanceof Error ? err.message : 'Could not save donation.');
@@ -541,23 +606,37 @@ export function DonorDashboardPage() {
       <div id="donate-forms" className="donor-forms-stack">
         <div className="donor-donate-row">
           <article className="auth-card">
-            <h2>Donate (monetary)</h2>
+            <h2>Donate</h2>
             <p className="auth-lead">
-              Your gift is recorded as a monetary donation. Choose a program area; we route funds to
-              safehouses with the greatest current need in that area.
+              Choose how you'd like to give. Cash, volunteer time, or skilled work — all are
+              automatically routed to safehouses with the greatest current need in your chosen
+              program area. (To donate physical goods, use the In-kind form on the right.)
             </p>
             <form onSubmit={onDonationSubmit}>
               <label>
-                Amount
+                Donation type
+                <select
+                  value={donationType}
+                  onChange={(event) => setDonationType(event.target.value as DonationTypeKey)}
+                >
+                  <option value="Monetary">Monetary</option>
+                  <option value="Time">Volunteer Time</option>
+                  <option value="Skills">Skilled Volunteer Time</option>
+                  <option value="SocialMedia">Social Media</option>
+                </select>
+              </label>
+              <label>
+                {typeConfig.amountLabel}
                 <input
                   required
                   min={1}
-                  step="0.01"
+                  step={donationType === 'Monetary' ? '0.01' : '1'}
                   type="number"
                   value={amount}
                   onChange={(event) => setAmount(event.target.value)}
                 />
               </label>
+              <p className="donation-type-helper">{typeConfig.helperText}</p>
               <label>
                 Currency
                 <select
@@ -595,6 +674,13 @@ export function DonorDashboardPage() {
                   <h3 className="allocation-plan-card__title">
                     Where your {money.format(allocationPlan.totalAmount)} went
                   </h3>
+                  {valuation && valuation.canonicalType !== 'Monetary' && valuation.canonicalType !== 'InKind' && (
+                    <p className="allocation-plan-card__conversion">
+                      {valuation.rawAmount} {valuation.impactUnit} × ${valuation.ratePerUnit.toFixed(2)} =
+                      {' '}{money.format(valuation.estimatedValue)}{' '}
+                      <span className="allocation-plan-card__conversion-source">— {valuation.rateSource}</span>
+                    </p>
+                  )}
                   <ul className="allocation-plan-card__list">
                     {allocationPlan.safehouseAllocations.map((sa) => (
                       <li key={sa.safehouseId}>

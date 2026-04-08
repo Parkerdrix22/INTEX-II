@@ -17,7 +17,8 @@ public class DonationsController(
     AppDbContext dbContext,
     UserManager<AppUser> userManager,
     IStaffNotificationEmailService staffNotificationEmail,
-    INeedBasedAllocationService allocationService) : ControllerBase
+    INeedBasedAllocationService allocationService,
+    IDonationValuationService valuationService) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> CreateDonation([FromBody] CreateDonationRequest request)
@@ -25,7 +26,6 @@ public class DonationsController(
         if (request.Amount <= 0)
             return BadRequest(new { message = "Donation amount must be greater than zero." });
 
-        var donationType = NormalizeDonationType(request.DonationType);
         var frequency = string.IsNullOrWhiteSpace(request.Frequency)
             ? "one-time"
             : request.Frequency.Trim().ToLowerInvariant();
@@ -36,7 +36,15 @@ public class DonationsController(
         var donationDate = request.DonationDate?.ToUniversalTime() ?? DateTime.UtcNow;
         var currency = string.IsNullOrWhiteSpace(request.Currency) ? "USD" : request.Currency.Trim().ToUpperInvariant();
 
-        int? supporterId = donationType == "Monetary"
+        // Convert raw donor input → canonical type, impact_unit, and estimated $ value.
+        // Time → hours × $33.49; Skills/SocialMedia → hours × empirical median rate;
+        // InKind → 1:1 fair-market USD; Monetary → 1:1.
+        var valuation = await valuationService.ValueDonationAsync(
+            request.DonationType,
+            request.Amount,
+            dbContext);
+
+        int? supporterId = valuation.CanonicalType == "Monetary"
             ? await ResolveSupporterForLighthouseAsync(request.DonorName)
             : null;
 
@@ -46,23 +54,27 @@ public class DonationsController(
             var insertedRows = await dbContext.Database.SqlQueryRaw<InsertedDonationIdRow>(
                 """
                 INSERT INTO lighthouse.donations
-                    (donation_id, supporter_id, donation_type, donation_date, estimated_value, campaign_name)
-                VALUES ({0}, {1}, {2}, {3}, {4}, {5})
+                    (donation_id, supporter_id, donation_type, donation_date,
+                     amount, estimated_value, currency_code, impact_unit, campaign_name)
+                VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})
                 RETURNING donation_id AS "Id"
                 """,
                 newDonationId,
                 supporterId,
-                donationType,
+                valuation.CanonicalType,
                 donationDate,
-                request.Amount,
+                valuation.RawAmount,        // raw quantity (hours, items, campaigns, USD)
+                valuation.EstimatedValue,   // dollar equivalent
+                currency,
+                valuation.ImpactUnit,       // hours / items / campaigns / USD
                 campaignName)
                 .ToListAsync();
             var insertedId = insertedRows.FirstOrDefault()?.Id ?? 0;
 
             // ---- Pipeline 8: Need-Based Donation Routing -----------------------
-            // Decide where the dollars actually go and write the allocation rows.
+            // Allocate based on the DOLLAR value, not the raw count.
             var allocationPlan = await allocationService.AllocateAsync(
-                request.Amount,
+                valuation.EstimatedValue,
                 request.ProgramArea ?? "Operations",
                 dbContext);
             await WriteAllocationRowsAsync(insertedId, donationDate, allocationPlan);
@@ -72,15 +84,17 @@ public class DonationsController(
             {
                 message = "Donation recorded successfully.",
                 donationId = insertedId,
+                valuation,
                 allocation = allocationPlan
             });
         }
         catch
         {
+            // EF fallback path: use the dollar-equivalent value, not the raw count.
             var donation = new Donation
             {
                 SupporterId = supporterId,
-                Amount = request.Amount,
+                Amount = valuation.EstimatedValue,
                 Currency = currency,
                 DonatedAt = donationDate,
                 CampaignName = campaignName,
