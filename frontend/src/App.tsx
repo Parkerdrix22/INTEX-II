@@ -202,7 +202,7 @@ function App() {
           <Route
             path="/donor-impact"
             element={
-              <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Donor']}>
+              <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
                 <DonorImpactPage />
               </ProtectedRoute>
             }
