@@ -871,6 +871,14 @@ export const donorsContributionsApi = {
       method: 'POST',
       body: JSON.stringify({ tone }),
     }),
+  sendThankYou: (supporterId: number, payload: { subject: string; body: string }) =>
+    apiFetch<{ message: string; recipient: string }>(
+      `/api/donors-contributions/supporters/${supporterId}/send-thank-you`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    ),
   createSupporter: (payload: {
     supporterType: string;
     displayName?: string;
