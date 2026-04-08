@@ -4233,3 +4233,268 @@ input[type='reset']:disabled {
   width: 18px;
   height: 18px;
 }
+
+/* ============================================================================
+   Mobile nav — hamburger + full-width dropdown
+   Modeled after the intex1 mobile pattern but in Kateri colors, with
+   dark-mode support that dovetails into Tanner's [data-theme='dark'] system.
+   ============================================================================ */
+
+.hamburger {
+  display: none; /* hidden by default, shown at mobile breakpoint */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(56, 95, 130, 0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  appearance: none;
+  z-index: 60;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.hamburger:hover {
+  background: rgba(56, 95, 130, 0.08);
+}
+
+.hamburger:focus-visible {
+  outline: 2px solid #c9983f;
+  outline-offset: 2px;
+}
+
+.hamburger__bar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--accent, #385f82);
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+  transform-origin: center;
+}
+
+/* Hamburger animates into an X when active */
+.hamburger--active .hamburger__bar:nth-child(1) {
+  transform: translateY(7px) rotate(-45deg);
+}
+.hamburger--active .hamburger__bar:nth-child(2) {
+  opacity: 0;
+}
+.hamburger--active .hamburger__bar:nth-child(3) {
+  transform: translateY(-7px) rotate(45deg);
+}
+
+/* Mobile dropdown panel — slides down from the top of the viewport */
+.mobile-nav {
+  display: none; /* hidden by default, enabled at mobile breakpoint */
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: -100vh; /* parked above the fold */
+  z-index: 55;
+  background: var(--surface, #fdf8ec);
+  box-shadow: 0 12px 40px rgba(31, 47, 63, 0.2);
+  border-bottom: 1px solid rgba(56, 95, 130, 0.15);
+  padding: 1rem 1.5rem 1.5rem;
+  transition: top 0.3s ease-in-out;
+  overflow-y: auto;
+  max-height: calc(100vh - 70px);
+}
+
+.mobile-nav--open {
+  top: 70px;
+}
+
+.mobile-nav__link {
+  display: block;
+  padding: 1rem 0.25rem;
+  border-bottom: 1px solid rgba(56, 95, 130, 0.1);
+  color: var(--text, #1e2c3a);
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: color 0.15s ease, padding-left 0.15s ease;
+}
+
+.mobile-nav__link:hover,
+.mobile-nav__link:focus-visible {
+  color: var(--accent, #385f82);
+  padding-left: 0.5rem;
+  outline: none;
+}
+
+.mobile-nav__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(56, 95, 130, 0.1);
+}
+
+.mobile-nav__theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  align-self: flex-start;
+  padding: 0.55rem 1rem;
+  border: 1px solid rgba(56, 95, 130, 0.3);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent, #385f82);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.mobile-nav__theme-btn:hover {
+  background: rgba(56, 95, 130, 0.08);
+}
+
+.mobile-nav__theme-btn svg {
+  flex-shrink: 0;
+}
+
+.mobile-nav__auth {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.mobile-nav__auth-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--accent, #385f82);
+  background: transparent;
+  color: var(--accent, #385f82);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.mobile-nav__auth-btn:hover {
+  background: rgba(56, 95, 130, 0.08);
+}
+
+.mobile-nav__auth-btn--primary {
+  background: var(--accent, #385f82);
+  color: #fdf8ec;
+}
+
+.mobile-nav__auth-btn--primary:hover {
+  background: #2d4e6b;
+  color: #fdf8ec;
+}
+
+.mobile-nav__auth-btn:active {
+  transform: scale(0.98);
+}
+
+/* Dim backdrop behind the overlay */
+.mobile-nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 47, 63, 0.45);
+  z-index: 50;
+  animation: mobileNavFadeIn 0.25s ease-out;
+}
+
+@keyframes mobileNavFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Dark mode — dovetails into Tanner's [data-theme='dark'] system */
+:root[data-theme='dark'] .hamburger {
+  border-color: rgba(157, 181, 204, 0.4);
+}
+
+:root[data-theme='dark'] .hamburger:hover {
+  background: rgba(127, 179, 224, 0.1);
+}
+
+:root[data-theme='dark'] .hamburger__bar {
+  background: rgba(220, 232, 245, 0.9);
+}
+
+:root[data-theme='dark'] .mobile-nav {
+  background: rgba(16, 26, 38, 0.98);
+  border-bottom-color: rgba(130, 155, 178, 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+:root[data-theme='dark'] .mobile-nav__link {
+  color: rgba(226, 235, 245, 0.92);
+  border-bottom-color: rgba(130, 155, 178, 0.18);
+}
+
+:root[data-theme='dark'] .mobile-nav__link:hover,
+:root[data-theme='dark'] .mobile-nav__link:focus-visible {
+  color: #c9983f;
+}
+
+:root[data-theme='dark'] .mobile-nav__controls {
+  border-bottom-color: rgba(130, 155, 178, 0.18);
+}
+
+:root[data-theme='dark'] .mobile-nav__theme-btn {
+  border-color: rgba(157, 181, 204, 0.45);
+  color: rgba(226, 235, 245, 0.92);
+}
+
+:root[data-theme='dark'] .mobile-nav__theme-btn:hover {
+  background: rgba(127, 179, 224, 0.1);
+}
+
+:root[data-theme='dark'] .mobile-nav__auth-btn {
+  border-color: rgba(157, 181, 204, 0.55);
+  color: rgba(226, 235, 245, 0.95);
+}
+
+:root[data-theme='dark'] .mobile-nav__auth-btn:hover {
+  background: rgba(127, 179, 224, 0.1);
+}
+
+:root[data-theme='dark'] .mobile-nav__auth-btn--primary {
+  background: rgba(127, 179, 224, 0.2);
+  border-color: rgba(127, 179, 224, 0.6);
+  color: #f1d594;
+}
+
+:root[data-theme='dark'] .mobile-nav__auth-btn--primary:hover {
+  background: rgba(127, 179, 224, 0.3);
+  color: #f1d594;
+}
+
+:root[data-theme='dark'] .mobile-nav-backdrop {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* ── Activate the mobile nav under 768px, hide the desktop nav-right ── */
+@media (max-width: 768px) {
+  .nav-right {
+    display: none;
+  }
+  .hamburger {
+    display: flex;
+  }
+  .mobile-nav {
+    display: block;
+  }
+}
