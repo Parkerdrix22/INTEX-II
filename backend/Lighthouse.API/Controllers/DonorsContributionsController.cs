@@ -1,4 +1,5 @@
 using Lighthouse.API.Data;
+using Lighthouse.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,43 @@ namespace Lighthouse.API.Controllers;
 [Authorize(Roles = "Admin,Staff")]
 public class DonorsContributionsController(AppDbContext dbContext) : ControllerBase
 {
+    // -------------------------------------------------------------------------
+    // POST /api/donors-contributions/supporters/{id}/draft-thank-you
+    //
+    // Claude-drafted thank-you email for the given donor, personalized from
+    // their giving history + program allocations. The staff member reviews
+    // and edits before sending — the API never sends email itself.
+    //
+    // Body (optional): { "tone": "warm" | "formal" | "playful" }  default "warm"
+    // -------------------------------------------------------------------------
+    [HttpPost("supporters/{supporterId:int}/draft-thank-you")]
+    public async Task<IActionResult> DraftThankYou(
+        int supporterId,
+        [FromBody] DraftThankYouRequest? request,
+        [FromServices] IThankYouDrafterService drafter,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var tone = request?.Tone ?? "warm";
+            var draft = await drafter.DraftAsync(supporterId, tone, dbContext, cancellationToken);
+            return Ok(draft);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Failed to draft thank-you email.", error = ex.Message });
+        }
+    }
+
+    public sealed class DraftThankYouRequest
+    {
+        public string? Tone { get; set; }
+    }
+
     [HttpPost("supporters/{supporterId:int}/donations")]
     public async Task<IActionResult> CreateSupporterDonation(int supporterId, [FromBody] CreateSupporterDonationRequest request)
     {

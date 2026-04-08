@@ -12,6 +12,7 @@ import {
 import {
   donorsContributionsApi,
   type DonorsContributionsDashboard,
+  type ThankYouDraft,
 } from '../lib/api';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 
@@ -56,6 +57,57 @@ export function DonorsContributionsPage() {
   const [showAddSupporterModal, setShowAddSupporterModal] = useState(false);
   const [savingSupporter, setSavingSupporter] = useState(false);
   const [supporterError, setSupporterError] = useState<string | null>(null);
+
+  // AI thank-you drafter modal state
+  const [thankYouSupporter, setThankYouSupporter] = useState<{ id: number; name: string } | null>(
+    null,
+  );
+  const [thankYouTone, setThankYouTone] = useState<'warm' | 'formal' | 'playful'>('warm');
+  const [thankYouDraft, setThankYouDraft] = useState<ThankYouDraft | null>(null);
+  const [thankYouDrafting, setThankYouDrafting] = useState(false);
+  const [thankYouError, setThankYouError] = useState<string | null>(null);
+  const [thankYouCopied, setThankYouCopied] = useState<'subject' | 'body' | null>(null);
+
+  const openThankYouModal = (supporter: { id: number; displayName: string }) => {
+    setThankYouSupporter({ id: supporter.id, name: supporter.displayName });
+    setThankYouTone('warm');
+    setThankYouDraft(null);
+    setThankYouError(null);
+    setThankYouCopied(null);
+    void runDraft(supporter.id, 'warm');
+  };
+
+  const runDraft = async (supporterId: number, tone: 'warm' | 'formal' | 'playful') => {
+    setThankYouDrafting(true);
+    setThankYouError(null);
+    setThankYouDraft(null);
+    try {
+      const draft = await donorsContributionsApi.draftThankYou(supporterId, tone);
+      setThankYouDraft(draft);
+    } catch (err) {
+      setThankYouError(err instanceof Error ? err.message : 'Failed to draft thank-you email.');
+    } finally {
+      setThankYouDrafting(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string, label: 'subject' | 'body') => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setThankYouCopied(label);
+      setTimeout(() => setThankYouCopied(null), 1500);
+    } catch {
+      // Fallback: select-and-copy via a temporary textarea
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setThankYouCopied(label);
+      setTimeout(() => setThankYouCopied(null), 1500);
+    }
+  };
   const [supporterForm, setSupporterForm] = useState({
     supporterType: 'MonetaryDonor',
     displayName: '',
@@ -306,6 +358,7 @@ export function DonorsContributionsPage() {
                     <th>Status</th>
                     <th>Created</th>
                     <th>Last contribution</th>
+                    <th aria-label="Actions"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -320,6 +373,16 @@ export function DonorsContributionsPage() {
                       <td>{row.status}</td>
                       <td>{formatDate(row.createdAt)}</td>
                       <td>{formatDate(row.lastDonationAt)}</td>
+                      <td onClick={(event) => event.stopPropagation()}>
+                        <button
+                          type="button"
+                          className="btn-secondary thank-you-trigger"
+                          onClick={() => openThankYouModal(row)}
+                          title="Draft an AI-written thank-you email for this donor"
+                        >
+                          ✨ Thank-you
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -573,6 +636,148 @@ export function DonorsContributionsPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {thankYouSupporter && (
+        <div
+          className="resident-modal-backdrop"
+          role="presentation"
+          onClick={() => setThankYouSupporter(null)}
+        >
+          <article
+            className="resident-modal-card thank-you-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="thank-you-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="record-detail-card__header">
+              <p className="record-detail-card__eyebrow">✨ AI-drafted thank-you email</p>
+              <h2 id="thank-you-modal-title">For {thankYouSupporter.name}</h2>
+              <p className="auth-lead" style={{ margin: 0 }}>
+                Personalized from this donor&apos;s giving history. Review, edit, and paste into your
+                email client — nothing is sent automatically.
+              </p>
+            </header>
+
+            <div className="thank-you-tone-row">
+              <span className="thank-you-tone-label">Tone:</span>
+              {(['warm', 'formal', 'playful'] as const).map((tone) => (
+                <button
+                  key={tone}
+                  type="button"
+                  className={`thank-you-tone-pill${
+                    thankYouTone === tone ? ' thank-you-tone-pill--active' : ''
+                  }`}
+                  disabled={thankYouDrafting}
+                  onClick={() => {
+                    setThankYouTone(tone);
+                    void runDraft(thankYouSupporter.id, tone);
+                  }}
+                >
+                  {tone}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="btn-secondary thank-you-regenerate"
+                disabled={thankYouDrafting}
+                onClick={() => void runDraft(thankYouSupporter.id, thankYouTone)}
+                title="Regenerate with the same tone"
+              >
+                ↻ Regenerate
+              </button>
+            </div>
+
+            {thankYouDrafting && (
+              <p className="thank-you-status">Drafting with Claude…</p>
+            )}
+
+            {thankYouError && !thankYouDrafting && (
+              <p className="error-text">{thankYouError}</p>
+            )}
+
+            {thankYouDraft && !thankYouDrafting && (
+              <>
+                <div className="thank-you-field">
+                  <div className="thank-you-field-header">
+                    <label htmlFor="thank-you-subject">Subject</label>
+                    <button
+                      type="button"
+                      className="btn-secondary thank-you-copy-btn"
+                      onClick={() => copyToClipboard(thankYouDraft.subject, 'subject')}
+                    >
+                      {thankYouCopied === 'subject' ? '✓ Copied' : 'Copy'}
+                    </button>
+                  </div>
+                  <input
+                    id="thank-you-subject"
+                    type="text"
+                    className="thank-you-subject-input"
+                    value={thankYouDraft.subject}
+                    onChange={(event) =>
+                      setThankYouDraft((current) =>
+                        current ? { ...current, subject: event.target.value } : current,
+                      )
+                    }
+                  />
+                </div>
+
+                <div className="thank-you-field">
+                  <div className="thank-you-field-header">
+                    <label htmlFor="thank-you-body">Body</label>
+                    <button
+                      type="button"
+                      className="btn-secondary thank-you-copy-btn"
+                      onClick={() => copyToClipboard(thankYouDraft.body, 'body')}
+                    >
+                      {thankYouCopied === 'body' ? '✓ Copied' : 'Copy'}
+                    </button>
+                  </div>
+                  <textarea
+                    id="thank-you-body"
+                    className="thank-you-body-textarea"
+                    rows={12}
+                    value={thankYouDraft.body}
+                    onChange={(event) =>
+                      setThankYouDraft((current) =>
+                        current ? { ...current, body: event.target.value } : current,
+                      )
+                    }
+                  />
+                </div>
+
+                <p className="thank-you-model-note">
+                  Generated by {thankYouDraft.model} · You can edit freely before copying
+                </p>
+              </>
+            )}
+
+            <div className="resident-modal-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setThankYouSupporter(null)}
+              >
+                Close
+              </button>
+              {thankYouDraft && !thankYouDrafting && (
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => {
+                    const mailto = `mailto:?subject=${encodeURIComponent(
+                      thankYouDraft.subject,
+                    )}&body=${encodeURIComponent(thankYouDraft.body)}`;
+                    window.open(mailto, '_blank');
+                  }}
+                >
+                  Open in email client
+                </button>
+              )}
+            </div>
+          </article>
         </div>
       )}
     </section>
