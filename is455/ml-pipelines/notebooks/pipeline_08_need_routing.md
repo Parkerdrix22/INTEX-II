@@ -199,11 +199,7 @@ the pipeline's output.
    weighting between outcome and funding deficits, learn the weights from
    historical donor satisfaction data (if you ever collect it) or from
    measured downstream outcome improvement after each donation.
-3. **Forecast-aware routing** — combine with Pipeline 4 (Safehouse
-   Performance) once it produces a positive R². Route donations to
-   safehouses *predicted* to deteriorate next month, not just ones
-   currently struggling.
-4. **Donor preference history** — if a donor consistently picks
+3. **Donor preference history** — if a donor consistently picks
    "Education", soft-bias their future gifts toward education-related
    safehouses they've already supported, for continuity ("you've been
    funding Safehouse 5's reading program — here's an update on it").

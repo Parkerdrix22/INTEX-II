@@ -53,38 +53,6 @@
       "onnx_verified": true
     }
   },
-  "pipeline_04_safehouse_perf": {
-    "status": "success",
-    "trained_at": "2026-04-08T04:31:38.020502+00:00",
-    "metrics": {
-      "rf": {
-        "rmse": 0.1632,
-        "mae": 0.1629,
-        "r2": 0.0,
-        "baseline_rmse": 0.1072,
-        "baseline_mae": 0.0115,
-        "beats_naive_baseline": false,
-        "rmse_pct_of_baseline": 152.2,
-        "n_test": 87,
-        "model_type": "RandomForestRegressor",
-        "onnx_verified": true
-      },
-      "lr": {
-        "rmse": 0.1151,
-        "mae": 0.0965,
-        "r2": 0.0,
-        "baseline_rmse": 0.1072,
-        "baseline_mae": 0.0115,
-        "beats_naive_baseline": false,
-        "rmse_pct_of_baseline": 107.3,
-        "n_test": 87,
-        "model_type": "LinearRegression"
-      },
-      "n_train": 345,
-      "n_test": 87,
-      "n_features": 29
-    }
-  },
   "pipeline_05_impact_attribution": {
     "status": "success",
     "trained_at": "2026-04-08T04:31:39.347528+00:00",
@@ -113,38 +81,6 @@
       "panel_rows": 441,
       "n_health_rows": 252,
       "n_edu_rows": 252
-    }
-  },
-  "pipeline_04_safehouse_performance": {
-    "status": "success",
-    "trained_at": "2026-04-08T04:31:38.019153+00:00",
-    "metrics": {
-      "rf": {
-        "rmse": 0.1632,
-        "mae": 0.1629,
-        "r2": 0.0,
-        "baseline_rmse": 0.1072,
-        "baseline_mae": 0.0115,
-        "beats_naive_baseline": false,
-        "rmse_pct_of_baseline": 152.2,
-        "n_test": 87,
-        "model_type": "RandomForestRegressor",
-        "onnx_verified": true
-      },
-      "lr": {
-        "rmse": 0.1151,
-        "mae": 0.0965,
-        "r2": 0.0,
-        "baseline_rmse": 0.1072,
-        "baseline_mae": 0.0115,
-        "beats_naive_baseline": false,
-        "rmse_pct_of_baseline": 107.3,
-        "n_test": 87,
-        "model_type": "LinearRegression"
-      },
-      "n_train": 345,
-      "n_test": 87,
-      "n_features": 29
     }
   },
   "pipeline_06_reintegration_readiness": {
