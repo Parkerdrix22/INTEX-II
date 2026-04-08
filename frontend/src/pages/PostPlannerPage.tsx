@@ -512,7 +512,6 @@ export function PostPlannerPage() {
       {attribution && (
         <section className="attribution-section">
           <header className="attribution-header">
-            <span className="attribution-overline">Pipeline 3 Validation</span>
             <h2 className="attribution-title">Do likes turn into dollars?</h2>
             <p className="attribution-subtitle">
               {attribution.attributedDonations} of {attribution.totalDonations} donations

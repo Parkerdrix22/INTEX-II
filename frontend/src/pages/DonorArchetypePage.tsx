@@ -242,7 +242,6 @@ export function DonorArchetypePage() {
     <section className={`archetype-page ${visible ? 'is-visible' : ''}`}>
       {/* ─── Header ───────────────────────────────────────── */}
       <header className="archetype-header">
-        <span className="archetype-overline">Pipeline 7 · Unsupervised Segmentation</span>
         <h1 className="archetype-title">Donor Archetypes</h1>
         <p className="archetype-subtitle">
           Every donor automatically grouped into one of four natural personas based on their RFM
