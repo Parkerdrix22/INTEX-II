@@ -21,8 +21,9 @@ export function PrivacyPolicyPage() {
         according to applicable privacy obligations.
       </p>
       <p>
-        Cookie and consent details are documented in the Cookie Policy. Essential security cookies are
-        required for protected areas, while optional preferences can be managed through the cookie banner.
+        Cookie and consent details are documented in the Cookie Policy. Essential security cookies are required for
+        protected areas. Optional preference cookies (such as theme preference) are only stored when users choose
+        &quot;Accept all cookies&quot; in the cookie banner.
       </p>
       <p>
         Last updated: April 2026.

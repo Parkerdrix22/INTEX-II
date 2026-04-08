@@ -34,6 +34,7 @@ import { StaffSidebar } from './components/StaffSidebar';
 import { ChatWidget } from './components/ChatWidget';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { NonBlockingErrorBoundary } from './components/NonBlockingErrorBoundary';
+import { useCookieConsent } from './context/CookieConsentContext';
 
 function ProfileNavIcon({ className }: { className?: string }) {
   return (
@@ -67,6 +68,7 @@ function App() {
   const isResident = roles.includes('Resident');
   const showStaffSidebar = isAuthenticated && isStaffLike;
   const [staffSidebarOpen, setStaffSidebarOpen] = useState(false);
+  const { themePreference, toggleThemePreference, consentChoice } = useCookieConsent();
 
   useEffect(() => {
     if (!staffSidebarOpen || !showStaffSidebar) return;
@@ -144,6 +146,33 @@ function App() {
                 </button>
               </div>
             )}
+            <button
+              type="button"
+              className="theme-toggle-button"
+              onClick={toggleThemePreference}
+              title={
+                consentChoice === 'all'
+                  ? 'Theme preference will be remembered in an optional cookie.'
+                  : 'Theme preference applies only for this session unless you accept all cookies.'
+              }
+              aria-label={`Switch to ${themePreference === 'dark' ? 'light' : 'dark'} theme`}
+            >
+              {themePreference === 'dark' ? (
+                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M12 6.2a5.8 5.8 0 1 0 0 11.6a5.8 5.8 0 0 0 0-11.6Zm0-3.7a1 1 0 0 1 1 1v1.4a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16.1a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.4a1 1 0 0 1 1-1Zm7.6-7.6a1 1 0 1 1 0 2h-1.4a1 1 0 1 1 0-2h1.4Zm-14.2 0a1 1 0 1 1 0 2H4a1 1 0 1 1 0-2h1.4Zm10.08-4.68a1 1 0 0 1 1.41 0l.99.99a1 1 0 1 1-1.41 1.41l-.99-.99a1 1 0 0 1 0-1.41Zm-8.96 8.96a1 1 0 0 1 1.41 0l.99.99a1 1 0 1 1-1.41 1.41l-.99-.99a1 1 0 0 1 0-1.41Zm11.37.99a1 1 0 0 1 1.41 0l.99.99a1 1 0 1 1-1.41 1.41l-.99-.99a1 1 0 0 1 0-1.41Zm-8.96-8.96a1 1 0 0 1 0 1.41l-.99.99A1 1 0 1 1 5.53 7.3l.99-.99a1 1 0 0 1 1.41 0Z"
+                  />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M15.9 3.2a1 1 0 0 1 .25 1.38A8.4 8.4 0 1 0 20.7 15a1 1 0 0 1 1.82.82A10.4 10.4 0 1 1 14.53 2.95a1 1 0 0 1 1.37.25Z"
+                  />
+                </svg>
+              )}
+            </button>
           </div>
         </nav>
       </header>

@@ -28,6 +28,7 @@ build/
 .env
 .env.*
 !.env.example
+backend/Lighthouse.API/.env
 backend/Lighthouse.API/appsettings.Local.json
 frontend/.env.local
 frontend/.env.development.local

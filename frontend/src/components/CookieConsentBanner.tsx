@@ -11,7 +11,8 @@ export function CookieConsentBanner() {
   return (
     <aside className="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie consent">
       <p>
-        Kateri uses essential cookies for authentication and security. You can review details in our{' '}
+        Kateri uses essential cookies for authentication and security. If you accept all cookies, we also save your
+        theme preference in an optional browser cookie. You can review details in our{' '}
         <Link to="/cookie-policy">Cookie Policy</Link>.
       </p>
       <div className="cookie-banner__actions">

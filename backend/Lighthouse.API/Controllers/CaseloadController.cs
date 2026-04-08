@@ -141,6 +141,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPost("residents")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateResident([FromBody] CreateResidentRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.CaseControlNo))
@@ -215,6 +216,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPut("residents/{residentId:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateResidentDetail(int residentId, [FromBody] UpdateResidentDetailRequest request)
     {
         try
@@ -336,6 +338,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpDelete("residents/{residentId:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteResident(int residentId)
     {
         try
@@ -425,6 +428,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPost("residents/{residentId:int}/intervention-plans")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddInterventionPlan(int residentId, [FromBody] CreateInterventionPlanRequest request)
     {
         var targetDateUtc = request.TargetDate.HasValue ? NormalizeToUtc(request.TargetDate.Value) : (DateTime?)null;
@@ -500,6 +504,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPut("residents/{residentId:int}/intervention-plans/{recordKey}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateInterventionPlan(int residentId, string recordKey, [FromBody] UpdateInterventionPlanRequest request)
     {
         var targetDateUtc = request.TargetDate.HasValue ? NormalizeToUtc(request.TargetDate.Value) : (DateTime?)null;
@@ -536,6 +541,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpDelete("residents/{residentId:int}/intervention-plans/{recordKey}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteInterventionPlan(int residentId, string recordKey)
     {
         var affected = await dbContext.Database.ExecuteSqlRawAsync(
@@ -551,6 +557,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPost("residents/{residentId:int}/incident-reports")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddIncidentReport(int residentId, [FromBody] CreateIncidentReportRequest request)
     {
         if (request.IncidentDate == default)
@@ -608,6 +615,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPut("residents/{residentId:int}/incident-reports/{recordKey}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateIncidentReport(int residentId, string recordKey, [FromBody] UpdateIncidentReportRequest request)
     {
         if (request.IncidentDate == default)
@@ -652,6 +660,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpDelete("residents/{residentId:int}/incident-reports/{recordKey}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteIncidentReport(int residentId, string recordKey)
     {
         var affected = await dbContext.Database.ExecuteSqlRawAsync(
@@ -804,6 +813,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPost("residents/{residentId:int}/process-recordings")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddProcessRecording(int residentId, [FromBody] CreateProcessRecordingRequest request)
     {
         if (request.SessionDate == default)
@@ -883,6 +893,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPut("residents/{residentId:int}/process-recordings/{recordKey}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateProcessRecording(int residentId, string recordKey, [FromBody] UpdateProcessRecordingRequest request)
     {
         if (request.SessionDate == default)
@@ -949,6 +960,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpDelete("residents/{residentId:int}/process-recordings/{recordKey}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteProcessRecording(int residentId, string recordKey)
     {
         try
@@ -1036,6 +1048,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPost("residents/{residentId:int}/home-visitations")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddHomeVisitation(int residentId, [FromBody] CreateHomeVisitationRequest request)
     {
         if (request.VisitDate == default)
@@ -1113,6 +1126,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPut("residents/{residentId:int}/home-visitations/{recordKey}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateHomeVisitation(int residentId, string recordKey, [FromBody] UpdateHomeVisitationRequest request)
     {
         if (request.VisitDate == default)
@@ -1177,6 +1191,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpDelete("residents/{residentId:int}/home-visitations/{recordKey}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteHomeVisitation(int residentId, string recordKey)
     {
         try

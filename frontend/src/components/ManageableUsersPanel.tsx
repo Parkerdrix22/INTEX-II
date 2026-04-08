@@ -265,7 +265,9 @@ export function ManageableUsersPanel() {
                   <td className="admin-accounts-td-name">{formatPersonName(row)}</td>
                   <td className="admin-accounts-td-clip">{row.email ?? '—'}</td>
                   <td className="admin-accounts-td-role">
-                    <span className="admin-accounts-role-pill">{row.role}</span>
+                    <span className={`admin-accounts-role-pill admin-accounts-role-pill--${row.role.toLowerCase()}`}>
+                      {row.role}
+                    </span>
                   </td>
                   <td className="admin-accounts-links">
                     {row.residentId != null && <span className="admin-accounts-link-chip">R:{row.residentId}</span>}
