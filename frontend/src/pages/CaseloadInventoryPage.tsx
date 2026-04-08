@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { caseloadApi, type CaseloadResident } from '../lib/api';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
@@ -26,6 +26,9 @@ function statusClass(status: string): string {
 
 export function CaseloadInventoryPage() {
   const navigate = useNavigate();
+  const statusFilterId = useId();
+  const safehouseFilterId = useId();
+  const pageSizeId = useId();
   const [query, setQuery] = useState('');
   const [rows, setRows] = useState<CaseloadResident[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,7 +199,14 @@ export function CaseloadInventoryPage() {
             onChange={(event) => setQuery(event.target.value)}
             aria-label="Search caseload"
           />
-          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+          <label className="visually-hidden" htmlFor={statusFilterId}>
+            Filter by case status
+          </label>
+          <select
+            id={statusFilterId}
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+          >
             <option value="All">All statuses</option>
             {statuses.map((status) => (
               <option key={status} value={status}>
@@ -204,7 +214,14 @@ export function CaseloadInventoryPage() {
               </option>
             ))}
           </select>
-          <select value={safehouseFilter} onChange={(event) => setSafehouseFilter(event.target.value)}>
+          <label className="visually-hidden" htmlFor={safehouseFilterId}>
+            Filter by safehouse
+          </label>
+          <select
+            id={safehouseFilterId}
+            value={safehouseFilter}
+            onChange={(event) => setSafehouseFilter(event.target.value)}
+          >
             <option value="All">All safehouses</option>
             {safehouses.map((safehouse) => (
               <option key={safehouse} value={safehouse}>
@@ -266,6 +283,7 @@ export function CaseloadInventoryPage() {
                 <label>
                   Rows per page
                   <select
+                    id={pageSizeId}
                     value={pageSize}
                     onChange={(event) => setPageSize(Number(event.target.value))}
                     aria-label="Rows per page"
