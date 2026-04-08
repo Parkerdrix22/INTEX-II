@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Lighthouse.API.Data.Entities;
 
@@ -15,7 +16,7 @@ public static class UserAccountIdentityHelper
         int? supporterId = null,
         int? staffMemberId = null)
     {
-        return new AppUser
+        var user = new AppUser
         {
             Username = username,
             FirstName = firstName,
@@ -28,6 +29,21 @@ public static class UserAccountIdentityHelper
             SupporterId = supporterId,
             StaffMemberId = staffMemberId,
         };
+        EnsureIdentityStamps(user);
+        return user;
+    }
+
+    public static void EnsureIdentityStamps(AppUser user)
+    {
+        if (string.IsNullOrWhiteSpace(user.SecurityStamp))
+        {
+            user.SecurityStamp = Guid.NewGuid().ToString("N");
+        }
+
+        if (string.IsNullOrWhiteSpace(user.ConcurrencyStamp))
+        {
+            user.ConcurrencyStamp = Guid.NewGuid().ToString("N");
+        }
     }
 
     /// <summary>

@@ -294,6 +294,7 @@ public class UserAccountsController(AppDbContext dbContext, UserManager<AppUser>
 
         await SyncLinkedProfilesAsync(user, firstName, lastName, emailTrim);
 
+        UserAccountIdentityHelper.EnsureIdentityStamps(user);
         var updateResult = await userManager.UpdateAsync(user);
         if (!updateResult.Succeeded)
         {
@@ -413,6 +414,7 @@ public class UserAccountsController(AppDbContext dbContext, UserManager<AppUser>
 
         target.Role = UserRoles.Admin;
 
+        UserAccountIdentityHelper.EnsureIdentityStamps(target);
         var updateResult = await userManager.UpdateAsync(target);
         if (!updateResult.Succeeded)
         {
@@ -514,6 +516,7 @@ public class UserAccountsController(AppDbContext dbContext, UserManager<AppUser>
 
         await dbContext.SaveChangesAsync();
 
+        UserAccountIdentityHelper.EnsureIdentityStamps(target);
         var updateResult = await userManager.UpdateAsync(target);
         if (!updateResult.Succeeded)
         {
