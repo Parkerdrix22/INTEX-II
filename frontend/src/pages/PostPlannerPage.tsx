@@ -623,12 +623,6 @@ export function PostPlannerPage() {
                         row ? humanize(row.category) : '',
                       ];
                     }) as never}
-                    contentStyle={{
-                      background: 'rgba(255,253,247,0.96)',
-                      border: '1px solid rgba(170,190,208,0.4)',
-                      borderRadius: 12,
-                      fontSize: 12,
-                    }}
                   />
                   <Bar dataKey="revenue" radius={[0, 6, 6, 0]}>
                     {activeRollup.map((_, i) => (
@@ -685,12 +679,6 @@ export function PostPlannerPage() {
                         if (name === 'Revenue') return [moneyDetailed.format(num), 'Revenue'];
                         return [String(value), String(name)];
                       }) as never}
-                      contentStyle={{
-                        background: 'rgba(255,253,247,0.96)',
-                        border: '1px solid rgba(170,190,208,0.4)',
-                        borderRadius: 12,
-                        fontSize: 12,
-                      }}
                     />
                     <Scatter
                       data={attribution.engagementVsRevenue}

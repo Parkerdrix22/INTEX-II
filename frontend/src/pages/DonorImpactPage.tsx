@@ -402,12 +402,6 @@ export function DonorImpactPage() {
                                 programAreaLabel(slice?.name ?? ''),
                               ];
                             }) as never}
-                            contentStyle={{
-                              background: 'rgba(255,253,247,0.96)',
-                              border: '1px solid rgba(170,190,208,0.4)',
-                              borderRadius: 12,
-                              fontSize: 12,
-                            }}
                           />
                           <Legend
                             verticalAlign="bottom"
@@ -451,12 +445,6 @@ export function DonorImpactPage() {
                               const num = typeof value === 'number' ? value : Number(value ?? 0);
                               return [moneyDecimal.format(num), t('donorImpact.contributed')];
                             }) as never}
-                            contentStyle={{
-                              background: 'rgba(255,253,247,0.96)',
-                              border: '1px solid rgba(170,190,208,0.4)',
-                              borderRadius: 12,
-                              fontSize: 12,
-                            }}
                           />
                           <Line
                             type="monotone"
@@ -512,12 +500,6 @@ export function DonorImpactPage() {
                             const labelStr = String(label ?? '');
                             return p ? `${labelStr} — ${p.city}, ${p.country}` : labelStr;
                           }) as never}
-                          contentStyle={{
-                            background: 'rgba(255,253,247,0.96)',
-                            border: '1px solid rgba(170,190,208,0.4)',
-                            borderRadius: 12,
-                            fontSize: 12,
-                          }}
                         />
                         <Bar dataKey="amountAllocated" fill="#385f82" radius={[0, 6, 6, 0]} />
                       </BarChart>

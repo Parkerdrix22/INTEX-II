@@ -662,3 +662,13 @@
 :root[data-theme='dark'] .impact-chart-card .recharts-tooltip-wrapper .recharts-tooltip-item {
   color: var(--text) !important;
 }
+
+:root[data-theme='dark'] .impact-chart-card .recharts-tooltip-cursor,
+:root[data-theme='dark'] .impact-chart-card .recharts-bar-background-rectangle {
+  fill: rgba(127, 179, 224, 0.08) !important;
+}
+
+:root[data-theme='dark'] .impact-research-list li {
+  background: rgba(24, 36, 50, 0.75);
+  border-color: rgba(130, 155, 178, 0.35);
+}

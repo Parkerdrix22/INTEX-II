@@ -940,11 +940,93 @@ a.btn-kateri-ghost {
   color: var(--text) !important;
 }
 
+:root[data-theme='dark'] .admin-chart-card .recharts-bar-background-rectangle {
+  fill: rgba(127, 179, 224, 0.08) !important;
+}
+
+:root[data-theme='dark'] .admin-chart-card .recharts-tooltip-cursor {
+  fill: rgba(127, 179, 224, 0.08) !important;
+  stroke: rgba(127, 179, 224, 0.15) !important;
+}
+
+/* donors-contributions-page chart dark mode */
+:root[data-theme='dark'] .donors-contributions-page .recharts-cartesian-axis-tick-value,
+:root[data-theme='dark'] .donors-contributions-page .recharts-legend-item-text {
+  fill: var(--text-muted) !important;
+  color: var(--text-muted) !important;
+}
+
+:root[data-theme='dark'] .donors-contributions-page .recharts-cartesian-grid line,
+:root[data-theme='dark'] .donors-contributions-page .recharts-cartesian-grid path {
+  stroke: rgba(157, 181, 204, 0.2);
+}
+
+:root[data-theme='dark'] .donors-contributions-page .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: rgba(20, 30, 42, 0.96) !important;
+  border: 1px solid rgba(130, 155, 178, 0.45) !important;
+}
+
+:root[data-theme='dark'] .donors-contributions-page .recharts-tooltip-wrapper .recharts-tooltip-label,
+:root[data-theme='dark'] .donors-contributions-page .recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: var(--text) !important;
+}
+
+:root[data-theme='dark'] .donors-contributions-page .recharts-tooltip-cursor {
+  stroke: rgba(127, 179, 224, 0.3) !important;
+}
+
 :root[data-theme='dark'] .caseload-table-wrap,
 :root[data-theme='dark'] .donor-table-wrap,
 :root[data-theme='dark'] .resident-case-panel {
   background: rgba(16, 26, 38, 0.9);
   border-color: rgba(130, 155, 178, 0.42);
+}
+
+:root[data-theme='dark'] .resident-case-panel .recharts-cartesian-axis-tick-value {
+  fill: var(--text-muted) !important;
+}
+
+:root[data-theme='dark'] .resident-case-panel .recharts-cartesian-grid line,
+:root[data-theme='dark'] .resident-case-panel .recharts-cartesian-grid path {
+  stroke: rgba(157, 181, 204, 0.2);
+}
+
+:root[data-theme='dark'] .resident-case-panel .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: rgba(20, 30, 42, 0.96) !important;
+  border: 1px solid rgba(130, 155, 178, 0.45) !important;
+}
+
+:root[data-theme='dark'] .resident-case-panel .recharts-tooltip-wrapper .recharts-tooltip-label,
+:root[data-theme='dark'] .resident-case-panel .recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: var(--text) !important;
+}
+
+:root[data-theme='dark'] .resident-case-panel .recharts-tooltip-cursor {
+  stroke: rgba(127, 179, 224, 0.3) !important;
+}
+
+:root[data-theme='dark'] .resident-info-grid input,
+:root[data-theme='dark'] .resident-case-grid input,
+:root[data-theme='dark'] .resident-case-grid textarea,
+:root[data-theme='dark'] .resident-case-grid select {
+  background: rgba(24, 36, 50, 0.92);
+  color: var(--text);
+  border-color: rgba(130, 155, 178, 0.46);
+}
+
+:root[data-theme='dark'] .resident-info-grid input::placeholder,
+:root[data-theme='dark'] .resident-case-grid input::placeholder,
+:root[data-theme='dark'] .resident-case-grid textarea::placeholder {
+  color: rgba(226, 235, 245, 0.5);
+}
+
+:root[data-theme='dark'] .resident-profile-intro {
+  border-bottom-color: rgba(130, 155, 178, 0.35);
+}
+
+:root[data-theme='dark'] .resident-profile-explainer {
+  background: rgba(56, 95, 130, 0.18);
+  border-color: rgba(56, 95, 130, 0.3);
 }
 
 :root[data-theme='dark'] .caseload-table th,
@@ -1186,6 +1268,38 @@ a.btn-kateri-ghost {
 :root[data-theme='dark'] .archetype-page .recharts-legend-item-text {
   fill: var(--text-muted) !important;
   color: var(--text-muted) !important;
+}
+
+:root[data-theme='dark'] .rrisk-page .recharts-tooltip-cursor,
+:root[data-theme='dark'] .rrisk-page .recharts-bar-background-rectangle,
+:root[data-theme='dark'] .cres-page .recharts-tooltip-cursor,
+:root[data-theme='dark'] .cres-page .recharts-bar-background-rectangle,
+:root[data-theme='dark'] .planner-page .recharts-tooltip-cursor,
+:root[data-theme='dark'] .planner-page .recharts-bar-background-rectangle,
+:root[data-theme='dark'] .archetype-page .recharts-tooltip-cursor,
+:root[data-theme='dark'] .archetype-page .recharts-bar-background-rectangle {
+  fill: rgba(127, 179, 224, 0.08) !important;
+}
+
+:root[data-theme='dark'] .planner-page .recharts-cartesian-axis-tick-value,
+:root[data-theme='dark'] .planner-page .recharts-legend-item-text {
+  fill: var(--text-muted) !important;
+  color: var(--text-muted) !important;
+}
+
+:root[data-theme='dark'] .planner-page .recharts-cartesian-grid line,
+:root[data-theme='dark'] .planner-page .recharts-cartesian-grid path {
+  stroke: rgba(157, 181, 204, 0.2);
+}
+
+:root[data-theme='dark'] .planner-page .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: rgba(20, 30, 42, 0.96) !important;
+  border: 1px solid rgba(130, 155, 178, 0.45) !important;
+}
+
+:root[data-theme='dark'] .planner-page .recharts-tooltip-wrapper .recharts-tooltip-label,
+:root[data-theme='dark'] .planner-page .recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: var(--text) !important;
 }
 
 :root[data-theme='dark'] .rrisk-page .recharts-cartesian-grid line,
@@ -4015,6 +4129,30 @@ input.resident-profile-input--readonly {
 
 :root[data-theme='dark'] .allocation-plan-card__list li.allocation-plan-card__reserve {
   background: rgba(56, 95, 130, 0.18);
+}
+
+:root[data-theme='dark'] .resident-profile-card {
+  background: rgba(16, 26, 38, 0.88);
+  border-color: rgba(130, 155, 178, 0.42);
+}
+
+:root[data-theme='dark'] .resident-profile-check-row--boxed {
+  background: rgba(24, 36, 50, 0.75);
+  border-color: rgba(130, 155, 178, 0.38);
+}
+
+:root[data-theme='dark'] .donor-activity-item {
+  background: rgba(16, 26, 38, 0.88);
+  border-color: rgba(130, 155, 178, 0.42);
+}
+
+:root[data-theme='dark'] .donor-promote-table-wrap {
+  background: rgba(16, 26, 38, 0.88);
+}
+
+:root[data-theme='dark'] .admin-accounts-btn-danger {
+  background: rgba(24, 36, 50, 0.92);
+  border-color: rgba(166, 61, 64, 0.55);
 }
 
 :root[data-theme='dark'] .caseload-pagination__meta,

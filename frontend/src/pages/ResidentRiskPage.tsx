@@ -741,12 +741,6 @@ function ResidentDetail({
                     return [numberFmt.format(num), 'Count'];
                   }) as never
                 }
-                contentStyle={{
-                  background: 'rgba(255,253,247,0.96)',
-                  border: '1px solid rgba(170,190,208,0.4)',
-                  borderRadius: 12,
-                  fontSize: 12,
-                }}
               />
               <Bar dataKey="value" radius={[0, 6, 6, 0]}>
                 {categoryData.map((entry) => (
