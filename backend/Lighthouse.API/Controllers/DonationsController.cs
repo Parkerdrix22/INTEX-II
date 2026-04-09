@@ -25,12 +25,20 @@ public class DonationsController(
     // allocation). The UI blocks it first with a modal; this is the backstop.
     private const decimal LargeGiftCapUsd = 5_000_000m;
 
+    /// <summary>Aligned with <c>PROGRAM_AREAS</c> in the donor-portal frontend.</summary>
+    private static readonly string[] AllowedDonorProgramAreas =
+    [
+        "Education", "Wellbeing", "Operations", "Outreach", "Transport", "Maintenance",
+    ];
+
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Staff},{UserRoles.Donor}")]
     public async Task<IActionResult> CreateDonation([FromBody] CreateDonationRequest request)
     {
         if (request.Amount <= 0)
             return BadRequest(new { message = "Donation amount must be greater than zero." });
+
+        await ApplyDonorSelfServiceGuardsAsync(request);
 
         var frequency = string.IsNullOrWhiteSpace(request.Frequency)
             ? "one-time"
@@ -68,9 +76,13 @@ public class DonationsController(
                 });
         }
 
-        int? supporterId = valuation.CanonicalType == "Monetary"
-            ? await ResolveSupporterForLighthouseAsync(request.DonorName)
-            : null;
+        int? supporterId = null;
+        if (valuation.CanonicalType == "Monetary")
+        {
+            supporterId = await ResolveSupporterForLighthouseAsync(request.DonorName);
+            var deny = await VerifyDonorSupporterLinkAsync(supporterId);
+            if (deny is not null) return deny;
+        }
 
         try
         {
@@ -131,7 +143,7 @@ public class DonationsController(
     }
 
     [HttpPost("in-kind")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Staff},{UserRoles.Donor}")]
     public async Task<IActionResult> CreateInKindDonation(
         [FromBody] CreateInKindDonationRequest request,
         CancellationToken cancellationToken)
@@ -140,6 +152,8 @@ public class DonationsController(
             return BadRequest(new { message = "Quantity must be at least 1." });
         if (request.EstimatedTotalValue <= 0)
             return BadRequest(new { message = "Estimated value must be greater than zero." });
+
+        await ApplyDonorSelfServiceGuardsAsync(request);
 
         // Same large-gift backstop as the monetary endpoint.
         if (request.EstimatedTotalValue > LargeGiftCapUsd)
@@ -168,6 +182,9 @@ public class DonationsController(
         var currency = string.IsNullOrWhiteSpace(request.Currency) ? "USD" : request.Currency.Trim().ToUpperInvariant();
 
         var supporterId = await ResolveSupporterForLighthouseAsync(request.DonorName);
+        var denyInKind = await VerifyDonorSupporterLinkAsync(supporterId);
+        if (denyInKind is not null) return denyInKind;
+
         var unitValue = Math.Round(request.EstimatedTotalValue / request.Quantity, 4, MidpointRounding.AwayFromZero);
 
         var itemCategory = request.ItemCategory.Trim();
@@ -276,6 +293,78 @@ public class DonationsController(
             cancellationToken);
 
         return Ok(new { message = "In-kind donation recorded successfully.", donationId = recordedDonationId });
+    }
+
+    /// <summary>
+    /// Donors using the public portal may only record gifts for themselves. Staff/Admin may
+    /// supply donor attribution when entering pledges on behalf of someone else.
+    /// </summary>
+    private static bool IsDonorSelfServiceUser(ClaimsPrincipal user) =>
+        user.IsInRole(UserRoles.Donor)
+        && !user.IsInRole(UserRoles.Admin)
+        && !user.IsInRole(UserRoles.Staff);
+
+    private static string CanonicalProgramAreaForDonor(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "Operations";
+        var t = raw.Trim();
+        foreach (var area in AllowedDonorProgramAreas)
+        {
+            if (area.Equals(t, StringComparison.OrdinalIgnoreCase)) return area;
+        }
+
+        return "Operations";
+    }
+
+    private static string DisplayNameForUser(AppUser user)
+    {
+        var name = $"{user.FirstName} {user.LastName}".Trim();
+        return string.IsNullOrWhiteSpace(name) ? (user.Email?.Trim() ?? "Donor") : name;
+    }
+
+    private async Task ApplyDonorSelfServiceGuardsAsync(CreateDonationRequest request)
+    {
+        if (!IsDonorSelfServiceUser(User)) return;
+
+        var user = await userManager.GetUserAsync(User);
+        if (user is null) return;
+
+        request.DonorName = DisplayNameForUser(user);
+        request.CampaignName = "Donor Portal";
+        request.Frequency = "one-time";
+        request.ProgramArea = CanonicalProgramAreaForDonor(request.ProgramArea);
+    }
+
+    private async Task ApplyDonorSelfServiceGuardsAsync(CreateInKindDonationRequest request)
+    {
+        if (!IsDonorSelfServiceUser(User)) return;
+
+        var user = await userManager.GetUserAsync(User);
+        if (user is null) return;
+
+        request.DonorName = DisplayNameForUser(user);
+        request.CampaignName = "Donor Portal";
+    }
+
+    /// <summary>
+    /// If the account is linked to a supporter row, monetary/in-kind gifts must resolve to that same id
+    /// (prevents tampering with donor_name to attach gifts to another supporter).
+    /// </summary>
+    private async Task<IActionResult?> VerifyDonorSupporterLinkAsync(int? resolvedSupporterId)
+    {
+        if (!IsDonorSelfServiceUser(User)) return null;
+
+        var user = await userManager.GetUserAsync(User);
+        if (user?.SupporterId is not int expectedId) return null;
+
+        if (resolvedSupporterId is not int resolvedId || resolvedId != expectedId)
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                new { message = "This gift could not be linked to your supporter profile. Contact staff for help." });
+        }
+
+        return null;
     }
 
     private async Task NotifyDonationEmailsAsync(CreateDonationRequest request, string currency, DateTime donationDateUtc)
