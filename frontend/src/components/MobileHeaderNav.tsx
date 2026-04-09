@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LanguageToggle } from './LanguageToggle';
+import { NavSettingsMenu } from './NavSettingsMenu';
 
 type ThemePreference = 'light' | 'dark';
 
@@ -9,7 +9,7 @@ export type MobileHeaderNavProps = {
   isStaffLike: boolean;
   isDonor: boolean;
   isResident: boolean;
-  canShowLanguageToggle: boolean;
+  consentChoice: 'all' | 'necessary' | null;
   themePreference: ThemePreference;
   toggleThemePreference: () => void;
   t: (key: string) => string;
@@ -25,7 +25,7 @@ export function MobileHeaderNav({
   isStaffLike,
   isDonor,
   isResident,
-  canShowLanguageToggle,
+  consentChoice,
   themePreference,
   toggleThemePreference,
   t,
@@ -92,35 +92,8 @@ export function MobileHeaderNav({
           </Link>
         )}
 
-        <div className="mobile-nav__controls">
-          {canShowLanguageToggle && <LanguageToggle />}
-          <button
-            type="button"
-            className="mobile-nav__theme-btn"
-            onClick={toggleThemePreference}
-            aria-label={`Switch to ${themePreference === 'dark' ? 'light' : 'dark'} theme`}
-          >
-            {themePreference === 'dark' ? (
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path
-                  fill="currentColor"
-                  d="M12 6.2a5.8 5.8 0 1 0 0 11.6a5.8 5.8 0 0 0 0-11.6Zm0-3.7a1 1 0 0 1 1 1v1.4a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16.1a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.4a1 1 0 0 1 1-1Zm7.6-7.6a1 1 0 1 1 0 2h-1.4a1 1 0 1 1 0-2h1.4Zm-14.2 0a1 1 0 1 1 0 2H4a1 1 0 1 1 0-2h1.4Zm10.08-4.68a1 1 0 0 1 1.41 0l.99.99a1 1 0 1 1-1.41 1.41l-.99-.99a1 1 0 0 1 0-1.41Zm-8.96 8.96a1 1 0 0 1 1.41 0l.99.99a1 1 0 1 1-1.41 1.41l-.99-.99a1 1 0 0 1 0-1.41Zm11.37.99a1 1 0 0 1 1.41 0l.99.99a1 1 0 1 1-1.41 1.41l-.99-.99a1 1 0 0 1 0-1.41Zm-8.96-8.96a1 1 0 0 1 0 1.41l-.99.99A1 1 0 1 1 5.53 7.3l.99-.99a1 1 0 0 1 1.41 0Z"
-                />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path
-                  fill="currentColor"
-                  d="M15.9 3.2a1 1 0 0 1 .25 1.38A8.4 8.4 0 1 0 20.7 15a1 1 0 0 1 1.82.82A10.4 10.4 0 1 1 14.53 2.95a1 1 0 0 1 1.37.25Z"
-                />
-              </svg>
-            )}
-            <span>{themePreference === 'dark' ? 'Light mode' : 'Dark mode'}</span>
-          </button>
-        </div>
-
         {!isAuthenticated && (
-          <div className="mobile-nav__auth">
+          <div className="mobile-nav__auth mobile-nav__auth--with-settings">
             <Link
               className="mobile-nav__auth-btn mobile-nav__auth-btn--primary"
               to="/signup"
@@ -131,10 +104,16 @@ export function MobileHeaderNav({
             <Link className="mobile-nav__auth-btn" to="/login" onClick={closeMobileNav}>
               {t('nav.login')}
             </Link>
+            <NavSettingsMenu
+              layout="inline"
+              themePreference={themePreference}
+              toggleThemePreference={toggleThemePreference}
+              consentChoice={consentChoice}
+            />
           </div>
         )}
         {isAuthenticated && (
-          <div className="mobile-nav__auth">
+          <div className="mobile-nav__auth mobile-nav__auth--with-settings">
             <button
               type="button"
               className="mobile-nav__auth-btn mobile-nav__auth-btn--primary"
@@ -145,6 +124,12 @@ export function MobileHeaderNav({
             >
               {t('nav.logout')}
             </button>
+            <NavSettingsMenu
+              layout="inline"
+              themePreference={themePreference}
+              toggleThemePreference={toggleThemePreference}
+              consentChoice={consentChoice}
+            />
           </div>
         )}
       </div>

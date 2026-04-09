@@ -666,6 +666,184 @@ a.btn-kateri-ghost {
   background: rgba(56, 95, 130, 0.08);
 }
 
+/* ── Header settings (gear) — language + theme in a dropdown ─────────── */
+.nav-settings {
+  flex-shrink: 0;
+}
+
+.nav-settings--popover {
+  position: relative;
+}
+
+/* Inline (mobile drawer): panel anchors to full-width auth row, not the gear column */
+.nav-settings--inline {
+  position: static;
+}
+
+.nav-settings__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 0;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.nav-settings__trigger:hover {
+  background: rgba(56, 95, 130, 0.08);
+}
+
+.nav-settings__trigger:focus-visible {
+  outline: 2px solid #c9983f;
+  outline-offset: 2px;
+}
+
+.nav-settings__trigger--row {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border-color: rgba(56, 95, 130, 0.25);
+}
+
+.nav-settings__panel {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 120;
+  min-width: 15rem;
+  padding: 0.85rem 1rem 1rem;
+  background: #fdf8ec;
+  border: 1px solid rgba(56, 95, 130, 0.22);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(31, 47, 63, 0.2);
+}
+
+.nav-settings__panel--inline {
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.nav-settings__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.nav-settings__section + .nav-settings__section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(56, 95, 130, 0.12);
+}
+
+.nav-settings__section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted, #5a6b7a);
+}
+
+.nav-settings__panel .lang-toggle {
+  width: 100%;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.nav-settings__theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid rgba(56, 95, 130, 0.28);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--accent, #385f82);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.nav-settings__theme-btn:hover {
+  background: rgba(56, 95, 130, 0.08);
+}
+
+.nav-settings__theme-label {
+  flex: 1;
+  text-align: left;
+}
+
+.nav-settings__theme-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--text-muted, #5a6b7a);
+}
+
+:root[data-theme='dark'] .nav-settings__trigger {
+  border-color: rgba(157, 181, 204, 0.55);
+  color: rgba(226, 235, 245, 0.92);
+}
+
+:root[data-theme='dark'] .nav-settings__trigger:hover {
+  background: rgba(127, 179, 224, 0.12);
+}
+
+:root[data-theme='dark'] .nav-settings__trigger--row {
+  border-color: rgba(157, 181, 204, 0.4);
+}
+
+:root[data-theme='dark'] .nav-settings__panel {
+  background: #151f2e;
+  border-color: rgba(130, 155, 178, 0.35);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+:root[data-theme='dark'] .nav-settings__section + .nav-settings__section {
+  border-top-color: rgba(130, 155, 178, 0.2);
+}
+
+:root[data-theme='dark'] .nav-settings__section-label {
+  color: rgba(186, 202, 218, 0.85);
+}
+
+:root[data-theme='dark'] .nav-settings__panel .lang-toggle {
+  background: rgba(20, 30, 42, 0.95);
+  border-color: rgba(130, 155, 178, 0.35);
+}
+
+:root[data-theme='dark'] .nav-settings__panel .lang-button {
+  color: rgba(226, 235, 245, 0.92);
+}
+
+:root[data-theme='dark'] .nav-settings__theme-btn {
+  border-color: rgba(157, 181, 204, 0.45);
+  color: rgba(226, 235, 245, 0.92);
+}
+
+:root[data-theme='dark'] .nav-settings__theme-btn:hover {
+  background: rgba(127, 179, 224, 0.12);
+}
+
+:root[data-theme='dark'] .nav-settings__theme-hint {
+  color: rgba(186, 202, 218, 0.75);
+}
+
 :root[data-theme='dark'] .kateri-landing-section .impact-card,
 :root[data-theme='dark'] .kateri-landing-section .stat-card,
 :root[data-theme='dark'] .kateri-landing-section .feature-slab,
@@ -4564,6 +4742,21 @@ input[type='reset']:disabled {
   gap: 0.75rem;
   padding-top: 1rem;
   flex-wrap: wrap;
+}
+
+.mobile-nav__auth--with-settings {
+  position: relative;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.mobile-nav__auth--with-settings > .mobile-nav__auth-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mobile-nav__auth--with-settings .nav-settings--inline {
+  flex: 0 0 auto;
 }
 
 .mobile-nav__auth-btn {

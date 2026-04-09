@@ -1641,7 +1641,16 @@
     "login": "Yee Háwǫ́",
     "signup": "Yee Háwǫ́",
     "logout": "Yee Háwǫ́",
-    "profile": "Asdzą́ą́ Bá Hólǫ́"
+    "profile": "Asdzą́ą́ Bá Hólǫ́",
+    "openSettings": "Site settings",
+    "settingsMenuLabel": "Language and appearance",
+    "theme": "Theme",
+    "useLightMode": "Light mode",
+    "useDarkMode": "Dark mode",
+    "switchToLight": "Switch to light theme",
+    "switchToDark": "Switch to dark theme",
+    "themeHintRemembered": "Your theme is saved when you accept all cookies.",
+    "themeHintSession": "Theme applies for this session unless you accept all cookies."
   },
   "common": {
     "loading": "Yee Háwǫ́…",
