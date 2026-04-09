@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'react-feather';
 import {
   caseloadApi,
   type CaseloadResident,
@@ -469,7 +470,7 @@ export function ProcessRecordingPage() {
                   disabled={currentPage === 1}
                   aria-label="Previous page"
                 >
-                  ‹
+                  <ChevronLeft size={16} />
                 </button>
                 <span className="caseload-pagination__page-indicator">
                   Page {currentPage} of {totalPages}
@@ -481,7 +482,7 @@ export function ProcessRecordingPage() {
                   disabled={currentPage === totalPages}
                   aria-label="Next page"
                 >
-                  ›
+                  <ChevronRight size={16} />
                 </button>
               </div>
             </div>

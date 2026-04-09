@@ -1,14 +1,19 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
+import { Shield, Heart, Award, Star, type Icon } from 'react-feather';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 import { publicApi } from '../lib/api';
 import { useLanguage } from '../i18n/LanguageContext';
 
-const impactPillars = [
-  { number: '01', icon: '🛡', key: 'safety' },
-  { number: '02', icon: '❤', key: 'healing' },
-  { number: '03', icon: '⚖', key: 'justice' },
-  { number: '04', icon: '✦', key: 'empowerment' },
+type PillarDef = { number: string; Icon: Icon; key: 'safety' | 'healing' | 'justice' | 'empowerment' };
+
+const impactPillars: readonly PillarDef[] = [
+  { number: '01', Icon: Shield, key: 'safety' },
+  { number: '02', Icon: Heart, key: 'healing' },
+  // Award is the closest react-feather equivalent for "justice" — there's
+  // no actual scales icon in the feather set.
+  { number: '03', Icon: Award, key: 'justice' },
+  { number: '04', Icon: Star, key: 'empowerment' },
 ] as const;
 
 export function ImpactDashboardPage() {
@@ -169,11 +174,11 @@ export function ImpactDashboardPage() {
       <hr className="section-divider" />
 
       <div className="impact-grid scroll-reveal-skip">
-        {impactPillars.map((pillar) => (
+        {impactPillars.map(({ Icon: PillarIcon, ...pillar }) => (
           <article className="impact-card scroll-reveal-skip" key={pillar.key}>
             <p className="impact-number">{pillar.number}</p>
             <div className="impact-icon" aria-hidden="true">
-              {pillar.icon}
+              <PillarIcon size={32} strokeWidth={1.6} />
             </div>
             <h2>{t(`impact.pillars.${pillar.key}.title`)}</h2>
             <p>{t(`impact.pillars.${pillar.key}.description`)}</p>

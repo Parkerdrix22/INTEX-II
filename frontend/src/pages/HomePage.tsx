@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Phone, Mail, FileText, Lock } from 'react-feather';
 import backgroundImage from '../background.jpg?format=webp&quality=82&w=1920';
 import threeSistersImage from '../Three sisters in a sunlit field.png?format=webp&quality=82&w=960';
 import kateriPortraitImage from '../Kateri Tekakwitha in golden grasses.png?format=webp&quality=82&w=960';
@@ -189,25 +190,25 @@ export function HomePage() {
           </a>
           <a className="contact-link" href="tel:+18015551234">
             <span className="icon-circle" aria-hidden="true">
-              ☎
+              <Phone size={16} />
             </span>
             +1 (801) 555-1234
           </a>
           <a className="contact-link" href="mailto:support@kateri.org">
             <span className="icon-circle" aria-hidden="true">
-              ✉
+              <Mail size={16} />
             </span>
             support@kateri.org
           </a>
           <Link className="contact-link" to="/privacy-policy">
             <span className="icon-circle" aria-hidden="true">
-              P
+              <Lock size={16} />
             </span>
             {t('home.contact.privacyPolicy')}
           </Link>
           <Link className="contact-link" to="/cookie-policy">
             <span className="icon-circle" aria-hidden="true">
-              C
+              <FileText size={16} />
             </span>
             {t('home.contact.cookiePolicy')}
           </Link>

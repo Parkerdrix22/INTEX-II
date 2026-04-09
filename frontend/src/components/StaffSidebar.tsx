@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { X } from 'react-feather';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `staff-sidebar__link${isActive ? ' staff-sidebar__link--active' : ''}`;
@@ -15,7 +16,7 @@ export function StaffSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: ()
       <div className="staff-sidebar__header">
         <div className="staff-sidebar__heading">Staff</div>
         <button type="button" className="staff-sidebar__close" onClick={onClose} aria-label="Close staff menu">
-          ×
+          <X size={20} />
         </button>
       </div>
       <nav className="staff-sidebar__nav">

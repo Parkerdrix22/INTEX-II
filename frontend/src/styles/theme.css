@@ -5115,3 +5115,38 @@ input[type='reset']:disabled {
     display: block;
   }
 }
+
+/* ============================================================================
+   Inline icon + text alignment helpers
+   Used by everywhere we replaced an emoji with a react-feather <svg>. The
+   parent becomes inline-flex so the icon sits flush with the text baseline
+   instead of riding low. Affects: agreement badges on the resident-risk and
+   case-resolution dashboards, the thank-you action buttons, the home page
+   contact icon circles, the toast/banner success line, and the staff
+   sidebar / chat widget close buttons.
+   ============================================================================ */
+.rrisk-agree,
+.cres-agree,
+.rrisk-detail-agreement,
+.cres-detail-agreement,
+.thank-you-trigger,
+.thank-you-regenerate,
+.thank-you-copy-btn,
+.thank-you-sent-banner,
+.record-detail-card__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.rrisk-detail-agreement,
+.cres-detail-agreement,
+.thank-you-sent-banner {
+  display: flex;
+}
+
+.icon-circle svg,
+.staff-sidebar__close svg,
+.chat-widget__close svg {
+  display: block;
+}
