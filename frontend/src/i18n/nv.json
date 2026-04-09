@@ -100,18 +100,8 @@
       "model": "claude-haiku-4-5",
       "mt": true
     },
-    "common.language.mtDisclaimer": {
-      "hash": "b4b81243e526",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
     "home.heroTitle": {
       "hash": "b176b5bb3bd8",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "home.heroCopy": {
-      "hash": "2691711a335b",
       "model": "claude-haiku-4-5",
       "mt": true
     },
@@ -205,23 +195,8 @@
       "model": "claude-haiku-4-5",
       "mt": true
     },
-    "home.contact.instagram": {
-      "hash": "5721bbef40b2",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "home.contact.facebook": {
-      "hash": "82da67b21124",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
     "home.contact.privacyPolicy": {
       "hash": "9db108ba6b7f",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "home.contact.cookiePolicy": {
-      "hash": "e6e178ccc822",
       "model": "claude-haiku-4-5",
       "mt": true
     },
@@ -280,43 +255,8 @@
       "model": "claude-haiku-4-5",
       "mt": true
     },
-    "login.twoFactor.requiresSetupNotice": {
-      "hash": "7e07b94ca5cd",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
     "login.twoFactor.successHeading": {
       "hash": "e6a52e9de512",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "login.twoFactor.successLead": {
-      "hash": "0290bdb637b7",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "login.twoFactor.codeLabel": {
-      "hash": "68ccfb13bcc0",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "login.twoFactor.codePlaceholder": {
-      "hash": "63269fc2ba5a",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "login.twoFactor.verifySubmit": {
-      "hash": "abaf519a5b7f",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "login.twoFactor.verifying": {
-      "hash": "bf6ea5406002",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "login.twoFactor.backToPassword": {
-      "hash": "907924762a9b",
       "model": "claude-haiku-4-5",
       "mt": true
     },
@@ -380,18 +320,8 @@
       "model": "claude-haiku-4-5",
       "mt": true
     },
-    "privacy.heading": {
-      "hash": "9db108ba6b7f",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
     "privacy.body": {
       "hash": "b115136ba0db",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "cookiePolicy.heading": {
-      "hash": "e6e178ccc822",
       "model": "claude-haiku-4-5",
       "mt": true
     },
@@ -400,18 +330,8 @@
       "model": "claude-haiku-4-5",
       "mt": true
     },
-    "cookieBanner.ariaLabel": {
-      "hash": "1a9a0aef35c9",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
     "cookieBanner.messageBefore": {
       "hash": "77d9f081f514",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "cookieBanner.messageLinkText": {
-      "hash": "e6e178ccc822",
       "model": "claude-haiku-4-5",
       "mt": true
     },
@@ -515,11 +435,6 @@
       "model": "claude-haiku-4-5",
       "mt": true
     },
-    "impact.pillars.justice.title": {
-      "hash": "75951c6bcb94",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
     "impact.pillars.justice.description": {
       "hash": "6ab17d23444e",
       "model": "claude-haiku-4-5",
@@ -575,11 +490,6 @@
       "model": "claude-haiku-4-5",
       "mt": true
     },
-    "donorImpact.overline": {
-      "hash": "467d5f872e4a",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
     "donorImpact.title": {
       "hash": "7860f41b3e18",
       "model": "claude-haiku-4-5",
@@ -590,26 +500,6 @@
       "model": "claude-haiku-4-5",
       "mt": true
     },
-    "donorImpact.trainedOnPre": {
-      "hash": "741ca960fb2f",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "donorImpact.trainedOnMid": {
-      "hash": "f063c7612a9c",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "donorImpact.trainedOnSuffix": {
-      "hash": "5afb94abcf34",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "donorImpact.lastRefresh": {
-      "hash": "c6653c26fde8",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
     "donorImpact.chooseDonor": {
       "hash": "e16429f16f01",
       "model": "claude-haiku-4-5",
@@ -617,21 +507,6 @@
     },
     "donorImpact.searchDonors": {
       "hash": "9022ba9d023c",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "donorImpact.donorPrefix": {
-      "hash": "4962c9f8e27d",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "donorImpact.supporter": {
-      "hash": "b748173ca9ab",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "donorImpact.gift": {
-      "hash": "b7b2fb7443bc",
       "model": "claude-haiku-4-5",
       "mt": true
     },
@@ -1015,11 +890,6 @@
       "model": "claude-haiku-4-5",
       "mt": true
     },
-    "profile.field.signInIdPlaceholder": {
-      "hash": "cdf9626c9960",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
     "profile.field.signInIdHelper": {
       "hash": "6f6922072160",
       "model": "claude-haiku-4-5",
@@ -1037,11 +907,6 @@
     },
     "profile.field.currentPasswordPlaceholder": {
       "hash": "6658f20601cc",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "profile.field.email": {
-      "hash": "84add5b29527",
       "model": "claude-haiku-4-5",
       "mt": true
     },
@@ -1360,11 +1225,6 @@
       "model": "claude-haiku-4-5",
       "mt": true
     },
-    "donorDashboard.type.socialMedia": {
-      "hash": "3d84a8bdc946",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
     "donorDashboard.goods.itemDescription": {
       "hash": "3b0f8da54d26",
       "model": "claude-haiku-4-5",
@@ -1400,11 +1260,6 @@
       "model": "claude-haiku-4-5",
       "mt": true
     },
-    "donorDashboard.goods.perUnitHint": {
-      "hash": "5060f6643595",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
     "donorDashboard.goods.intendedUse": {
       "hash": "6a3d46bf66dd",
       "model": "claude-haiku-4-5",
@@ -1417,11 +1272,6 @@
     },
     "donorDashboard.volunteer.whenAvailable": {
       "hash": "389d7f2608e4",
-      "model": "claude-haiku-4-5",
-      "mt": true
-    },
-    "donorDashboard.volunteer.whenHint": {
-      "hash": "5fcc07e713d8",
       "model": "claude-haiku-4-5",
       "mt": true
     },
@@ -1629,6 +1479,256 @@
       "hash": "df0b6a13a086",
       "model": "claude-haiku-4-5",
       "mt": true
+    },
+    "nav.openSettings": {
+      "hash": "46a8dc19f895",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.settingsMenuLabel": {
+      "hash": "d093368a9793",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.theme": {
+      "hash": "a797e30923ac",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.useLightMode": {
+      "hash": "3d3791aae51c",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.useDarkMode": {
+      "hash": "9cf83d1f4032",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.switchToLight": {
+      "hash": "f90085feb032",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.switchToDark": {
+      "hash": "5ec71e472de4",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.themeHintRemembered": {
+      "hash": "9870d9d55f3f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "nav.themeHintSession": {
+      "hash": "45abad8e37a5",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "common.language.mtDisclaimer": {
+      "hash": "b4b81243e526",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.heroCopy": {
+      "hash": "2691711a335b",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.contact.instagram": {
+      "hash": "5721bbef40b2",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.contact.facebook": {
+      "hash": "82da67b21124",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "home.contact.cookiePolicy": {
+      "hash": "e6e178ccc822",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.requiresSetupNotice": {
+      "hash": "7e07b94ca5cd",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.successLead": {
+      "hash": "0290bdb637b7",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.verifySubmit": {
+      "hash": "abaf519a5b7f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.verifying": {
+      "hash": "bf6ea5406002",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "login.twoFactor.backToPassword": {
+      "hash": "907924762a9b",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "privacy.heading": {
+      "hash": "9db108ba6b7f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "cookiePolicy.heading": {
+      "hash": "e6e178ccc822",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "cookieBanner.ariaLabel": {
+      "hash": "1a9a0aef35c9",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "cookieBanner.messageLinkText": {
+      "hash": "e6e178ccc822",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.kpi.inclusiveCare": {
+      "hash": "5ce79353008a",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.kpi.inclusiveCareFootnote": {
+      "hash": "9c609d7d9b4b",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.kpi.riskReduced": {
+      "hash": "a8bb037a9c5c",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.kpi.riskFootnote": {
+      "hash": "bd7d774d4bdb",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "impact.pillars.justice.title": {
+      "hash": "75951c6bcb94",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.overline": {
+      "hash": "467d5f872e4a",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.trainedOnPre": {
+      "hash": "741ca960fb2f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.trainedOnMid": {
+      "hash": "f063c7612a9c",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.trainedOnSuffix": {
+      "hash": "5afb94abcf34",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.lastRefresh": {
+      "hash": "c6653c26fde8",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.donorPrefix": {
+      "hash": "4962c9f8e27d",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.supporter": {
+      "hash": "b748173ca9ab",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.gift": {
+      "hash": "b7b2fb7443bc",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.programAreaOther": {
+      "hash": "6e6a6f2086bb",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.howGiftsHelp.overline": {
+      "hash": "dacce3df76b3",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.howGiftsHelp.heading": {
+      "hash": "8203def8c190",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.howGiftsHelp.lead": {
+      "hash": "9f1a15ee21d7",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.howGiftsHelp.point1": {
+      "hash": "61db85cb9b5f",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.howGiftsHelp.point2": {
+      "hash": "73b2fe1af900",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.howGiftsHelp.point3": {
+      "hash": "47fd4c69e384",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.howGiftsHelp.point4": {
+      "hash": "c78bc651acc3",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorImpact.howGiftsHelp.closing": {
+      "hash": "2c85c966809c",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "profile.field.signInIdPlaceholder": {
+      "hash": "cdf9626c9960",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "profile.field.email": {
+      "hash": "84add5b29527",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorDashboard.type.socialMedia": {
+      "hash": "3d84a8bdc946",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorDashboard.goods.perUnitHint": {
+      "hash": "5060f6643595",
+      "model": "claude-haiku-4-5",
+      "mt": true
+    },
+    "donorDashboard.volunteer.whenHint": {
+      "hash": "5fcc07e713d8",
+      "model": "claude-haiku-4-5",
+      "mt": true
     }
   },
   "nav": {
@@ -1642,15 +1742,15 @@
     "signup": "Yee Háwǫ́",
     "logout": "Yee Háwǫ́",
     "profile": "Asdzą́ą́ Bá Hólǫ́",
-    "openSettings": "Site settings",
-    "settingsMenuLabel": "Language and appearance",
-    "theme": "Theme",
-    "useLightMode": "Light mode",
-    "useDarkMode": "Dark mode",
-    "switchToLight": "Switch to light theme",
-    "switchToDark": "Switch to dark theme",
-    "themeHintRemembered": "Your theme is saved when you accept all cookies.",
-    "themeHintSession": "Theme applies for this session unless you accept all cookies."
+    "openSettings": "Íína bee ałhidadiilyinígíí",
+    "settingsMenuLabel": "Saad íí ndi dine'é bee ałhidadiilyinígíí",
+    "theme": "Bee ałhidadiilyinígíí",
+    "useLightMode": "Łó bee ałhidadiilyinígíí",
+    "useDarkMode": "Chʼah bee ałhidadiilyinígíí",
+    "switchToLight": "Łó bee ałhidadiilyinígíí gohwéʼ",
+    "switchToDark": "Chʼah bee ałhidadiilyinígíí gohwéʼ",
+    "themeHintRemembered": "Bee ałhidadiilyinígíí yéʼ sǫǫ nitsxaago ałhidadiilyinígíí yéʼ deeshkaad.",
+    "themeHintSession": "Bee ałhidadiilyinígíí dóó díí ałhidadiilyinígíí yéʼ sǫǫ nitsxaago yéʼ deeshkaad."
   },
   "common": {
     "loading": "Yee Háwǫ́…",
@@ -1667,12 +1767,12 @@
       "en": "English",
       "nv": "Diné",
       "toggleLabel": "Saad",
-      "mtDisclaimer": "Diné bizaad translations are machine-generated and pending native-speaker review."
+      "mtDisclaimer": "Diné bizaad bee ałhidadiilyinígíí yéʼ tʼáá ałtso bee ałhidadiilyinígíí yéʼ danihilne'go, ndi diné yéʼ ałhidadiilyinígíí yéʼ deeshkáaʼ."
     }
   },
   "home": {
     "heroTitle": "Diné Bikéyah Hózhǫ́ǫ́, Yee Háwǫ́, dóó Ałhidadiidzin.",
-    "heroCopy": "Kateri provides safe housing, counseling, and reintegration support for girls, with a focused commitment to Native American communities.",
+    "heroCopy": "Kateri hógan doo ałhidadiilyinígíí, ndi ałhidadiilyinígíí, ndi naalyéhé bee ałhidadiilyinígíí yéʼ bił hóʼaah, ndi Diné dóó Native American tʼáá ałtso yéʼ bił hóʼaah.",
     "cta": {
       "support": "Kateri Yee Háwǫ́",
       "viewImpact": "Hweʼéhgo Baa Nitsékesgo Biniiyé"
@@ -1727,14 +1827,14 @@
       "submitting": "Haad..."
     },
     "twoFactor": {
-      "requiresSetupNotice": "Admin and Staff accounts must enable two-factor authentication. After you sign in with your password, you will be taken to Profile to finish setup.",
+      "requiresSetupNotice": "Admin ndi Staff accounts yéʼ tʼáá ałtso bee ałhidadiilyinígíí yéʼ danihilne'go. Nʼ password yéʼ danihilne'go, Profile gohwéʼ danihilne'go setup yéʼ deeshkáaʼ.",
       "successHeading": "Yáʼátʼéeh, t'áá łá",
-      "successLead": "Enter your 6-digit authenticator code, or a one-time recovery code (format XXXXX-XXXXX). Use this same field for both.",
+      "successLead": "6-digit authenticator code, or one-time recovery code (format XXXXX-XXXXX) yéʼ danihilne'go. Tʼáá ałtso field yéʼ bił hóʼaah.",
       "codeLabel": "Authenticator or recovery code",
       "codePlaceholder": "123456 or XXXXX-XXXXX",
-      "verifySubmit": "Verify and sign in",
-      "verifying": "Verifying...",
-      "backToPassword": "Back to password login",
+      "verifySubmit": "Verify ndi sign in",
+      "verifying": "Nídítʼą́ą́h...",
+      "backToPassword": "Hastą́ą́ jí nídítʼą́ą́h",
       "infoMessage": "Yéʼ, diné naaznilgo: kin ílʼínígo naalkaah code nideiłkah."
     },
     "errors": {
@@ -1758,17 +1858,17 @@
     }
   },
   "privacy": {
-    "heading": "Privacy Policy",
+    "heading": "Ánáʼí Bá Hóʼdlǫ́ǫ́",
     "body": "Kateri personal data nideiłkah Diné bináʼ ílʼínígo. Kin ílʼínígo naalkaah, donation records, doodaii case information nideiłkah.\n\nData nideiłkah service delivery, safeguarding, recordkeeping, doodaii security ílʼínígo. Personal data doo yoołkah da. Access role-based permissions doodaii authenticated sessions ílʼínígo.\n\nData retention operational, legal, doodaii safeguarding requirements ílʼínígo. Retention periods doo yéʼ da, records deleted doodaii anonymized.\n\nAccess, correction, doodaii deletion nideiłkah personal data ílʼínígo. Support nideiłkah requests ílʼínígo.\n\nCookie doodaii consent details Cookie Policy ílʼínígo. Essential security cookies required protected areas ílʼínígo.\n\nLast updated: April 2026."
   },
   "cookiePolicy": {
-    "heading": "Cookie Policy",
+    "heading": "Cookie Bá Hóʼdlǫ́ǫ́",
     "body": "Kateri essential cookies nideiłkah users signed in, account sessions protect, doodaii secure site behavior ílʼínígo. Cookies required authentication ílʼínígo doodaii disabled doo kin da.\n\nAccept all cookies doodaii necessary cookies only. Necessary cookies login, session continuity, doodaii security controls support. Optional cookies accepted ílʼínígo.\n\nLast updated: April 2026."
   },
   "cookieBanner": {
-    "ariaLabel": "Cookie consent",
+    "ariaLabel": "Cookie Bá Ádáhodltʼǫ́",
     "messageBefore": "Kateri essential cookies authentication doodaii security ílʼínígo nideiłkah. Details review kin ",
-    "messageLinkText": "Cookie Policy",
+    "messageLinkText": "Cookie Bá Hóʼdlǫ́ǫ́",
     "messageAfter": ".",
     "acceptNecessary": "Necessary only accept",
     "acceptAll": "Cookies Ólta'"
@@ -1786,10 +1886,10 @@
     },
     "kpi": {
       "activeResidents": "Ałhidadiidzą́ Diné",
-      "inclusiveCare": "Inclusive care",
-      "inclusiveCareFootnote": "Residents documented special needs or disability (PWD), share of all residents in records.",
-      "riskReduced": "Moved to a lower risk tier",
-      "riskFootnote": "Among {compared} residents with initial and current risk: {reduced} improved, {same} unchanged, {increased} moved to a higher tier."
+      "inclusiveCare": "Tʼáá ájítʼéego Ałchíní Bá Ádahoodzą́",
+      "inclusiveCareFootnote": "Diné bitsʼą́ą́ʼ bee ádahoodzą́ doo ałchíní doo, tʼáá ájítʼéego tʼáá bik'eh yit'éé diné bitsʼą́ą́ʼ.",
+      "riskReduced": "Dóó Níʼ Bitsʼą́ą́ʼ Jí Naʼałdį́",
+      "riskFootnote": "Tʼáá {compared} diné bitsʼą́ą́ʼ bee ádahoodzą́ doo: {reduced} naʼałdį́, {same} tʼáá ájítʼéego, {increased} dóó níʼ bitsʼą́ą́ʼ jí naʼałdį́."
     },
     "health": {
       "heading": "Diné Bííghaʼ Dóó Ałhidadiidzą́",
@@ -1808,7 +1908,7 @@
         "description": "Diné baa nitsáhákees azlą́ʼ, ałhidadiidzą́ yee nitsáhákees. Nihí baa nitsáhákees ałhidadiidzą́, counseling, mentorship, dóó azlą́ʼ baa nitsáhákees."
       },
       "justice": {
-        "title": "Justice",
+        "title": "Hóʼǫ́ǫ́",
         "description": "Kateri doo ájíltą́ da bee naaltsoos ałhidadiilyéé baa nanitin. Asdzą́ yázhí kéé yee naaltsoos ałhidadiilyéé baa nanitin yee baa hózhǫ́ǫ́ da."
       },
       "empowerment": {
@@ -1828,18 +1928,18 @@
   },
   "donorImpact": {
     "loading": "Donor impact data yee at'é…",
-    "overline": "Pipeline 5 · Donation Impact Attribution",
+    "overline": "Pipeline 5 · Naaltsoos Bá Ádahoodzą́",
     "title": "Níhí naaltsoos yee at'é",
     "subtitle": "Donor yee at'é safehouses yee at'é, residents, programs, dóó outcomes yee at'é.",
-    "trainedOnPre": "Trained on",
-    "trainedOnMid": "safehouse-month observations · OLS R² =",
-    "trainedOnSuffix": "for health outcomes",
-    "lastRefresh": "last refresh",
+    "trainedOnPre": "Ádahoodzą́ jí",
+    "trainedOnMid": "safehouse-yą́ą́ʼ ádahoodzą́ · OLS R² =",
+    "trainedOnSuffix": "ashkii doo ásdzą́ doo bitsʼą́ą́ʼ",
+    "lastRefresh": "tʼáá íiyisíígíí",
     "chooseDonor": "Donor yee at'é",
     "searchDonors": "Donor yee at'é…",
-    "donorPrefix": "Donor",
-    "supporter": "Supporter",
-    "gift": "gift",
+    "donorPrefix": "Naaltsoos Bá Ádahoodzą́ Bee Naʼałdį́",
+    "supporter": "Bá Ádahoodzą́",
+    "gift": "atʼí",
     "gifts": "asdzą́",
     "noMatches": "Doo haałchíinii ndi ayóo ła da.",
     "personalReport": "Naaltsoos Baa Hane'é Dine'é",
@@ -1891,6 +1991,17 @@
       "failedLoadDonors": "Atiin naaltsoos doo yá'át'éé da",
       "failedLoadReport": "Baa hólǫ́ naaltsoos doo yá'át'éé da",
       "couldntLoad": "Baa hólǫ́ dashboard doo yá'át'éé da"
+    },
+    "programAreaOther": "Tʼáá ájítʼéego",
+    "howGiftsHelp": {
+      "overline": "Niyé yéigo baa nínídaałhígíí",
+      "heading": "Haałá niyé yéigo baa nínídaałhígíí",
+      "lead": "Niyé yéigo baa nínídaałhígíí doo háálá bee ałhidoołkáł. Haałá niyé yéigo baa nínídaałhígíí.",
+      "point1": "Tségháhoogan, ájídí, ayóí, dóó azee'ígíí bá yéigo baa nínídaałhígíí, asdzą̨́ yázhí dóó awéé'é bee hózhǫ́ baa yéigo baa nínídaałhígíí.",
+      "point2": "Azee'ígíí, níłchxǫ́ǫ́, bíhígíí, dóó áwee'é dóó dine'é bee hózhǫ́ baa yéigo baa nínídaałhígíí.",
+      "point3": "Baa nínídaałhígíí, diné ta'í dóó kin bee hózhǫ́ baa yéigo baa nínídaałhígíí.",
+      "point4": "Niyé yéigo baa nínídaałhígíí dóó azee'ígíí bee hózhǫ́ baa yéigo baa nínídaałhígíí.",
+      "closing": "Niyé yéigo baa nínídaałhígíí dóó asdzą̨́ yázhí dóó awéé'é bee hózhǫ́ baa yéigo baa nínídaałhígíí, ahéhee'."
     }
   },
   "myImpact": {
@@ -1931,7 +2042,7 @@
       "firstNameRO": "Nitsili (t'áá akohgo ádahodiiłtin da)",
       "lastNameRO": "Azlíí (t'áá akohgo ádahodiiłtin da)",
       "signInId": "Naa'ídí bee hane'é (username)",
-      "signInIdPlaceholder": "username or email",
+      "signInIdPlaceholder": "bita' ałchíní dóó email",
       "signInIdHelper": "Tó'áhchíní, nambooígíí, dóo . _ @ + - t'áá akohgo. Email bee naa'ídí dóo ádahodiiłtin.",
       "currentPasswordUsername": "Naa'ídí bee hane'é (naa'ídí bee hane'é ádahodiiłtin dóó t'áá akohgo)",
       "currentPasswordEmail": "Naa'ídí bee hane'é (email ádahodiiłtin dóó t'áá akohgo)",
@@ -2020,13 +2131,13 @@
       "unitOfMeasure": "Tsosts'id bee ałhidadiidzin",
       "approxValue": "Béeso doo'ałchʼí",
       "totalValuePlaceholder": "Béeso doo'ałchʼí kin yee' ájítʼéego",
-      "perUnitHint": "We save per-unit value as total ÷ quantity (same structure as our in-kind import).",
+      "perUnitHint": "Niyé yéigo baa nínídaałhígíí bee ałhidoołkáł.",
       "intendedUse": "Kin yee' ájítʼéego",
       "receivedCondition": "Doo'ałchʼí bee ałhidadiidzin"
     },
     "volunteer": {
       "whenAvailable": "Háwéʼ yee' ájítʼéego?",
-      "whenHint": "Pick days and times of day so we can match you to opportunities. Staff can follow up for exact times.",
+      "whenHint": "Azee'ígíí dóó azee'ígíí bá yéigo baa nínídaałhígíí.",
       "flexibleDays": "Azee' Ałhidadiidzin bee ałhidadiidzin",
       "timeOfDay": "Kin yee' ájítʼéego (select all that apply)",
       "additionalNotes": "Ádaałhoshii (doo nanitin da)",
