@@ -9,7 +9,16 @@
     "login": "Login",
     "signup": "Sign up",
     "logout": "Logout",
-    "profile": "Profile"
+    "profile": "Profile",
+    "openSettings": "Site settings",
+    "settingsMenuLabel": "Language and appearance",
+    "theme": "Theme",
+    "useLightMode": "Light mode",
+    "useDarkMode": "Dark mode",
+    "switchToLight": "Switch to light theme",
+    "switchToDark": "Switch to dark theme",
+    "themeHintRemembered": "Your theme is saved when you accept all cookies.",
+    "themeHintSession": "Theme applies for this session unless you accept all cookies."
   },
   "common": {
     "loading": "Loading…",
