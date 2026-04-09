@@ -60,19 +60,99 @@ export type ResidentDetail = {
   safehouseName: string | null;
   sex: string | null;
   dateOfBirth: string | null;
+  birthStatus: string | null;
   placeOfBirth: string | null;
   religion: string | null;
   caseCategory: string | null;
+  subCatOrphaned: boolean | null;
+  subCatTrafficked: boolean | null;
+  subCatChildLabor: boolean | null;
+  subCatPhysicalAbuse: boolean | null;
+  subCatSexualAbuse: boolean | null;
+  subCatOsaec: boolean | null;
+  subCatCicl: boolean | null;
+  subCatAtRisk: boolean | null;
+  subCatStreetChild: boolean | null;
+  subCatChildWithHiv: boolean | null;
+  isPwd: boolean | null;
+  pwdType: string | null;
+  hasSpecialNeeds: boolean | null;
+  specialNeedsDiagnosis: string | null;
+  familyIs4Ps: boolean | null;
+  familySoloParent: boolean | null;
+  familyIndigenous: boolean | null;
+  familyParentPwd: boolean | null;
+  familyInformalSettler: boolean | null;
   assignedSocialWorker: string | null;
   referralSource: string | null;
+  referringAgencyPerson: string | null;
   dateAdmitted: string | null;
+  ageUponAdmission: string | null;
+  presentAge: string | null;
+  lengthOfStay: string | null;
+  dateColbRegistered: string | null;
+  dateColbObtained: string | null;
+  dateEnrolled: string | null;
+  initialCaseAssessment: string | null;
+  dateCaseStudyPrepared: string | null;
   dateClosed: string | null;
   reintegrationType: string | null;
   reintegrationStatus: string | null;
+  initialRiskLevel: string | null;
+  currentRiskLevel: string | null;
   notesRestricted: string | null;
   educationGrade: string | null;
   schoolName: string | null;
   isEnrolled: boolean | null;
+};
+
+/** Payload for PUT resident profile (matches API camelCase). */
+export type UpdateResidentDetailPayload = {
+  caseStatus?: string;
+  safehouseId?: number | null;
+  sex?: string;
+  dateOfBirth?: string;
+  birthStatus?: string;
+  placeOfBirth?: string;
+  religion?: string;
+  caseCategory?: string;
+  subCatOrphaned: boolean;
+  subCatTrafficked: boolean;
+  subCatChildLabor: boolean;
+  subCatPhysicalAbuse: boolean;
+  subCatSexualAbuse: boolean;
+  subCatOsaec: boolean;
+  subCatCicl: boolean;
+  subCatAtRisk: boolean;
+  subCatStreetChild: boolean;
+  subCatChildWithHiv: boolean;
+  isPwd: boolean;
+  pwdType?: string;
+  hasSpecialNeeds: boolean;
+  specialNeedsDiagnosis?: string;
+  familyIs4Ps: boolean;
+  familySoloParent: boolean;
+  familyIndigenous: boolean;
+  familyParentPwd: boolean;
+  familyInformalSettler: boolean;
+  assignedSocialWorker?: string;
+  referralSource?: string;
+  referringAgencyPerson?: string;
+  dateAdmitted?: string;
+  ageUponAdmission?: string;
+  presentAge?: string;
+  lengthOfStay?: string;
+  dateColbRegistered?: string;
+  dateColbObtained?: string;
+  dateEnrolled?: string;
+  initialCaseAssessment?: string;
+  dateCaseStudyPrepared?: string;
+  dateClosed?: string;
+  reintegrationType?: string;
+  reintegrationStatus?: string;
+  initialRiskLevel?: string;
+  currentRiskLevel?: string;
+  notesRestricted?: string;
 };
 
 export type ProcessRecording = {
@@ -597,15 +677,47 @@ export const caseloadApi = {
     safehouseId?: number | null;
     sex?: string;
     dateOfBirth?: string;
+    birthStatus?: string;
     placeOfBirth?: string;
     religion?: string;
     caseCategory?: string;
+    subCatOrphaned?: boolean;
+    subCatTrafficked?: boolean;
+    subCatChildLabor?: boolean;
+    subCatPhysicalAbuse?: boolean;
+    subCatSexualAbuse?: boolean;
+    subCatOsaec?: boolean;
+    subCatCicl?: boolean;
+    subCatAtRisk?: boolean;
+    subCatStreetChild?: boolean;
+    subCatChildWithHiv?: boolean;
+    isPwd?: boolean;
+    pwdType?: string;
+    hasSpecialNeeds?: boolean;
+    specialNeedsDiagnosis?: string;
+    familyIs4Ps?: boolean;
+    familySoloParent?: boolean;
+    familyIndigenous?: boolean;
+    familyParentPwd?: boolean;
+    familyInformalSettler?: boolean;
     assignedSocialWorker?: string;
     referralSource?: string;
+    referringAgencyPerson?: string;
     dateAdmitted?: string;
+    ageUponAdmission?: string;
+    presentAge?: string;
+    lengthOfStay?: string;
+    dateColbRegistered?: string;
+    dateColbObtained?: string;
+    dateEnrolled?: string;
+    initialCaseAssessment?: string;
+    dateCaseStudyPrepared?: string;
     dateClosed?: string;
     reintegrationType?: string;
     reintegrationStatus?: string;
+    initialRiskLevel?: string;
+    currentRiskLevel?: string;
+    notesRestricted?: string;
   }) =>
     apiFetch<{ message: string; residentId: number }>('/api/caseload/residents', {
       method: 'POST',
@@ -613,24 +725,7 @@ export const caseloadApi = {
     }),
   residentDetail: (residentId: number) =>
     apiFetch<ResidentDetail>(`/api/caseload/residents/${residentId}`, { method: 'GET' }),
-  updateResidentDetail: (
-    residentId: number,
-    payload: {
-      caseStatus?: string;
-      safehouseId?: number | null;
-      sex?: string;
-      dateOfBirth?: string;
-      placeOfBirth?: string;
-      religion?: string;
-      caseCategory?: string;
-      assignedSocialWorker?: string;
-      referralSource?: string;
-      dateAdmitted?: string;
-      dateClosed?: string;
-      reintegrationType?: string;
-      reintegrationStatus?: string;
-    },
-  ) =>
+  updateResidentDetail: (residentId: number, payload: UpdateResidentDetailPayload) =>
     apiFetch<{ message: string }>(`/api/caseload/residents/${residentId}`, {
       method: 'PUT',
       body: JSON.stringify(payload),

@@ -2111,6 +2111,162 @@ a.auth-nav-pill--solo-login:focus-visible {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.resident-case-panel--profile-form {
+  padding: 1.15rem 1.25rem 1.35rem;
+}
+
+.resident-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.resident-profile-intro {
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(170, 190, 208, 0.45);
+}
+
+.resident-profile-intro__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 650;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.resident-profile-intro__lead {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  max-width: 52rem;
+}
+
+.resident-profile-card {
+  border: 1px solid rgba(170, 190, 208, 0.55);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 1rem 1.05rem 1.1rem;
+  box-shadow: 0 1px 0 rgba(56, 95, 130, 0.06);
+}
+
+.resident-profile-card__header {
+  margin-bottom: 0.75rem;
+}
+
+.resident-profile-card__title {
+  margin: 0 0 0.2rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--text);
+  letter-spacing: -0.015em;
+}
+
+.resident-profile-card__hint {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  max-width: 48rem;
+}
+
+.resident-profile-card__fields {
+  gap: 0.7rem 1rem;
+}
+
+.resident-profile-field-hint {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--text-muted);
+  margin-bottom: 0.12rem;
+}
+
+.resident-profile-explainer {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--text);
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  background: rgba(56, 95, 130, 0.06);
+  border: 1px solid rgba(56, 95, 130, 0.12);
+}
+
+.resident-profile-explainer__muted {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.resident-profile-check-row {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+  align-items: center;
+}
+
+.resident-profile-check-row--boxed {
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px dashed rgba(170, 190, 208, 0.75);
+}
+
+.resident-profile-check-row label {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.resident-profile-full-width {
+  grid-column: 1 / -1;
+}
+
+.resident-info-grid label.resident-profile-inline-label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.resident-info-grid label.resident-profile-inline-label {
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.resident-info-grid label.resident-profile-inline-label input[type='checkbox'] {
+  width: auto;
+}
+
+.resident-profile-input--readonly,
+input.resident-profile-input--readonly {
+  background: rgba(56, 95, 130, 0.06) !important;
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.resident-profile-footer {
+  margin-top: 0.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(170, 190, 208, 0.45);
+}
+
+.resident-profile-footer__message {
+  margin: 0 0 0.75rem;
+}
+
+.resident-profile-footer__actions.resident-modal-actions {
+  margin-top: 0;
+}
+
 .resident-case-grid > * {
   min-width: 0;
 }
