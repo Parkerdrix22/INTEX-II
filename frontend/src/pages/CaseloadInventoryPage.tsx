@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'react-feather';
 import { caseloadApi, type CaseloadResident } from '../lib/api';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 
@@ -410,7 +411,7 @@ export function CaseloadInventoryPage() {
                   disabled={currentPage === 1}
                   aria-label="Previous page"
                 >
-                  ‹
+                  <ChevronLeft size={16} />
                 </button>
                 <span className="caseload-pagination__page-indicator">
                   Page {currentPage} of {totalPages}
@@ -422,7 +423,7 @@ export function CaseloadInventoryPage() {
                   disabled={currentPage === totalPages}
                   aria-label="Next page"
                 >
-                  ›
+                  <ChevronRight size={16} />
                 </button>
               </div>
             </div>

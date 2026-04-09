@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { X } from 'react-feather';
 import { chatApi } from '../lib/api';
 import { useAuth } from '../auth/useAuth';
 
@@ -183,7 +184,7 @@ export function ChatWidget() {
               onClick={() => setIsOpen(false)}
               aria-label="Close chat"
             >
-              ×
+              <X size={18} />
             </button>
           </header>
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Check, Mail, RefreshCw, Star } from 'react-feather';
 import { useNavigate } from 'react-router-dom';
 import {
   CartesianGrid,
@@ -407,7 +408,7 @@ export function DonorsContributionsPage() {
                           onClick={() => openThankYouModal(row)}
                           title="Draft an AI-written thank-you email for this donor"
                         >
-                          ✨ Thank-you
+                          <Star size={14} aria-hidden="true" /> Thank-you
                         </button>
                       </td>
                     </tr>
@@ -680,7 +681,9 @@ export function DonorsContributionsPage() {
             onClick={(event) => event.stopPropagation()}
           >
             <header className="record-detail-card__header">
-              <p className="record-detail-card__eyebrow">✨ AI-drafted thank-you email</p>
+              <p className="record-detail-card__eyebrow">
+                <Star size={12} aria-hidden="true" /> AI-drafted thank-you email
+              </p>
               <h2 id="thank-you-modal-title">For {thankYouSupporter.name}</h2>
               <p className="auth-lead" style={{ margin: 0 }}>
                 Personalized from this donor&apos;s giving history. Review, edit, and paste into your
@@ -713,7 +716,7 @@ export function DonorsContributionsPage() {
                 onClick={() => void runDraft(thankYouSupporter.id, thankYouTone)}
                 title="Regenerate with the same tone"
               >
-                ↻ Regenerate
+                <RefreshCw size={14} aria-hidden="true" /> Regenerate
               </button>
             </div>
 
@@ -735,7 +738,7 @@ export function DonorsContributionsPage() {
                       className="btn-secondary thank-you-copy-btn"
                       onClick={() => copyToClipboard(thankYouDraft.subject, 'subject')}
                     >
-                      {thankYouCopied === 'subject' ? '✓ Copied' : 'Copy'}
+                      {thankYouCopied === 'subject' ? (<><Check size={12} aria-hidden="true" /> Copied</>) : 'Copy'}
                     </button>
                   </div>
                   <input
@@ -759,7 +762,7 @@ export function DonorsContributionsPage() {
                       className="btn-secondary thank-you-copy-btn"
                       onClick={() => copyToClipboard(thankYouDraft.body, 'body')}
                     >
-                      {thankYouCopied === 'body' ? '✓ Copied' : 'Copy'}
+                      {thankYouCopied === 'body' ? (<><Check size={12} aria-hidden="true" /> Copied</>) : 'Copy'}
                     </button>
                   </div>
                   <textarea
@@ -783,7 +786,7 @@ export function DonorsContributionsPage() {
 
             {thankYouSentTo && (
               <p className="success-text thank-you-sent-banner">
-                ✓ Sent to <strong>{thankYouSentTo}</strong>
+                <Check size={14} aria-hidden="true" /> Sent to <strong>{thankYouSentTo}</strong>
               </p>
             )}
             {thankYouSendError && (
@@ -818,7 +821,13 @@ export function DonorsContributionsPage() {
                     onClick={() => void sendThankYouEmail()}
                     disabled={thankYouSending}
                   >
-                    {thankYouSending ? 'Sending…' : '✉ Send now'}
+                    {thankYouSending ? (
+                      'Sending…'
+                    ) : (
+                      <>
+                        <Mail size={14} aria-hidden="true" /> Send now
+                      </>
+                    )}
                   </button>
                 </>
               )}

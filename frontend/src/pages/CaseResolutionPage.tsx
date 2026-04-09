@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Check, AlertTriangle } from 'react-feather';
 import { Link } from 'react-router-dom';
 import {
   Bar,
@@ -590,14 +591,14 @@ function ResidentCard({
                 className="cres-agree cres-agree--yes"
                 title="Model agrees with current human label"
               >
-                ✓ agrees
+                <Check size={14} aria-hidden="true" /> agrees
               </span>
             ) : (
               <span
                 className="cres-agree cres-agree--no"
                 title="Model disagrees with current human label"
               >
-                ⚠ disagrees
+                <AlertTriangle size={14} aria-hidden="true" /> disagrees
               </span>
             )}
           </div>
@@ -712,9 +713,15 @@ function ResidentDetail({
                 : 'cres-detail-agreement--no'
             }`}
           >
-            {detail.modelAgreesWithLabel
-              ? '✓ Model and case manager agree on resolution readiness'
-              : '⚠ Model and case manager disagree — review recommended'}
+            {detail.modelAgreesWithLabel ? (
+              <>
+                <Check size={16} aria-hidden="true" /> Model and case manager agree on resolution readiness
+              </>
+            ) : (
+              <>
+                <AlertTriangle size={16} aria-hidden="true" /> Model and case manager disagree — review recommended
+              </>
+            )}
           </p>
         </div>
 
