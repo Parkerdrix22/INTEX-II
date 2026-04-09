@@ -1,7 +1,7 @@
 {
   "pipeline_01_resident_risk": {
     "status": "success",
-    "trained_at": "2026-04-09T16:38:16.841036+00:00",
+    "trained_at": "2026-04-09T16:51:26.188781+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.8742,
       "cv_roc_auc_std": 0.1365,
