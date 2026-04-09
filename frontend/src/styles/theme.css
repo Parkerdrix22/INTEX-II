@@ -1651,6 +1651,17 @@ a.auth-nav-pill--solo-login:focus-visible {
   min-height: 116px;
 }
 
+.impact-stats .metric-footnote {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-muted, #5a6b7a);
+}
+
+:root[data-theme='dark'] .impact-stats .metric-footnote {
+  color: rgba(186, 202, 218, 0.78);
+}
+
 .donor-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

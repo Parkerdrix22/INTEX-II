@@ -44,6 +44,32 @@ public class PublicStatsController(AppDbContext dbContext) : ControllerBase
         {
             var row = await dbContext.Database.SqlQueryRaw<ImpactStatsRow>(
                 """
+                WITH risk_compared AS (
+                  SELECT
+                    CASE LOWER(TRIM(COALESCE(r.initial_risk_level, '')))
+                      WHEN 'low' THEN 1
+                      WHEN 'medium' THEN 2
+                      WHEN 'high' THEN 3
+                      WHEN 'critical' THEN 4
+                      ELSE NULL
+                    END AS io,
+                    CASE LOWER(TRIM(COALESCE(r.current_risk_level, '')))
+                      WHEN 'low' THEN 1
+                      WHEN 'medium' THEN 2
+                      WHEN 'high' THEN 3
+                      WHEN 'critical' THEN 4
+                      ELSE NULL
+                    END AS co
+                  FROM lighthouse.residents r
+                ),
+                risk_stats AS (
+                  SELECT
+                    COUNT(*) FILTER (WHERE io IS NOT NULL AND co IS NOT NULL) AS n,
+                    COUNT(*) FILTER (WHERE io IS NOT NULL AND co IS NOT NULL AND co < io) AS reduced,
+                    COUNT(*) FILTER (WHERE io IS NOT NULL AND co IS NOT NULL AND co = io) AS same,
+                    COUNT(*) FILTER (WHERE io IS NOT NULL AND co IS NOT NULL AND co > io) AS increased
+                  FROM risk_compared
+                )
                 SELECT
                   (
                     SELECT COUNT(*)::int
@@ -51,18 +77,11 @@ public class PublicStatsController(AppDbContext dbContext) : ControllerBase
                     WHERE r.date_closed IS NULL
                   ) AS "ActiveResidents",
                   (
-                    SELECT COUNT(*)::int
-                    FROM lighthouse.process_recordings pr
-                    WHERE EXTRACT(YEAR FROM COALESCE(pr.session_date, CURRENT_DATE)) = EXTRACT(YEAR FROM CURRENT_DATE)
-                  ) AS "CounselingSessionsFunded",
-                  (
                     SELECT COALESCE(
                       ROUND(
                         100.0 * SUM(
                           CASE
-                            WHEN LOWER(COALESCE(r.reintegration_status, '')) LIKE '%success%'
-                              OR LOWER(COALESCE(r.reintegration_status, '')) LIKE '%reintegrat%'
-                              OR LOWER(COALESCE(r.reintegration_status, '')) LIKE '%complet%'
+                            WHEN COALESCE(r.has_special_needs, FALSE) OR COALESCE(r.is_pwd, FALSE)
                             THEN 1 ELSE 0
                           END
                         )::numeric
@@ -72,8 +91,12 @@ public class PublicStatsController(AppDbContext dbContext) : ControllerBase
                       0
                     )::double precision
                     FROM lighthouse.residents r
-                    WHERE COALESCE(TRIM(r.reintegration_status), '') <> ''
-                  ) AS "SchoolReintegrationRate"
+                  ) AS "InclusiveCarePct",
+                  (SELECT COALESCE(ROUND(100.0 * rs.reduced::numeric / NULLIF(rs.n, 0), 1), 0)::double precision FROM risk_stats rs) AS "RiskReducedPct",
+                  (SELECT COALESCE(rs.n, 0)::int FROM risk_stats rs) AS "RiskComparedCount",
+                  (SELECT COALESCE(rs.reduced, 0)::int FROM risk_stats rs) AS "RiskReducedCount",
+                  (SELECT COALESCE(rs.same, 0)::int FROM risk_stats rs) AS "RiskUnchangedCount",
+                  (SELECT COALESCE(rs.increased, 0)::int FROM risk_stats rs) AS "RiskIncreasedCount"
                 """)
                 .FirstOrDefaultAsync();
 
@@ -165,8 +188,17 @@ public class PublicStatsController(AppDbContext dbContext) : ControllerBase
     public sealed class ImpactStatsRow
     {
         public int ActiveResidents { get; set; }
-        public int CounselingSessionsFunded { get; set; }
-        public double SchoolReintegrationRate { get; set; }
+
+        /// <summary>Percent of residents with special needs and/or documented disability (PWD).</summary>
+        public double InclusiveCarePct { get; set; }
+
+        /// <summary>Percent of residents with valid initial+current risk whose tier improved (lower ordinal).</summary>
+        public double RiskReducedPct { get; set; }
+
+        public int RiskComparedCount { get; set; }
+        public int RiskReducedCount { get; set; }
+        public int RiskUnchangedCount { get; set; }
+        public int RiskIncreasedCount { get; set; }
     }
 
     public sealed class HealthMonthlyTrendRow

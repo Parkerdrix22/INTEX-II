@@ -154,8 +154,10 @@
     },
     "kpi": {
       "activeResidents": "Active Residents",
-      "counselingSessions": "Counseling Sessions Funded",
-      "reintegrationRate": "School Reintegration Rate"
+      "inclusiveCare": "Inclusive care",
+      "inclusiveCareFootnote": "Residents with documented special needs or disability (PWD), as a share of all residents in our records.",
+      "riskReduced": "Moved to a lower risk tier",
+      "riskFootnote": "Among {compared} residents with initial and current risk on file: {reduced} improved, {same} unchanged, {increased} moved to a higher tier."
     },
     "health": {
       "heading": "Health & Well-being Impact",
