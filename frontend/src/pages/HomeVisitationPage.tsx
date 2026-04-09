@@ -86,6 +86,15 @@ function residentDisplayName(row: CaseloadResident): string {
   return row.caseControlNo || `Resident #${row.id}`;
 }
 
+/** Short preview for the list table; full text is in the row-detail modal. */
+function truncateObservationsPreview(text: string | null | undefined, maxWords = 8): string {
+  const s = text?.trim();
+  if (!s) return '—';
+  const words = s.split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return s;
+  return `${words.slice(0, maxWords).join(' ')}…`;
+}
+
 export function HomeVisitationPage() {
   const [rows, setRows] = useState<HomeVisitationSummary[]>([]);
   const [residents, setResidents] = useState<CaseloadResident[]>([]);
@@ -385,7 +394,7 @@ export function HomeVisitationPage() {
           </select>
         </div>
 
-        <div className="caseload-table-wrap">
+        <div className="caseload-table-wrap home-visitation-table-wrap">
           <table className="caseload-table">
             <thead>
               <tr>
@@ -431,8 +440,15 @@ export function HomeVisitationPage() {
                       )}
                       {row.safetyConcernsNoted !== true && row.followUpNeeded !== true && '—'}
                     </td>
-                    <td className="caseload-narrative-cell">
-                      {row.observationsPreview?.trim() ? row.observationsPreview : '—'}
+                    <td
+                      className="caseload-narrative-cell home-visitation-narrative-preview"
+                      title={
+                        row.observationsPreview?.trim()
+                          ? `${row.observationsPreview.trim()} — Click the row for the full record.`
+                          : undefined
+                      }
+                    >
+                      {truncateObservationsPreview(row.observationsPreview)}
                     </td>
                   </tr>
                 ))}
