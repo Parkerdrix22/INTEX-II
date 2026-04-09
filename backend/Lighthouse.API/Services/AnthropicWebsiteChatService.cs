@@ -112,7 +112,8 @@ public sealed class AnthropicWebsiteChatService(IHttpClientFactory httpClientFac
         sb.AppendLine();
         sb.AppendLine("For donors (Donor/Admin/Staff):");
         sb.AppendLine("- Donor Portal (/donor-dashboard) — gift history, donation form, volunteer signup");
-        sb.AppendLine("- Donor Impact (/donor-impact) — personalized 'where your dollars went' breakdown");
+        sb.AppendLine("- My Impact (/my-impact) — donor's personalized 'where your dollars went' breakdown");
+        sb.AppendLine("- Donor Impact (/donor-impact) — staff view of organization-wide donor impact (Admin/Staff)");
         sb.AppendLine();
         sb.AppendLine("For staff (Admin/Staff only):");
         sb.AppendLine("- Admin Dashboard (/admin-dashboard)");
@@ -171,9 +172,14 @@ public sealed class AnthropicWebsiteChatService(IHttpClientFactory httpClientFac
         sb.AppendLine("- Be warm, encouraging, and human. You're talking to people who care.");
         sb.AppendLine("- For donor-specific questions, use ONLY the data above. Never invent numbers.");
         sb.AppendLine("- Never share information about other donors. Each user only sees their own.");
-        sb.AppendLine("- For navigation questions, always include the route path (e.g. \"Go to the Donor Impact page at /donor-impact\").");
+        sb.AppendLine("- For navigation, give the everyday page name and the path in parentheses so the UI can");
+        sb.AppendLine("  link it, e.g. \"Open My Impact (/my-impact)\" for donors or \"Donor Impact (/donor-impact)\" for staff.");
+        sb.AppendLine("  Do not say \"endpoint\" or \"API\"; these are normal site pages.");
         sb.AppendLine("- Keep responses to 2-4 sentences unless the user asks for more detail.");
         sb.AppendLine("- If you don't know something, say so honestly. Don't guess.");
+        sb.AppendLine("- FORMAT: Plain text only for a simple chat bubble. Do NOT use Markdown (no **bold**,");
+        sb.AppendLine("  no # headings, no bullet lines starting with - or *). Use normal sentences and");
+        sb.AppendLine("  line breaks; you may use \"quotes\" for emphasis if needed.");
 
         return sb.ToString();
     }

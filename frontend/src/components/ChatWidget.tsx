@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { chatApi } from '../lib/api';
 import { useAuth } from '../auth/useAuth';
 
@@ -12,14 +13,73 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-/** Converts /route-style paths in text into clickable <a> links. */
+/** Model often returns Markdown; the widget is plain text — normalize for display. */
+function assistantPlainText(raw: string): string {
+  return raw
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*[-*]\s+/gm, '');
+}
+
+/** Human-readable labels so chat doesn't show raw URL paths as link text. */
+const CHAT_ROUTE_LABELS: Record<string, string> = {
+  '/': 'Home',
+  '/impact': 'Our Impact',
+  '/safehouse-tour': 'Safehouse tour',
+  '/login': 'Log in',
+  '/signup': 'Sign up',
+  '/profile': 'Profile',
+  '/cookie-policy': 'Cookie policy',
+  '/privacy-policy': 'Privacy policy',
+  '/unauthorized': 'Unauthorized',
+  '/donor-dashboard': 'Donor portal',
+  '/my-impact': 'My Impact',
+  '/donor-impact': 'Donor Impact',
+  '/resident-dashboard': 'Resident dashboard',
+  '/admin-dashboard': 'Admin dashboard',
+  '/donors-contributions': 'Donors & contributions',
+  '/caseload-inventory': 'Caseload inventory',
+  '/reports-analytics': 'Reports & analytics',
+  '/post-planner': 'Post planner',
+  '/donor-churn': 'Donor retention',
+  '/donor-archetypes': 'Donor archetypes',
+  '/resident-risk-triage': 'Resident risk triage',
+  '/case-resolution': 'Case resolution',
+  '/process-recording': 'Process recording',
+  '/home-visitation': 'Home visitation',
+};
+
+function labelForChatPath(path: string): string {
+  const clean = path.split('?')[0]?.split('#')[0] ?? path;
+  if (CHAT_ROUTE_LABELS[clean]) return CHAT_ROUTE_LABELS[clean];
+  if (clean.startsWith('/donors-contributions/supporters/')) return 'Supporter donations';
+  if (clean.startsWith('/caseload-inventory/') && clean !== '/caseload-inventory') return 'Resident case';
+  const segments = clean.split('/').filter(Boolean);
+  if (segments.length === 0) return 'Home';
+  return segments
+    .map((seg) =>
+      seg
+        .split('-')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' '),
+    )
+    .join(' · ');
+}
+
+/** Converts /route-style paths into in-app links with readable labels. */
 function renderWithLinks(text: string): ReactNode[] {
   const parts = text.split(/(\/[\w-]+(?:\/[\w-]*)*)/g);
   return parts.map((part, i) =>
     /^\/([\w-]+(?:\/[\w-]*)*)$/.test(part) ? (
-      <a key={i} href={part} className="chat-widget__link">
-        {part}
-      </a>
+      <Link
+        key={i}
+        to={part}
+        className="chat-widget__link"
+        aria-label={`Go to ${labelForChatPath(part)}`}
+      >
+        {labelForChatPath(part)}
+      </Link>
     ) : (
       part
     ),
@@ -135,7 +195,7 @@ export function ChatWidget() {
                   m.role === 'user' ? 'chat-widget__bubble--user' : 'chat-widget__bubble--assistant'
                 }`}
               >
-                {renderWithLinks(m.text)}
+                {renderWithLinks(m.role === 'assistant' ? assistantPlainText(m.text) : m.text)}
               </div>
             ))}
           </div>
