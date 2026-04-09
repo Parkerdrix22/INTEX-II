@@ -24,6 +24,13 @@ const RESIDENT_REINTEGRATION_TYPES = [
   'Adoption (Inter-Country)',
 ] as const;
 const RESIDENT_REINTEGRATION_STATUSES = ['In Progress', 'Completed', 'On Hold', 'Not Started'] as const;
+const RESIDENT_RISK_LEVELS = [
+  { value: '', label: '—' },
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'critical', label: 'Critical' },
+] as const;
 const RESIDENT_RELIGIONS = [
   'Unspecified',
   'Roman Catholic',
@@ -100,16 +107,48 @@ export function CaseloadInventoryPage() {
     safehouseId: '',
     sex: 'F',
     dateOfBirth: '',
+    birthStatus: '',
     placePreset: '',
     placeOther: '',
     religion: 'Unspecified',
     caseCategory: '',
+    subCatOrphaned: false,
+    subCatTrafficked: false,
+    subCatChildLabor: false,
+    subCatPhysicalAbuse: false,
+    subCatSexualAbuse: false,
+    subCatOsaec: false,
+    subCatCicl: false,
+    subCatAtRisk: false,
+    subCatStreetChild: false,
+    subCatChildWithHiv: false,
+    isPwd: false,
+    pwdType: '',
+    hasSpecialNeeds: false,
+    specialNeedsDiagnosis: '',
+    familyIs4Ps: false,
+    familySoloParent: false,
+    familyIndigenous: false,
+    familyParentPwd: false,
+    familyInformalSettler: false,
     assignedSocialWorker: '',
     referralSource: '',
+    referringAgencyPerson: '',
     dateAdmitted: '',
+    ageUponAdmission: '',
+    presentAge: '',
+    lengthOfStay: '',
+    dateColbRegistered: '',
+    dateColbObtained: '',
+    dateEnrolled: '',
+    initialCaseAssessment: '',
+    dateCaseStudyPrepared: '',
     dateClosed: '',
     reintegrationType: 'None',
     reintegrationStatus: 'In Progress',
+    initialRiskLevel: '',
+    currentRiskLevel: '',
+    notesRestricted: '',
   });
 
   useEffect(() => {
@@ -449,15 +488,47 @@ export function CaseloadInventoryPage() {
                     safehouseId: Number(f.safehouseId),
                     sex: f.sex,
                     dateOfBirth: f.dateOfBirth,
+                    birthStatus: f.birthStatus.trim() || undefined,
                     placeOfBirth,
                     religion: f.religion,
                     caseCategory: f.caseCategory,
+                    subCatOrphaned: f.subCatOrphaned,
+                    subCatTrafficked: f.subCatTrafficked,
+                    subCatChildLabor: f.subCatChildLabor,
+                    subCatPhysicalAbuse: f.subCatPhysicalAbuse,
+                    subCatSexualAbuse: f.subCatSexualAbuse,
+                    subCatOsaec: f.subCatOsaec,
+                    subCatCicl: f.subCatCicl,
+                    subCatAtRisk: f.subCatAtRisk,
+                    subCatStreetChild: f.subCatStreetChild,
+                    subCatChildWithHiv: f.subCatChildWithHiv,
+                    isPwd: f.isPwd,
+                    pwdType: f.isPwd ? (f.pwdType.trim() || undefined) : undefined,
+                    hasSpecialNeeds: f.hasSpecialNeeds,
+                    specialNeedsDiagnosis: f.hasSpecialNeeds ? (f.specialNeedsDiagnosis.trim() || undefined) : undefined,
+                    familyIs4Ps: f.familyIs4Ps,
+                    familySoloParent: f.familySoloParent,
+                    familyIndigenous: f.familyIndigenous,
+                    familyParentPwd: f.familyParentPwd,
+                    familyInformalSettler: f.familyInformalSettler,
                     assignedSocialWorker: f.assignedSocialWorker.trim() || undefined,
                     referralSource: f.referralSource,
+                    referringAgencyPerson: f.referringAgencyPerson.trim() || undefined,
                     dateAdmitted: f.dateAdmitted,
+                    ageUponAdmission: f.ageUponAdmission.trim() || undefined,
+                    presentAge: f.presentAge.trim() || undefined,
+                    lengthOfStay: f.lengthOfStay.trim() || undefined,
+                    dateColbRegistered: f.dateColbRegistered || undefined,
+                    dateColbObtained: f.dateColbObtained || undefined,
+                    dateEnrolled: f.dateEnrolled || undefined,
+                    initialCaseAssessment: f.initialCaseAssessment.trim() || undefined,
+                    dateCaseStudyPrepared: f.dateCaseStudyPrepared || undefined,
                     dateClosed: needsClosedDate ? f.dateClosed : undefined,
                     reintegrationType: f.reintegrationType,
                     reintegrationStatus: f.reintegrationStatus,
+                    initialRiskLevel: f.initialRiskLevel || undefined,
+                    currentRiskLevel: f.currentRiskLevel || undefined,
+                    notesRestricted: f.notesRestricted.trim() || undefined,
                   });
                   const data = await caseloadApi.residents();
                   setRows(data);
@@ -470,16 +541,48 @@ export function CaseloadInventoryPage() {
                     safehouseId: '',
                     sex: 'F',
                     dateOfBirth: '',
+                    birthStatus: '',
                     placePreset: '',
                     placeOther: '',
                     religion: 'Unspecified',
                     caseCategory: '',
+                    subCatOrphaned: false,
+                    subCatTrafficked: false,
+                    subCatChildLabor: false,
+                    subCatPhysicalAbuse: false,
+                    subCatSexualAbuse: false,
+                    subCatOsaec: false,
+                    subCatCicl: false,
+                    subCatAtRisk: false,
+                    subCatStreetChild: false,
+                    subCatChildWithHiv: false,
+                    isPwd: false,
+                    pwdType: '',
+                    hasSpecialNeeds: false,
+                    specialNeedsDiagnosis: '',
+                    familyIs4Ps: false,
+                    familySoloParent: false,
+                    familyIndigenous: false,
+                    familyParentPwd: false,
+                    familyInformalSettler: false,
                     assignedSocialWorker: '',
                     referralSource: '',
+                    referringAgencyPerson: '',
                     dateAdmitted: '',
+                    ageUponAdmission: '',
+                    presentAge: '',
+                    lengthOfStay: '',
+                    dateColbRegistered: '',
+                    dateColbObtained: '',
+                    dateEnrolled: '',
+                    initialCaseAssessment: '',
+                    dateCaseStudyPrepared: '',
                     dateClosed: '',
                     reintegrationType: 'None',
                     reintegrationStatus: 'In Progress',
+                    initialRiskLevel: '',
+                    currentRiskLevel: '',
+                    notesRestricted: '',
                   });
                 } catch (err) {
                   setCreateError(err instanceof Error ? err.message : 'Failed to create resident.');
@@ -489,8 +592,8 @@ export function CaseloadInventoryPage() {
               }}
             >
               <p className="auth-lead" style={{ marginTop: 0 }}>
-                Use the same values as your intake CSV (case status, referral source, reintegration fields). Dates are sent in UTC on the
-                server so PostgreSQL accepts them.
+                Create the case record using your intake fields. You can fill everything now (including vulnerabilities, disability,
+                and family profile) instead of editing after creation.
               </p>
               <label>
                 Resident code (e.g. LS-0061)
@@ -574,6 +677,14 @@ export function CaseloadInventoryPage() {
                 />
               </label>
               <label>
+                Birth status (optional)
+                <input
+                  value={createResidentForm.birthStatus}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, birthStatus: event.target.value }))}
+                  placeholder="e.g. registered, living"
+                />
+              </label>
+              <label>
                 Place of birth
                 <select
                   required
@@ -627,6 +738,97 @@ export function CaseloadInventoryPage() {
                   ))}
                 </select>
               </label>
+
+              <div className="resident-profile-check-row resident-profile-check-row--boxed" aria-label="Case sub-categories">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.subCatTrafficked}
+                    onChange={(e) => setCreateResidentForm((c) => ({ ...c, subCatTrafficked: e.target.checked }))}
+                  />
+                  Trafficked
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.subCatPhysicalAbuse}
+                    onChange={(e) =>
+                      setCreateResidentForm((c) => ({ ...c, subCatPhysicalAbuse: e.target.checked }))
+                    }
+                  />
+                  Physical abuse
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.subCatSexualAbuse}
+                    onChange={(e) =>
+                      setCreateResidentForm((c) => ({ ...c, subCatSexualAbuse: e.target.checked }))
+                    }
+                  />
+                  Sexual abuse
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.subCatOrphaned}
+                    onChange={(e) => setCreateResidentForm((c) => ({ ...c, subCatOrphaned: e.target.checked }))}
+                  />
+                  Orphaned
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.subCatChildLabor}
+                    onChange={(e) => setCreateResidentForm((c) => ({ ...c, subCatChildLabor: e.target.checked }))}
+                  />
+                  Child labor
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.subCatOsaec}
+                    onChange={(e) => setCreateResidentForm((c) => ({ ...c, subCatOsaec: e.target.checked }))}
+                  />
+                  OSAEC
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.subCatCicl}
+                    onChange={(e) => setCreateResidentForm((c) => ({ ...c, subCatCicl: e.target.checked }))}
+                  />
+                  CICL
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.subCatAtRisk}
+                    onChange={(e) => setCreateResidentForm((c) => ({ ...c, subCatAtRisk: e.target.checked }))}
+                  />
+                  At risk
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.subCatStreetChild}
+                    onChange={(e) =>
+                      setCreateResidentForm((c) => ({ ...c, subCatStreetChild: e.target.checked }))
+                    }
+                  />
+                  Street child
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.subCatChildWithHiv}
+                    onChange={(e) =>
+                      setCreateResidentForm((c) => ({ ...c, subCatChildWithHiv: e.target.checked }))
+                    }
+                  />
+                  Child with HIV
+                </label>
+              </div>
               <label>
                 Referral source
                 <select
@@ -643,12 +845,95 @@ export function CaseloadInventoryPage() {
                 </select>
               </label>
               <label>
+                Referring agency / contact person (optional)
+                <input
+                  value={createResidentForm.referringAgencyPerson}
+                  onChange={(event) =>
+                    setCreateResidentForm((c) => ({ ...c, referringAgencyPerson: event.target.value }))
+                  }
+                  placeholder="Name or agency"
+                />
+              </label>
+              <label>
                 Date of admission
                 <input
                   required
                   type="date"
                   value={createResidentForm.dateAdmitted}
                   onChange={(event) => setCreateResidentForm((c) => ({ ...c, dateAdmitted: event.target.value }))}
+                />
+              </label>
+              <label>
+                Age upon admission (optional)
+                <input
+                  value={createResidentForm.ageUponAdmission}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, ageUponAdmission: event.target.value }))}
+                  placeholder="e.g. 12 Years 9 months"
+                />
+              </label>
+              <label>
+                Present age (recorded) (optional)
+                <input
+                  value={createResidentForm.presentAge}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, presentAge: event.target.value }))}
+                  placeholder="e.g. 13 Years 0 months"
+                />
+              </label>
+              <label>
+                Length of stay (optional)
+                <input
+                  value={createResidentForm.lengthOfStay}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, lengthOfStay: event.target.value }))}
+                  placeholder="e.g. 0 Years 10 months"
+                />
+              </label>
+              <label>
+                COLB registered (optional)
+                <input
+                  type="date"
+                  value={createResidentForm.dateColbRegistered}
+                  onChange={(event) =>
+                    setCreateResidentForm((c) => ({ ...c, dateColbRegistered: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                COLB obtained (optional)
+                <input
+                  type="date"
+                  value={createResidentForm.dateColbObtained}
+                  onChange={(event) =>
+                    setCreateResidentForm((c) => ({ ...c, dateColbObtained: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Date enrolled (program) (optional)
+                <input
+                  type="date"
+                  value={createResidentForm.dateEnrolled}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, dateEnrolled: event.target.value }))}
+                />
+              </label>
+              <label>
+                Date case study prepared (optional)
+                <input
+                  type="date"
+                  value={createResidentForm.dateCaseStudyPrepared}
+                  onChange={(event) =>
+                    setCreateResidentForm((c) => ({ ...c, dateCaseStudyPrepared: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Initial case assessment (optional)
+                <textarea
+                  rows={2}
+                  value={createResidentForm.initialCaseAssessment}
+                  onChange={(event) =>
+                    setCreateResidentForm((c) => ({ ...c, initialCaseAssessment: event.target.value }))
+                  }
+                  placeholder="e.g. For Continued Care"
                 />
               </label>
               {(createResidentForm.caseStatus === 'Closed' || createResidentForm.caseStatus === 'Transferred') && (
@@ -689,6 +974,140 @@ export function CaseloadInventoryPage() {
                     </option>
                   ))}
                 </select>
+              </label>
+
+              <div className="resident-profile-check-row resident-profile-check-row--boxed" aria-label="Disability & family flags">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.isPwd}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setCreateResidentForm((c) => ({ ...c, isPwd: checked, pwdType: checked ? c.pwdType : '' }));
+                    }}
+                  />
+                  Person with disability (PWD)
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.hasSpecialNeeds}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setCreateResidentForm((c) => ({
+                        ...c,
+                        hasSpecialNeeds: checked,
+                        specialNeedsDiagnosis: checked ? c.specialNeedsDiagnosis : '',
+                      }));
+                    }}
+                  />
+                  Has special needs
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.familyIs4Ps}
+                    onChange={(e) => setCreateResidentForm((c) => ({ ...c, familyIs4Ps: e.target.checked }))}
+                  />
+                  4Ps household
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.familySoloParent}
+                    onChange={(e) => setCreateResidentForm((c) => ({ ...c, familySoloParent: e.target.checked }))}
+                  />
+                  Solo parent
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.familyIndigenous}
+                    onChange={(e) => setCreateResidentForm((c) => ({ ...c, familyIndigenous: e.target.checked }))}
+                  />
+                  Indigenous group
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.familyInformalSettler}
+                    onChange={(e) =>
+                      setCreateResidentForm((c) => ({ ...c, familyInformalSettler: e.target.checked }))
+                    }
+                  />
+                  Informal settler
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={createResidentForm.familyParentPwd}
+                    onChange={(e) => setCreateResidentForm((c) => ({ ...c, familyParentPwd: e.target.checked }))}
+                  />
+                  Parent/guardian PWD
+                </label>
+              </div>
+              {createResidentForm.isPwd && (
+                <label>
+                  PWD type (optional)
+                  <input
+                    value={createResidentForm.pwdType}
+                    onChange={(event) => setCreateResidentForm((c) => ({ ...c, pwdType: event.target.value }))}
+                    placeholder="e.g. physical, psychosocial"
+                  />
+                </label>
+              )}
+              {createResidentForm.hasSpecialNeeds && (
+                <label>
+                  Special needs diagnosis / notes (optional)
+                  <textarea
+                    rows={2}
+                    value={createResidentForm.specialNeedsDiagnosis}
+                    onChange={(event) =>
+                      setCreateResidentForm((c) => ({ ...c, specialNeedsDiagnosis: event.target.value }))
+                    }
+                  />
+                </label>
+              )}
+
+              <label>
+                Initial risk level (optional)
+                <select
+                  value={createResidentForm.initialRiskLevel}
+                  onChange={(event) =>
+                    setCreateResidentForm((c) => ({ ...c, initialRiskLevel: event.target.value }))
+                  }
+                >
+                  {RESIDENT_RISK_LEVELS.map((o) => (
+                    <option key={`i-${o.value || 'unset'}`} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Current risk level (optional)
+                <select
+                  value={createResidentForm.currentRiskLevel}
+                  onChange={(event) =>
+                    setCreateResidentForm((c) => ({ ...c, currentRiskLevel: event.target.value }))
+                  }
+                >
+                  {RESIDENT_RISK_LEVELS.map((o) => (
+                    <option key={`c-${o.value || 'unset'}`} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Notes (restricted) (optional)
+                <textarea
+                  rows={2}
+                  value={createResidentForm.notesRestricted}
+                  onChange={(event) =>
+                    setCreateResidentForm((c) => ({ ...c, notesRestricted: event.target.value }))
+                  }
+                />
               </label>
               {createError && <p className="error-text">{createError}</p>}
               <div className="resident-modal-actions">

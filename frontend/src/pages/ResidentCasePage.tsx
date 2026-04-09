@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
@@ -9,6 +9,7 @@ import {
   type InterventionPlan,
   type ProcessRecording,
   type ResidentDetail,
+  type UpdateResidentDetailPayload,
 } from '../lib/api';
 
 type CaseTab = 'overview' | 'profile' | 'process' | 'home' | 'incident' | 'plans';
@@ -37,6 +38,229 @@ function numericAxisDomain(min: number, max: number): [number, number] {
   const safeMax = Number.isFinite(max) ? max : 1;
   if (safeMin === safeMax) return [safeMin - 0.2, safeMax + 0.2];
   return [safeMin - 0.1, safeMax + 0.1];
+}
+
+/** Matches CaseloadController validation (lighthouse CSV / DSWD-style fields). */
+const RESIDENT_CASE_STATUSES = ['Active', 'Closed', 'Transferred'] as const;
+const RESIDENT_SEX = ['F', 'M'] as const;
+const RESIDENT_CASE_CATEGORIES = ['Neglected', 'Surrendered', 'Foundling', 'Abandoned'] as const;
+const RESIDENT_REFERRAL_SOURCES = [
+  'NGO',
+  'Government Agency',
+  'Court Order',
+  'Self-Referral',
+  'Community',
+  'Police',
+] as const;
+const RESIDENT_REINTEGRATION_TYPES = [
+  'Foster Care',
+  'Family Reunification',
+  'None',
+  'Independent Living',
+  'Adoption (Domestic)',
+  'Adoption (Inter-Country)',
+] as const;
+const RESIDENT_REINTEGRATION_STATUSES = ['In Progress', 'Completed', 'On Hold', 'Not Started'] as const;
+const RESIDENT_RELIGIONS = [
+  'Unspecified',
+  'Roman Catholic',
+  'Seventh-day Adventist',
+  'Evangelical',
+  'Buddhism',
+  "Jehovah's Witness",
+  'Islam',
+  'Other',
+] as const;
+const RESIDENT_RISK_LEVELS = [
+  { value: '', label: '—' },
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'critical', label: 'Critical' },
+] as const;
+
+function isoDateInput(value: string | null | undefined): string {
+  if (!value) return '';
+  return value.slice(0, 10);
+}
+
+type ProfileFormState = {
+  caseStatus: string;
+  safehouseId: string;
+  assignedSocialWorker: string;
+  sex: string;
+  dateOfBirth: string;
+  birthStatus: string;
+  placeOfBirth: string;
+  religion: string;
+  caseCategory: string;
+  subCatOrphaned: boolean;
+  subCatTrafficked: boolean;
+  subCatChildLabor: boolean;
+  subCatPhysicalAbuse: boolean;
+  subCatSexualAbuse: boolean;
+  subCatOsaec: boolean;
+  subCatCicl: boolean;
+  subCatAtRisk: boolean;
+  subCatStreetChild: boolean;
+  subCatChildWithHiv: boolean;
+  isPwd: boolean;
+  pwdType: string;
+  hasSpecialNeeds: boolean;
+  specialNeedsDiagnosis: string;
+  familyIs4Ps: boolean;
+  familySoloParent: boolean;
+  familyIndigenous: boolean;
+  familyParentPwd: boolean;
+  familyInformalSettler: boolean;
+  referralSource: string;
+  referringAgencyPerson: string;
+  dateAdmitted: string;
+  ageUponAdmission: string;
+  presentAge: string;
+  lengthOfStay: string;
+  dateColbRegistered: string;
+  dateColbObtained: string;
+  dateEnrolled: string;
+  initialCaseAssessment: string;
+  dateCaseStudyPrepared: string;
+  dateClosed: string;
+  reintegrationType: string;
+  reintegrationStatus: string;
+  initialRiskLevel: string;
+  currentRiskLevel: string;
+  notesRestricted: string;
+  educationGrade: string;
+  schoolName: string;
+  isEnrolled: string;
+};
+
+const EMPTY_PROFILE_FORM: ProfileFormState = {
+  caseStatus: '',
+  safehouseId: '',
+  assignedSocialWorker: '',
+  sex: '',
+  dateOfBirth: '',
+  birthStatus: '',
+  placeOfBirth: '',
+  religion: '',
+  caseCategory: '',
+  subCatOrphaned: false,
+  subCatTrafficked: false,
+  subCatChildLabor: false,
+  subCatPhysicalAbuse: false,
+  subCatSexualAbuse: false,
+  subCatOsaec: false,
+  subCatCicl: false,
+  subCatAtRisk: false,
+  subCatStreetChild: false,
+  subCatChildWithHiv: false,
+  isPwd: false,
+  pwdType: '',
+  hasSpecialNeeds: false,
+  specialNeedsDiagnosis: '',
+  familyIs4Ps: false,
+  familySoloParent: false,
+  familyIndigenous: false,
+  familyParentPwd: false,
+  familyInformalSettler: false,
+  referralSource: '',
+  referringAgencyPerson: '',
+  dateAdmitted: '',
+  ageUponAdmission: '',
+  presentAge: '',
+  lengthOfStay: '',
+  dateColbRegistered: '',
+  dateColbObtained: '',
+  dateEnrolled: '',
+  initialCaseAssessment: '',
+  dateCaseStudyPrepared: '',
+  dateClosed: '',
+  reintegrationType: '',
+  reintegrationStatus: '',
+  initialRiskLevel: '',
+  currentRiskLevel: '',
+  notesRestricted: '',
+  educationGrade: '',
+  schoolName: '',
+  isEnrolled: '',
+};
+
+function residentToProfileForm(r: ResidentDetail): ProfileFormState {
+  return {
+    caseStatus: r.caseStatus ?? '',
+    safehouseId: r.safehouseId == null ? '' : String(r.safehouseId),
+    assignedSocialWorker: r.assignedSocialWorker ?? '',
+    sex: r.sex ?? '',
+    dateOfBirth: isoDateInput(r.dateOfBirth),
+    birthStatus: r.birthStatus ?? '',
+    placeOfBirth: r.placeOfBirth ?? '',
+    religion: r.religion ?? '',
+    caseCategory: r.caseCategory ?? '',
+    subCatOrphaned: r.subCatOrphaned === true,
+    subCatTrafficked: r.subCatTrafficked === true,
+    subCatChildLabor: r.subCatChildLabor === true,
+    subCatPhysicalAbuse: r.subCatPhysicalAbuse === true,
+    subCatSexualAbuse: r.subCatSexualAbuse === true,
+    subCatOsaec: r.subCatOsaec === true,
+    subCatCicl: r.subCatCicl === true,
+    subCatAtRisk: r.subCatAtRisk === true,
+    subCatStreetChild: r.subCatStreetChild === true,
+    subCatChildWithHiv: r.subCatChildWithHiv === true,
+    isPwd: r.isPwd === true,
+    pwdType: r.pwdType ?? '',
+    hasSpecialNeeds: r.hasSpecialNeeds === true,
+    specialNeedsDiagnosis: r.specialNeedsDiagnosis ?? '',
+    familyIs4Ps: r.familyIs4Ps === true,
+    familySoloParent: r.familySoloParent === true,
+    familyIndigenous: r.familyIndigenous === true,
+    familyParentPwd: r.familyParentPwd === true,
+    familyInformalSettler: r.familyInformalSettler === true,
+    referralSource: r.referralSource ?? '',
+    referringAgencyPerson: r.referringAgencyPerson ?? '',
+    dateAdmitted: isoDateInput(r.dateAdmitted),
+    ageUponAdmission: r.ageUponAdmission ?? '',
+    presentAge: r.presentAge ?? '',
+    lengthOfStay: r.lengthOfStay ?? '',
+    dateColbRegistered: isoDateInput(r.dateColbRegistered),
+    dateColbObtained: isoDateInput(r.dateColbObtained),
+    dateEnrolled: isoDateInput(r.dateEnrolled),
+    initialCaseAssessment: r.initialCaseAssessment ?? '',
+    dateCaseStudyPrepared: isoDateInput(r.dateCaseStudyPrepared),
+    dateClosed: isoDateInput(r.dateClosed),
+    reintegrationType: r.reintegrationType ?? '',
+    reintegrationStatus: r.reintegrationStatus ?? '',
+    initialRiskLevel: (r.initialRiskLevel ?? '').trim().toLowerCase(),
+    currentRiskLevel: (r.currentRiskLevel ?? '').trim().toLowerCase(),
+    notesRestricted: r.notesRestricted ?? '',
+    educationGrade: r.educationGrade ?? '',
+    schoolName: r.schoolName ?? '',
+    isEnrolled: r.isEnrolled == null ? '' : r.isEnrolled ? 'Yes' : 'No',
+  };
+}
+
+function ProfileSection({
+  id,
+  title,
+  hint,
+  children,
+}: {
+  id: string;
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="resident-profile-card" aria-labelledby={id}>
+      <header className="resident-profile-card__header">
+        <h3 className="resident-profile-card__title" id={id}>
+          {title}
+        </h3>
+        {hint ? <p className="resident-profile-card__hint">{hint}</p> : null}
+      </header>
+      <div className="resident-profile-card__fields resident-info-grid">{children}</div>
+    </section>
+  );
 }
 
 export function ResidentCasePage() {
@@ -163,24 +387,7 @@ export function ResidentCasePage() {
     status: 'Open',
     caseConferenceDate: '',
   });
-  const [profileForm, setProfileForm] = useState({
-    caseStatus: '',
-    safehouseId: '',
-    assignedSocialWorker: '',
-    sex: '',
-    dateOfBirth: '',
-    placeOfBirth: '',
-    religion: '',
-    caseCategory: '',
-    referralSource: '',
-    dateAdmitted: '',
-    dateClosed: '',
-    reintegrationType: '',
-    reintegrationStatus: '',
-    educationGrade: '',
-    schoolName: '',
-    isEnrolled: '',
-  });
+  const [profileForm, setProfileForm] = useState<ProfileFormState>(EMPTY_PROFILE_FORM);
 
   const healthTrendData = useMemo(() => {
     if (!healthDashboard?.recent?.length) return [];
@@ -253,25 +460,7 @@ export function ResidentCasePage() {
         ]);
         setDetail(resident);
         setHealthDashboard(health);
-        setProfileForm({
-          caseStatus: resident.caseStatus ?? '',
-          safehouseId: resident.safehouseId == null ? '' : String(resident.safehouseId),
-          assignedSocialWorker: resident.assignedSocialWorker ?? '',
-          sex: resident.sex ?? '',
-          dateOfBirth: resident.dateOfBirth ? resident.dateOfBirth.slice(0, 10) : '',
-          placeOfBirth: resident.placeOfBirth ?? '',
-          religion: resident.religion ?? '',
-          caseCategory: resident.caseCategory ?? '',
-          referralSource: resident.referralSource ?? '',
-          dateAdmitted: resident.dateAdmitted ? resident.dateAdmitted.slice(0, 10) : '',
-          dateClosed: resident.dateClosed ? resident.dateClosed.slice(0, 10) : '',
-          reintegrationType: resident.reintegrationType ?? '',
-          reintegrationStatus: resident.reintegrationStatus ?? '',
-          educationGrade: resident.educationGrade ?? '',
-          schoolName: resident.schoolName ?? '',
-          isEnrolled:
-            resident.isEnrolled == null ? '' : resident.isEnrolled ? 'Yes' : 'No',
-        });
+        setProfileForm(residentToProfileForm(resident));
         setProcessHistory(processRows);
         setHomeHistory(homeRows);
         setIncidentHistory(incidentRows);
@@ -523,8 +712,8 @@ export function ResidentCasePage() {
         return trimmed.length === 0 ? undefined : trimmed;
       };
 
-      await caseloadApi.updateResidentDetail(detail.id, {
-        caseStatus: toNullable(profileForm.caseStatus),
+      const payload: UpdateResidentDetailPayload = {
+        caseStatus: toNullable(profileForm.caseStatus) ?? detail.caseStatus,
         safehouseId:
           profileForm.safehouseId.trim() === '' || Number.isNaN(Number(profileForm.safehouseId))
             ? null
@@ -532,17 +721,52 @@ export function ResidentCasePage() {
         assignedSocialWorker: toNullable(profileForm.assignedSocialWorker),
         sex: toNullable(profileForm.sex),
         dateOfBirth: profileForm.dateOfBirth || undefined,
+        birthStatus: toNullable(profileForm.birthStatus),
         placeOfBirth: toNullable(profileForm.placeOfBirth),
         religion: toNullable(profileForm.religion),
         caseCategory: toNullable(profileForm.caseCategory),
+        subCatOrphaned: profileForm.subCatOrphaned,
+        subCatTrafficked: profileForm.subCatTrafficked,
+        subCatChildLabor: profileForm.subCatChildLabor,
+        subCatPhysicalAbuse: profileForm.subCatPhysicalAbuse,
+        subCatSexualAbuse: profileForm.subCatSexualAbuse,
+        subCatOsaec: profileForm.subCatOsaec,
+        subCatCicl: profileForm.subCatCicl,
+        subCatAtRisk: profileForm.subCatAtRisk,
+        subCatStreetChild: profileForm.subCatStreetChild,
+        subCatChildWithHiv: profileForm.subCatChildWithHiv,
+        isPwd: profileForm.isPwd,
+        pwdType: toNullable(profileForm.pwdType),
+        hasSpecialNeeds: profileForm.hasSpecialNeeds,
+        specialNeedsDiagnosis: toNullable(profileForm.specialNeedsDiagnosis),
+        familyIs4Ps: profileForm.familyIs4Ps,
+        familySoloParent: profileForm.familySoloParent,
+        familyIndigenous: profileForm.familyIndigenous,
+        familyParentPwd: profileForm.familyParentPwd,
+        familyInformalSettler: profileForm.familyInformalSettler,
         referralSource: toNullable(profileForm.referralSource),
+        referringAgencyPerson: toNullable(profileForm.referringAgencyPerson),
         dateAdmitted: profileForm.dateAdmitted || undefined,
+        ageUponAdmission: toNullable(profileForm.ageUponAdmission),
+        presentAge: toNullable(profileForm.presentAge),
+        lengthOfStay: toNullable(profileForm.lengthOfStay),
+        dateColbRegistered: profileForm.dateColbRegistered || undefined,
+        dateColbObtained: profileForm.dateColbObtained || undefined,
+        dateEnrolled: profileForm.dateEnrolled || undefined,
+        initialCaseAssessment: toNullable(profileForm.initialCaseAssessment),
+        dateCaseStudyPrepared: profileForm.dateCaseStudyPrepared || undefined,
         dateClosed: profileForm.dateClosed || undefined,
         reintegrationType: toNullable(profileForm.reintegrationType),
         reintegrationStatus: toNullable(profileForm.reintegrationStatus),
-      });
+        initialRiskLevel: profileForm.initialRiskLevel || undefined,
+        currentRiskLevel: profileForm.currentRiskLevel || undefined,
+        notesRestricted: toNullable(profileForm.notesRestricted),
+      };
+
+      await caseloadApi.updateResidentDetail(detail.id, payload);
       const resident = await caseloadApi.residentDetail(detail.id);
       setDetail(resident);
+      setProfileForm(residentToProfileForm(resident));
       setProfileSuccess('Personal information saved.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update resident profile.');
@@ -720,7 +944,7 @@ export function ResidentCasePage() {
             aria-selected={activeTab === 'profile'}
             onClick={() => setActiveTab('profile')}
           >
-            Personal information
+            Case record
           </button>
           <button
             type="button"
@@ -860,34 +1084,618 @@ export function ResidentCasePage() {
 
         {activeTab === 'profile' && (
           <section className="resident-case-grid resident-case-grid--profile">
-            <article className="resident-case-panel">
-              <h2>Personal Information</h2>
-              <form className="resident-info-grid" onSubmit={saveProfile}>
-                <label>Resident ID<input value={detail.id} readOnly /></label>
-                <label>Case control no<input value={detail.caseControlNo} readOnly /></label>
-                <label>Case status<input value={profileForm.caseStatus} onChange={(event) => setProfileForm((current) => ({ ...current, caseStatus: event.target.value }))} /></label>
-                <label>Safehouse ID<input value={profileForm.safehouseId} onChange={(event) => setProfileForm((current) => ({ ...current, safehouseId: event.target.value }))} /></label>
-                <label>Assigned social worker<input value={profileForm.assignedSocialWorker} onChange={(event) => setProfileForm((current) => ({ ...current, assignedSocialWorker: event.target.value }))} /></label>
-                <label>Sex<input value={profileForm.sex} onChange={(event) => setProfileForm((current) => ({ ...current, sex: event.target.value }))} /></label>
-                <label>Date of birth<input type="date" value={profileForm.dateOfBirth} onChange={(event) => setProfileForm((current) => ({ ...current, dateOfBirth: event.target.value }))} /></label>
-                <label>Place of birth<input value={profileForm.placeOfBirth} onChange={(event) => setProfileForm((current) => ({ ...current, placeOfBirth: event.target.value }))} /></label>
-                <label>Religion<input value={profileForm.religion} onChange={(event) => setProfileForm((current) => ({ ...current, religion: event.target.value }))} /></label>
-                <label>Case category<input value={profileForm.caseCategory} onChange={(event) => setProfileForm((current) => ({ ...current, caseCategory: event.target.value }))} /></label>
-                <label>Referral source<input value={profileForm.referralSource} onChange={(event) => setProfileForm((current) => ({ ...current, referralSource: event.target.value }))} /></label>
-                <label>Date admitted<input type="date" value={profileForm.dateAdmitted} onChange={(event) => setProfileForm((current) => ({ ...current, dateAdmitted: event.target.value }))} /></label>
-                <label>Date closed<input type="date" value={profileForm.dateClosed} onChange={(event) => setProfileForm((current) => ({ ...current, dateClosed: event.target.value }))} /></label>
-                <label>Reintegration type<input value={profileForm.reintegrationType} onChange={(event) => setProfileForm((current) => ({ ...current, reintegrationType: event.target.value }))} /></label>
-                <label>Reintegration status<input value={profileForm.reintegrationStatus} onChange={(event) => setProfileForm((current) => ({ ...current, reintegrationStatus: event.target.value }))} /></label>
-                <label>Grade<input value={profileForm.educationGrade} readOnly /></label>
-                <label>School<input value={profileForm.schoolName} readOnly /></label>
-                <label>Enrolled<input value={profileForm.isEnrolled} readOnly /></label>
-                {profileSuccess && <p className="success-text">{profileSuccess}</p>}
-                <div className="resident-modal-actions resident-profile-actions">
-                  <button type="button" className="btn-danger" onClick={deleteResident}>Delete resident</button>
+            <article className="resident-case-panel resident-case-panel--profile-form">
+              <form className="resident-profile-form" onSubmit={saveProfile}>
+                <header className="resident-profile-intro">
+                  <h2 className="resident-profile-intro__title">Case record</h2>
+                  <p className="resident-profile-intro__lead">
+                    Review and update intake information in one place. These fields align with Philippine social-welfare
+                    case records; saving updates this resident in your database.
+                  </p>
+                </header>
+
+                <ProfileSection
+                  id="profile-section-identifiers"
+                  title="Case & placement"
+                  hint="System identifiers, facility assignment, and the social worker responsible for this file."
+                >
+                <label>
+                  Resident ID
+                  <input value={detail.id} readOnly className="resident-profile-input--readonly" />
+                </label>
+                <label>
+                  Case control number
+                  <input value={detail.caseControlNo} readOnly className="resident-profile-input--readonly" />
+                </label>
+                <label>
+                  Case status
+                  <select
+                    value={profileForm.caseStatus}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, caseStatus: event.target.value }))}
+                  >
+                    <option value="">—</option>
+                    {RESIDENT_CASE_STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                    {profileForm.caseStatus &&
+                      !RESIDENT_CASE_STATUSES.includes(
+                        profileForm.caseStatus as (typeof RESIDENT_CASE_STATUSES)[number],
+                      ) && (
+                        <option value={profileForm.caseStatus}>{profileForm.caseStatus} (from record)</option>
+                      )}
+                  </select>
+                </label>
+                <label>
+                  Safehouse ID
+                  <span className="resident-profile-field-hint">Which shelter or residential facility this case is tied to.</span>
+                  <input
+                    inputMode="numeric"
+                    value={profileForm.safehouseId}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, safehouseId: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  Assigned social worker
+                  <input
+                    value={profileForm.assignedSocialWorker}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, assignedSocialWorker: event.target.value }))}
+                    placeholder="e.g. SW-16"
+                  />
+                </label>
+                </ProfileSection>
+
+                <ProfileSection
+                  id="profile-section-demographics"
+                  title="Demographics"
+                  hint="Basic identity details for the person in care."
+                >
+                <label>
+                  Sex
+                  <select
+                    value={profileForm.sex}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, sex: event.target.value }))}
+                  >
+                    <option value="">—</option>
+                    {RESIDENT_SEX.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Date of birth
+                  <input
+                    type="date"
+                    value={profileForm.dateOfBirth}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, dateOfBirth: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  Birth status
+                  <span className="resident-profile-field-hint">Optional context (e.g. birth registration or living status).</span>
+                  <input
+                    value={profileForm.birthStatus}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, birthStatus: event.target.value }))}
+                    placeholder="e.g. registered, living"
+                  />
+                </label>
+                <label>
+                  Place of birth
+                  <input
+                    value={profileForm.placeOfBirth}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, placeOfBirth: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  Religion
+                  <select
+                    value={profileForm.religion}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, religion: event.target.value }))}
+                  >
+                    <option value="">—</option>
+                    {RESIDENT_RELIGIONS.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                    {profileForm.religion &&
+                      !RESIDENT_RELIGIONS.includes(
+                        profileForm.religion as (typeof RESIDENT_RELIGIONS)[number],
+                      ) && (
+                        <option value={profileForm.religion}>{profileForm.religion} (from record)</option>
+                      )}
+                  </select>
+                </label>
+                </ProfileSection>
+
+                <ProfileSection
+                  id="profile-section-classification"
+                  title="Case type & vulnerabilities"
+                  hint="Choose the main case category, then mark any specific vulnerability flags that apply."
+                >
+                <label>
+                  Primary case category
+                  <select
+                    value={profileForm.caseCategory}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, caseCategory: event.target.value }))}
+                  >
+                    <option value="">—</option>
+                    {RESIDENT_CASE_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                    {profileForm.caseCategory &&
+                      !RESIDENT_CASE_CATEGORIES.includes(
+                        profileForm.caseCategory as (typeof RESIDENT_CASE_CATEGORIES)[number],
+                      ) && (
+                        <option value={profileForm.caseCategory}>{profileForm.caseCategory} (from record)</option>
+                      )}
+                  </select>
+                </label>
+                <p className="resident-profile-explainer resident-profile-full-width">
+                  <strong>Vulnerability flags</strong> — select all that apply.{' '}
+                  <span className="resident-profile-explainer__muted">
+                    OSAEC: online sexual abuse & exploitation of children. CICL: child in conflict with the law.
+                  </span>
+                </p>
+                <div className="resident-profile-check-row resident-profile-check-row--boxed" aria-label="Case sub-categories">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.subCatOrphaned}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, subCatOrphaned: e.target.checked }))}
+                    />
+                    Orphaned
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.subCatTrafficked}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, subCatTrafficked: e.target.checked }))}
+                    />
+                    Trafficked
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.subCatChildLabor}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, subCatChildLabor: e.target.checked }))}
+                    />
+                    Child labor
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.subCatPhysicalAbuse}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, subCatPhysicalAbuse: e.target.checked }))}
+                    />
+                    Physical abuse
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.subCatSexualAbuse}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, subCatSexualAbuse: e.target.checked }))}
+                    />
+                    Sexual abuse
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.subCatOsaec}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, subCatOsaec: e.target.checked }))}
+                    />
+                    OSAEC
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.subCatCicl}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, subCatCicl: e.target.checked }))}
+                    />
+                    CICL
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.subCatAtRisk}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, subCatAtRisk: e.target.checked }))}
+                    />
+                    At risk
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.subCatStreetChild}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, subCatStreetChild: e.target.checked }))}
+                    />
+                    Street child
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.subCatChildWithHiv}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, subCatChildWithHiv: e.target.checked }))}
+                    />
+                    Child with HIV
+                  </label>
+                </div>
+                </ProfileSection>
+
+                <ProfileSection
+                  id="profile-section-disability"
+                  title="Disability & special needs"
+                  hint="Document disability status and any learning or developmental needs."
+                >
+                <label className="resident-profile-inline-label resident-profile-full-width">
+                  <input
+                    type="checkbox"
+                    checked={profileForm.isPwd}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setProfileForm((c) => ({ ...c, isPwd: checked, pwdType: checked ? c.pwdType : '' }));
+                    }}
+                  />
+                  Person with disability (PWD)
+                </label>
+                {profileForm.isPwd && (
+                  <label className="resident-profile-full-width">
+                    Type of disability (PWD)
+                    <span className="resident-profile-field-hint">Optional detail to support accommodations.</span>
+                    <input
+                      value={profileForm.pwdType}
+                      onChange={(event) => setProfileForm((c) => ({ ...c, pwdType: event.target.value }))}
+                      placeholder="e.g. physical, psychosocial"
+                    />
+                  </label>
+                )}
+
+                <label className="resident-profile-inline-label resident-profile-full-width">
+                  <input
+                    type="checkbox"
+                    checked={profileForm.hasSpecialNeeds}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setProfileForm((c) => ({
+                        ...c,
+                        hasSpecialNeeds: checked,
+                        specialNeedsDiagnosis: checked ? c.specialNeedsDiagnosis : '',
+                      }));
+                    }}
+                  />
+                  Has special needs
+                </label>
+                {profileForm.hasSpecialNeeds && (
+                  <label className="resident-profile-full-width">
+                    Special needs — diagnosis or notes
+                    <textarea
+                      rows={2}
+                      value={profileForm.specialNeedsDiagnosis}
+                      onChange={(event) =>
+                        setProfileForm((c) => ({ ...c, specialNeedsDiagnosis: event.target.value }))
+                      }
+                      placeholder="Brief notes from assessment or school"
+                    />
+                  </label>
+                )}
+                </ProfileSection>
+
+                <ProfileSection
+                  id="profile-section-family"
+                  title="Family & household context"
+                  hint="Indicators often recorded for social-welfare reporting (4Ps is the Philippine conditional cash-transfer program). Select all that fit."
+                >
+                <div className="resident-profile-check-row resident-profile-check-row--boxed">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.familyIs4Ps}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, familyIs4Ps: e.target.checked }))}
+                    />
+                    4Ps beneficiary household
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.familySoloParent}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, familySoloParent: e.target.checked }))}
+                    />
+                    Solo parent
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.familyIndigenous}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, familyIndigenous: e.target.checked }))}
+                    />
+                    Indigenous group
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.familyParentPwd}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, familyParentPwd: e.target.checked }))}
+                    />
+                    Parent / guardian PWD
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={profileForm.familyInformalSettler}
+                      onChange={(e) => setProfileForm((c) => ({ ...c, familyInformalSettler: e.target.checked }))}
+                    />
+                    Informal settler
+                  </label>
+                </div>
+                </ProfileSection>
+
+                <ProfileSection
+                  id="profile-section-referral"
+                  title="How they arrived & admission timeline"
+                  hint="Referral pathway, important people involved, and key dates. COLB milestones refer to the Certificate of Live Birth (registration and when a copy was obtained)."
+                >
+                <label>
+                  Referral source
+                  <select
+                    value={profileForm.referralSource}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, referralSource: event.target.value }))}
+                  >
+                    <option value="">—</option>
+                    {RESIDENT_REFERRAL_SOURCES.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                    {profileForm.referralSource &&
+                      !RESIDENT_REFERRAL_SOURCES.includes(
+                        profileForm.referralSource as (typeof RESIDENT_REFERRAL_SOURCES)[number],
+                      ) && (
+                        <option value={profileForm.referralSource}>
+                          {profileForm.referralSource} (from record)
+                        </option>
+                      )}
+                  </select>
+                </label>
+                <label>
+                  Referring agency or contact person
+                  <input
+                    value={profileForm.referringAgencyPerson}
+                    onChange={(event) =>
+                      setProfileForm((c) => ({ ...c, referringAgencyPerson: event.target.value }))
+                    }
+                    placeholder="Name or agency"
+                  />
+                </label>
+                <label>
+                  Date admitted
+                  <input
+                    type="date"
+                    value={profileForm.dateAdmitted}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, dateAdmitted: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  Age upon admission
+                  <span className="resident-profile-field-hint">As recorded at intake (free text, e.g. years and months).</span>
+                  <input
+                    value={profileForm.ageUponAdmission}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, ageUponAdmission: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  Present age (on file)
+                  <input
+                    value={profileForm.presentAge}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, presentAge: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  Length of stay
+                  <span className="resident-profile-field-hint">Optional summary (e.g. X years Y months).</span>
+                  <input
+                    value={profileForm.lengthOfStay}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, lengthOfStay: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  COLB registered
+                  <span className="resident-profile-field-hint">Certificate of Live Birth — registration date.</span>
+                  <input
+                    type="date"
+                    value={profileForm.dateColbRegistered}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, dateColbRegistered: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  COLB obtained
+                  <span className="resident-profile-field-hint">When the certificate copy was secured.</span>
+                  <input
+                    type="date"
+                    value={profileForm.dateColbObtained}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, dateColbObtained: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  Program enrollment date
+                  <input
+                    type="date"
+                    value={profileForm.dateEnrolled}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, dateEnrolled: event.target.value }))}
+                  />
+                </label>
+                <label className="resident-profile-full-width">
+                  Initial case assessment summary
+                  <textarea
+                    rows={3}
+                    value={profileForm.initialCaseAssessment}
+                    onChange={(event) =>
+                      setProfileForm((c) => ({ ...c, initialCaseAssessment: event.target.value }))
+                    }
+                    placeholder="Brief narrative or disposition (e.g. for continued care)"
+                  />
+                </label>
+                <label>
+                  Case study prepared
+                  <input
+                    type="date"
+                    value={profileForm.dateCaseStudyPrepared}
+                    onChange={(event) =>
+                      setProfileForm((c) => ({ ...c, dateCaseStudyPrepared: event.target.value }))
+                    }
+                  />
+                </label>
+                </ProfileSection>
+
+                <ProfileSection
+                  id="profile-section-reintegration"
+                  title="Reintegration & case closure"
+                  hint="Plan for reunification, adoption, independent living, or other path. Add a closure date when the case leaves active care."
+                >
+                <label>
+                  Reintegration plan type
+                  <select
+                    value={profileForm.reintegrationType}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, reintegrationType: event.target.value }))}
+                  >
+                    <option value="">—</option>
+                    {RESIDENT_REINTEGRATION_TYPES.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                    {profileForm.reintegrationType &&
+                      !RESIDENT_REINTEGRATION_TYPES.includes(
+                        profileForm.reintegrationType as (typeof RESIDENT_REINTEGRATION_TYPES)[number],
+                      ) && (
+                        <option value={profileForm.reintegrationType}>
+                          {profileForm.reintegrationType} (from record)
+                        </option>
+                      )}
+                  </select>
+                </label>
+                <label>
+                  Reintegration progress
+                  <select
+                    value={profileForm.reintegrationStatus}
+                    onChange={(event) =>
+                      setProfileForm((c) => ({ ...c, reintegrationStatus: event.target.value }))
+                    }
+                  >
+                    <option value="">—</option>
+                    {RESIDENT_REINTEGRATION_STATUSES.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                    {profileForm.reintegrationStatus &&
+                      !RESIDENT_REINTEGRATION_STATUSES.includes(
+                        profileForm.reintegrationStatus as (typeof RESIDENT_REINTEGRATION_STATUSES)[number],
+                      ) && (
+                        <option value={profileForm.reintegrationStatus}>
+                          {profileForm.reintegrationStatus} (from record)
+                        </option>
+                      )}
+                  </select>
+                </label>
+                <label>
+                  Case closed on
+                  <span className="resident-profile-field-hint">Leave empty while the case is active.</span>
+                  <input
+                    type="date"
+                    value={profileForm.dateClosed}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, dateClosed: event.target.value }))}
+                  />
+                </label>
+                </ProfileSection>
+
+                <ProfileSection
+                  id="profile-section-risk"
+                  title="Risk level"
+                  hint="Snapshot of assessed risk at intake versus the current review. Used for triage and reporting."
+                >
+                <label>
+                  Risk at intake
+                  <select
+                    value={profileForm.initialRiskLevel}
+                    onChange={(event) =>
+                      setProfileForm((c) => ({ ...c, initialRiskLevel: event.target.value }))
+                    }
+                  >
+                    {RESIDENT_RISK_LEVELS.map((o) => (
+                      <option key={o.value || 'unset'} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Current risk level
+                  <span className="resident-profile-field-hint">Most recent assessment or review.</span>
+                  <select
+                    value={profileForm.currentRiskLevel}
+                    onChange={(event) =>
+                      setProfileForm((c) => ({ ...c, currentRiskLevel: event.target.value }))
+                    }
+                  >
+                    {RESIDENT_RISK_LEVELS.map((o) => (
+                      <option key={`c-${o.value || 'unset'}`} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                </ProfileSection>
+
+                <ProfileSection
+                  id="profile-section-notes"
+                  title="Confidential notes"
+                  hint="Restricted case notes — share only with authorized staff."
+                >
+                <label className="resident-profile-full-width">
+                  Notes (restricted access)
+                  <textarea
+                    rows={4}
+                    value={profileForm.notesRestricted}
+                    onChange={(event) => setProfileForm((c) => ({ ...c, notesRestricted: event.target.value }))}
+                    placeholder="Internal notes not shown to donors or the public site"
+                  />
+                </label>
+                </ProfileSection>
+
+                <ProfileSection
+                  id="profile-section-education"
+                  title="Education snapshot"
+                  hint="Latest values from the education record in the database. To change grade or school, add or update education entries elsewhere in the case workflow when that feature is used."
+                >
+                <label>
+                  Grade or level
+                  <input value={profileForm.educationGrade} readOnly className="resident-profile-input--readonly" />
+                </label>
+                <label>
+                  School name
+                  <input value={profileForm.schoolName} readOnly className="resident-profile-input--readonly" />
+                </label>
+                <label>
+                  Enrollment status
+                  <input value={profileForm.isEnrolled} readOnly className="resident-profile-input--readonly" />
+                </label>
+                </ProfileSection>
+
+                <footer className="resident-profile-footer">
+                {profileSuccess && <p className="success-text resident-profile-footer__message">{profileSuccess}</p>}
+                <div className="resident-modal-actions resident-profile-actions resident-profile-footer__actions">
+                  <button type="button" className="btn-danger" onClick={deleteResident}>
+                    Delete resident
+                  </button>
                   <button type="submit" className="btn-primary" disabled={savingResident}>
-                    {savingResident ? 'Saving...' : 'Save personal information'}
+                    {savingResident ? 'Saving…' : 'Save all changes'}
                   </button>
                 </div>
+                </footer>
               </form>
             </article>
           </section>

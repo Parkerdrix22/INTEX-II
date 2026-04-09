@@ -38,6 +38,11 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         "In Progress", "Completed", "On Hold", "Not Started",
     };
 
+    private static readonly HashSet<string> AllowedRiskLevels = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "low", "medium", "high", "critical",
+    };
+
     [HttpGet("safehouses")]
     public async Task<IActionResult> GetSafehousesForCaseload()
     {
@@ -119,15 +124,46 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
                     s.name AS "SafehouseName",
                     r.sex AS "Sex",
                     r.date_of_birth AS "DateOfBirth",
+                    r.birth_status AS "BirthStatus",
                     r.place_of_birth AS "PlaceOfBirth",
                     r.religion AS "Religion",
                     r.case_category AS "CaseCategory",
+                    r.sub_cat_orphaned AS "SubCatOrphaned",
+                    r.sub_cat_trafficked AS "SubCatTrafficked",
+                    r.sub_cat_child_labor AS "SubCatChildLabor",
+                    r.sub_cat_physical_abuse AS "SubCatPhysicalAbuse",
+                    r.sub_cat_sexual_abuse AS "SubCatSexualAbuse",
+                    r.sub_cat_osaec AS "SubCatOsaec",
+                    r.sub_cat_cicl AS "SubCatCicl",
+                    r.sub_cat_at_risk AS "SubCatAtRisk",
+                    r.sub_cat_street_child AS "SubCatStreetChild",
+                    r.sub_cat_child_with_hiv AS "SubCatChildWithHiv",
+                    r.is_pwd AS "IsPwd",
+                    r.pwd_type AS "PwdType",
+                    r.has_special_needs AS "HasSpecialNeeds",
+                    r.special_needs_diagnosis AS "SpecialNeedsDiagnosis",
+                    r.family_is_4ps AS "FamilyIs4Ps",
+                    r.family_solo_parent AS "FamilySoloParent",
+                    r.family_indigenous AS "FamilyIndigenous",
+                    r.family_parent_pwd AS "FamilyParentPwd",
+                    r.family_informal_settler AS "FamilyInformalSettler",
                     r.assigned_social_worker AS "AssignedSocialWorker",
                     r.referral_source AS "ReferralSource",
+                    r.referring_agency_person AS "ReferringAgencyPerson",
                     r.date_of_admission AS "DateAdmitted",
+                    r.age_upon_admission AS "AgeUponAdmission",
+                    r.present_age AS "PresentAge",
+                    r.length_of_stay AS "LengthOfStay",
+                    r.date_colb_registered AS "DateColbRegistered",
+                    r.date_colb_obtained AS "DateColbObtained",
+                    r.date_enrolled AS "DateEnrolled",
+                    r.initial_case_assessment AS "InitialCaseAssessment",
+                    r.date_case_study_prepared AS "DateCaseStudyPrepared",
                     r.date_closed AS "DateClosed",
                     r.reintegration_type AS "ReintegrationType",
                     r.reintegration_status AS "ReintegrationStatus",
+                    r.initial_risk_level AS "InitialRiskLevel",
+                    r.current_risk_level AS "CurrentRiskLevel",
                     r.notes_restricted AS "NotesRestricted",
                     edu.education_level AS "EducationGrade",
                     edu.school_name AS "SchoolName",
@@ -183,6 +219,12 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateResident([FromBody] CreateResidentRequest request)
     {
+        static string? EmptyToNull(string? s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return null;
+            return s.Trim();
+        }
+
         if (string.IsNullOrWhiteSpace(request.CaseControlNo))
             return BadRequest(new { message = "Case control number is required." });
         if (string.IsNullOrWhiteSpace(request.InternalCode))
@@ -212,6 +254,17 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         if (!AllowedCaseStatuses.Contains(request.CaseStatus.Trim()))
             return BadRequest(new { message = "Choose a valid case status (Active, Closed, or Transferred)." });
 
+        static string? NormRisk(string? s)
+        {
+            var t = EmptyToNull(s);
+            return t?.ToLowerInvariant();
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.InitialRiskLevel) && !AllowedRiskLevels.Contains(request.InitialRiskLevel.Trim()))
+            return BadRequest(new { message = "Initial risk level must be low, medium, high, or critical." });
+        if (!string.IsNullOrWhiteSpace(request.CurrentRiskLevel) && !AllowedRiskLevels.Contains(request.CurrentRiskLevel.Trim()))
+            return BadRequest(new { message = "Current risk level must be low, medium, high, or critical." });
+
         var statusNorm = request.CaseStatus.Trim();
         var closedNorm = statusNorm.Equals("Closed", StringComparison.OrdinalIgnoreCase)
             || statusNorm.Equals("Transferred", StringComparison.OrdinalIgnoreCase);
@@ -221,6 +274,10 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         var dateOfBirth = NormalizeToUtc(request.DateOfBirth.Value);
         var dateAdmitted = NormalizeToUtc(request.DateAdmitted.Value);
         var dateClosed = request.DateClosed.HasValue ? NormalizeToUtc(request.DateClosed.Value) : (DateTime?)null;
+        var colbReg = request.DateColbRegistered.HasValue ? NormalizeToUtc(request.DateColbRegistered.Value) : (DateTime?)null;
+        var colbObt = request.DateColbObtained.HasValue ? NormalizeToUtc(request.DateColbObtained.Value) : (DateTime?)null;
+        var caseStudy = request.DateCaseStudyPrepared.HasValue ? NormalizeToUtc(request.DateCaseStudyPrepared.Value) : (DateTime?)null;
+        var enrolled = request.DateEnrolled.HasValue ? NormalizeToUtc(request.DateEnrolled.Value) : (DateTime?)null;
 
         try
         {
@@ -235,18 +292,55 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
                     case_status,
                     sex,
                     date_of_birth,
+                    birth_status,
                     place_of_birth,
                     religion,
                     case_category,
+                    sub_cat_orphaned,
+                    sub_cat_trafficked,
+                    sub_cat_child_labor,
+                    sub_cat_physical_abuse,
+                    sub_cat_sexual_abuse,
+                    sub_cat_osaec,
+                    sub_cat_cicl,
+                    sub_cat_at_risk,
+                    sub_cat_street_child,
+                    sub_cat_child_with_hiv,
+                    is_pwd,
+                    pwd_type,
+                    has_special_needs,
+                    special_needs_diagnosis,
+                    family_is_4ps,
+                    family_solo_parent,
+                    family_indigenous,
+                    family_parent_pwd,
+                    family_informal_settler,
                     assigned_social_worker,
                     referral_source,
+                    referring_agency_person,
                     date_of_admission,
+                    age_upon_admission,
+                    present_age,
+                    length_of_stay,
+                    date_colb_registered,
+                    date_colb_obtained,
+                    date_enrolled,
+                    initial_case_assessment,
+                    date_case_study_prepared,
                     date_closed,
                     reintegration_type,
                     reintegration_status,
+                    initial_risk_level,
+                    current_risk_level,
                     created_at
+                    ,
+                    notes_restricted
                 ) VALUES (
-                    {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}
+                    {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10},
+                    {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20},
+                    {21}, {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29}, {30},
+                    {31}, {32}, {33}, {34}, {35}, {36}, {37}, {38}, {39}, {40},
+                    {41}, {42}, {43}, {44}, {45}, {46}, {47}
                 )
                 """,
                 newId,
@@ -256,16 +350,48 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
                 request.CaseStatus.Trim(),
                 request.Sex.Trim(),
                 dateOfBirth,
+                EmptyToNull(request.BirthStatus),
                 request.PlaceOfBirth.Trim(),
                 request.Religion.Trim(),
                 request.CaseCategory.Trim(),
-                string.IsNullOrWhiteSpace(request.AssignedSocialWorker) ? null : request.AssignedSocialWorker.Trim(),
+                request.SubCatOrphaned,
+                request.SubCatTrafficked,
+                request.SubCatChildLabor,
+                request.SubCatPhysicalAbuse,
+                request.SubCatSexualAbuse,
+                request.SubCatOsaec,
+                request.SubCatCicl,
+                request.SubCatAtRisk,
+                request.SubCatStreetChild,
+                request.SubCatChildWithHiv,
+                request.IsPwd,
+                EmptyToNull(request.PwdType),
+                request.HasSpecialNeeds,
+                EmptyToNull(request.SpecialNeedsDiagnosis),
+                request.FamilyIs4Ps,
+                request.FamilySoloParent,
+                request.FamilyIndigenous,
+                request.FamilyParentPwd,
+                request.FamilyInformalSettler,
+                EmptyToNull(request.AssignedSocialWorker),
                 request.ReferralSource.Trim(),
+                EmptyToNull(request.ReferringAgencyPerson),
                 dateAdmitted,
+                EmptyToNull(request.AgeUponAdmission),
+                EmptyToNull(request.PresentAge),
+                EmptyToNull(request.LengthOfStay),
+                colbReg,
+                colbObt,
+                enrolled,
+                EmptyToNull(request.InitialCaseAssessment),
+                caseStudy,
                 dateClosed,
                 request.ReintegrationType.Trim(),
                 request.ReintegrationStatus.Trim(),
-                DateTime.UtcNow);
+                NormRisk(request.InitialRiskLevel),
+                NormRisk(request.CurrentRiskLevel),
+                DateTime.UtcNow,
+                EmptyToNull(request.NotesRestricted));
 
             return Ok(new { message = "Resident created.", residentId = newId });
         }
@@ -289,12 +415,43 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPut("residents/{residentId:int}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     public async Task<IActionResult> UpdateResidentDetail(int residentId, [FromBody] UpdateResidentDetailRequest request)
     {
+        static string? EmptyToNull(string? s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return null;
+            return s.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.CaseCategory) && !AllowedCaseCategories.Contains(request.CaseCategory.Trim()))
+            return BadRequest(new { message = "Choose a valid case category." });
+        if (!string.IsNullOrWhiteSpace(request.ReferralSource) && !AllowedReferralSources.Contains(request.ReferralSource.Trim()))
+            return BadRequest(new { message = "Choose a valid referral source." });
+        if (!string.IsNullOrWhiteSpace(request.ReintegrationType) && !AllowedReintegrationTypes.Contains(request.ReintegrationType.Trim()))
+            return BadRequest(new { message = "Choose a valid reintegration type." });
+        if (!string.IsNullOrWhiteSpace(request.ReintegrationStatus) && !AllowedReintegrationStatuses.Contains(request.ReintegrationStatus.Trim()))
+            return BadRequest(new { message = "Choose a valid reintegration status." });
+        if (!string.IsNullOrWhiteSpace(request.Sex) && !AllowedSexes.Contains(request.Sex.Trim()))
+            return BadRequest(new { message = "Sex must be F or M." });
+        static string? NormRisk(string? s)
+        {
+            var t = EmptyToNull(s);
+            return t?.ToLowerInvariant();
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.InitialRiskLevel) && !AllowedRiskLevels.Contains(request.InitialRiskLevel.Trim()))
+            return BadRequest(new { message = "Initial risk level must be low, medium, high, or critical." });
+        if (!string.IsNullOrWhiteSpace(request.CurrentRiskLevel) && !AllowedRiskLevels.Contains(request.CurrentRiskLevel.Trim()))
+            return BadRequest(new { message = "Current risk level must be low, medium, high, or critical." });
+
         var dob = request.DateOfBirth.HasValue ? NormalizeToUtc(request.DateOfBirth.Value) : (DateTime?)null;
         var admitted = request.DateAdmitted.HasValue ? NormalizeToUtc(request.DateAdmitted.Value) : (DateTime?)null;
         var closed = request.DateClosed.HasValue ? NormalizeToUtc(request.DateClosed.Value) : (DateTime?)null;
+        var colbReg = request.DateColbRegistered.HasValue ? NormalizeToUtc(request.DateColbRegistered.Value) : (DateTime?)null;
+        var colbObt = request.DateColbObtained.HasValue ? NormalizeToUtc(request.DateColbObtained.Value) : (DateTime?)null;
+        var caseStudy = request.DateCaseStudyPrepared.HasValue ? NormalizeToUtc(request.DateCaseStudyPrepared.Value) : (DateTime?)null;
+        var enrolled = request.DateEnrolled.HasValue ? NormalizeToUtc(request.DateEnrolled.Value) : (DateTime?)null;
 
         try
         {
@@ -305,30 +462,94 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
                     safehouse_id = {1},
                     sex = {2},
                     date_of_birth = {3},
-                    place_of_birth = {4},
-                    religion = {5},
-                    case_category = {6},
-                    assigned_social_worker = {7},
-                    referral_source = {8},
-                    date_of_admission = {9},
-                    date_closed = {10},
-                    reintegration_type = {11},
-                    reintegration_status = {12}
-                WHERE resident_id = {13}
+                    birth_status = {4},
+                    place_of_birth = {5},
+                    religion = {6},
+                    case_category = {7},
+                    sub_cat_orphaned = {8},
+                    sub_cat_trafficked = {9},
+                    sub_cat_child_labor = {10},
+                    sub_cat_physical_abuse = {11},
+                    sub_cat_sexual_abuse = {12},
+                    sub_cat_osaec = {13},
+                    sub_cat_cicl = {14},
+                    sub_cat_at_risk = {15},
+                    sub_cat_street_child = {16},
+                    sub_cat_child_with_hiv = {17},
+                    is_pwd = {18},
+                    pwd_type = {19},
+                    has_special_needs = {20},
+                    special_needs_diagnosis = {21},
+                    family_is_4ps = {22},
+                    family_solo_parent = {23},
+                    family_indigenous = {24},
+                    family_parent_pwd = {25},
+                    family_informal_settler = {26},
+                    assigned_social_worker = {27},
+                    referral_source = {28},
+                    referring_agency_person = {29},
+                    date_of_admission = {30},
+                    age_upon_admission = {31},
+                    present_age = {32},
+                    length_of_stay = {33},
+                    date_colb_registered = {34},
+                    date_colb_obtained = {35},
+                    date_enrolled = {36},
+                    initial_case_assessment = {37},
+                    date_case_study_prepared = {38},
+                    date_closed = {39},
+                    reintegration_type = {40},
+                    reintegration_status = {41},
+                    initial_risk_level = {42},
+                    current_risk_level = {43},
+                    notes_restricted = {44}
+                WHERE resident_id = {45}
                 """,
                 request.CaseStatus,
                 request.SafehouseId,
                 request.Sex,
                 dob,
-                request.PlaceOfBirth,
-                request.Religion,
-                request.CaseCategory,
-                request.AssignedSocialWorker,
-                request.ReferralSource,
+                EmptyToNull(request.BirthStatus),
+                EmptyToNull(request.PlaceOfBirth),
+                EmptyToNull(request.Religion),
+                EmptyToNull(request.CaseCategory),
+                request.SubCatOrphaned,
+                request.SubCatTrafficked,
+                request.SubCatChildLabor,
+                request.SubCatPhysicalAbuse,
+                request.SubCatSexualAbuse,
+                request.SubCatOsaec,
+                request.SubCatCicl,
+                request.SubCatAtRisk,
+                request.SubCatStreetChild,
+                request.SubCatChildWithHiv,
+                request.IsPwd,
+                EmptyToNull(request.PwdType),
+                request.HasSpecialNeeds,
+                EmptyToNull(request.SpecialNeedsDiagnosis),
+                request.FamilyIs4Ps,
+                request.FamilySoloParent,
+                request.FamilyIndigenous,
+                request.FamilyParentPwd,
+                request.FamilyInformalSettler,
+                EmptyToNull(request.AssignedSocialWorker),
+                EmptyToNull(request.ReferralSource),
+                EmptyToNull(request.ReferringAgencyPerson),
                 admitted,
+                EmptyToNull(request.AgeUponAdmission),
+                EmptyToNull(request.PresentAge),
+                EmptyToNull(request.LengthOfStay),
+                colbReg,
+                colbObt,
+                enrolled,
+                EmptyToNull(request.InitialCaseAssessment),
+                caseStudy,
                 closed,
-                request.ReintegrationType,
-                request.ReintegrationStatus,
+                EmptyToNull(request.ReintegrationType),
+                EmptyToNull(request.ReintegrationStatus),
+                NormRisk(request.InitialRiskLevel),
+                NormRisk(request.CurrentRiskLevel),
+                EmptyToNull(request.NotesRestricted),
                 residentId);
 
             if (affected == 0) return NotFound(new { message = "Resident not found." });
@@ -340,7 +561,7 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
             if (resident is null) return NotFound(new { message = "Resident not found." });
             resident.CaseStatus = request.CaseStatus ?? resident.CaseStatus;
             resident.SafehouseId = request.SafehouseId;
-            resident.AssignedSocialWorker = request.AssignedSocialWorker;
+            resident.AssignedSocialWorker = EmptyToNull(request.AssignedSocialWorker);
             resident.DateAdmitted = admitted;
             resident.DateClosed = closed;
             await dbContext.SaveChangesAsync();
@@ -1395,15 +1616,46 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         public string? SafehouseName { get; set; }
         public string? Sex { get; set; }
         public DateTime? DateOfBirth { get; set; }
+        public string? BirthStatus { get; set; }
         public string? PlaceOfBirth { get; set; }
         public string? Religion { get; set; }
         public string? CaseCategory { get; set; }
+        public bool? SubCatOrphaned { get; set; }
+        public bool? SubCatTrafficked { get; set; }
+        public bool? SubCatChildLabor { get; set; }
+        public bool? SubCatPhysicalAbuse { get; set; }
+        public bool? SubCatSexualAbuse { get; set; }
+        public bool? SubCatOsaec { get; set; }
+        public bool? SubCatCicl { get; set; }
+        public bool? SubCatAtRisk { get; set; }
+        public bool? SubCatStreetChild { get; set; }
+        public bool? SubCatChildWithHiv { get; set; }
+        public bool? IsPwd { get; set; }
+        public string? PwdType { get; set; }
+        public bool? HasSpecialNeeds { get; set; }
+        public string? SpecialNeedsDiagnosis { get; set; }
+        public bool? FamilyIs4Ps { get; set; }
+        public bool? FamilySoloParent { get; set; }
+        public bool? FamilyIndigenous { get; set; }
+        public bool? FamilyParentPwd { get; set; }
+        public bool? FamilyInformalSettler { get; set; }
         public string? AssignedSocialWorker { get; set; }
         public string? ReferralSource { get; set; }
+        public string? ReferringAgencyPerson { get; set; }
         public DateTime? DateAdmitted { get; set; }
+        public string? AgeUponAdmission { get; set; }
+        public string? PresentAge { get; set; }
+        public string? LengthOfStay { get; set; }
+        public DateTime? DateColbRegistered { get; set; }
+        public DateTime? DateColbObtained { get; set; }
+        public DateTime? DateEnrolled { get; set; }
+        public string? InitialCaseAssessment { get; set; }
+        public DateTime? DateCaseStudyPrepared { get; set; }
         public DateTime? DateClosed { get; set; }
         public string? ReintegrationType { get; set; }
         public string? ReintegrationStatus { get; set; }
+        public string? InitialRiskLevel { get; set; }
+        public string? CurrentRiskLevel { get; set; }
         public string? NotesRestricted { get; set; }
         public string? EducationGrade { get; set; }
         public string? SchoolName { get; set; }
@@ -1572,15 +1824,47 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         public int? SafehouseId { get; set; }
         public string? Sex { get; set; }
         public DateTime? DateOfBirth { get; set; }
+        public string? BirthStatus { get; set; }
         public string? PlaceOfBirth { get; set; }
         public string? Religion { get; set; }
         public string? CaseCategory { get; set; }
+        public bool SubCatOrphaned { get; set; }
+        public bool SubCatTrafficked { get; set; }
+        public bool SubCatChildLabor { get; set; }
+        public bool SubCatPhysicalAbuse { get; set; }
+        public bool SubCatSexualAbuse { get; set; }
+        public bool SubCatOsaec { get; set; }
+        public bool SubCatCicl { get; set; }
+        public bool SubCatAtRisk { get; set; }
+        public bool SubCatStreetChild { get; set; }
+        public bool SubCatChildWithHiv { get; set; }
+        public bool IsPwd { get; set; }
+        public string? PwdType { get; set; }
+        public bool HasSpecialNeeds { get; set; }
+        public string? SpecialNeedsDiagnosis { get; set; }
+        public bool FamilyIs4Ps { get; set; }
+        public bool FamilySoloParent { get; set; }
+        public bool FamilyIndigenous { get; set; }
+        public bool FamilyParentPwd { get; set; }
+        public bool FamilyInformalSettler { get; set; }
         public string? AssignedSocialWorker { get; set; }
         public string? ReferralSource { get; set; }
+        public string? ReferringAgencyPerson { get; set; }
         public DateTime? DateAdmitted { get; set; }
+        public string? AgeUponAdmission { get; set; }
+        public string? PresentAge { get; set; }
+        public string? LengthOfStay { get; set; }
+        public DateTime? DateColbRegistered { get; set; }
+        public DateTime? DateColbObtained { get; set; }
+        public DateTime? DateEnrolled { get; set; }
+        public string? InitialCaseAssessment { get; set; }
+        public DateTime? DateCaseStudyPrepared { get; set; }
         public DateTime? DateClosed { get; set; }
         public string? ReintegrationType { get; set; }
         public string? ReintegrationStatus { get; set; }
+        public string? InitialRiskLevel { get; set; }
+        public string? CurrentRiskLevel { get; set; }
+        public string? NotesRestricted { get; set; }
     }
 
     public sealed class CreateResidentRequest
@@ -1591,15 +1875,47 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
         public int? SafehouseId { get; set; }
         public string? Sex { get; set; }
         public DateTime? DateOfBirth { get; set; }
+        public string? BirthStatus { get; set; }
         public string? PlaceOfBirth { get; set; }
         public string? Religion { get; set; }
         public string? CaseCategory { get; set; }
+        public bool SubCatOrphaned { get; set; }
+        public bool SubCatTrafficked { get; set; }
+        public bool SubCatChildLabor { get; set; }
+        public bool SubCatPhysicalAbuse { get; set; }
+        public bool SubCatSexualAbuse { get; set; }
+        public bool SubCatOsaec { get; set; }
+        public bool SubCatCicl { get; set; }
+        public bool SubCatAtRisk { get; set; }
+        public bool SubCatStreetChild { get; set; }
+        public bool SubCatChildWithHiv { get; set; }
+        public bool IsPwd { get; set; }
+        public string? PwdType { get; set; }
+        public bool HasSpecialNeeds { get; set; }
+        public string? SpecialNeedsDiagnosis { get; set; }
+        public bool FamilyIs4Ps { get; set; }
+        public bool FamilySoloParent { get; set; }
+        public bool FamilyIndigenous { get; set; }
+        public bool FamilyParentPwd { get; set; }
+        public bool FamilyInformalSettler { get; set; }
         public string? AssignedSocialWorker { get; set; }
         public string? ReferralSource { get; set; }
+        public string? ReferringAgencyPerson { get; set; }
         public DateTime? DateAdmitted { get; set; }
+        public string? AgeUponAdmission { get; set; }
+        public string? PresentAge { get; set; }
+        public string? LengthOfStay { get; set; }
+        public DateTime? DateColbRegistered { get; set; }
+        public DateTime? DateColbObtained { get; set; }
+        public DateTime? DateEnrolled { get; set; }
+        public string? InitialCaseAssessment { get; set; }
+        public DateTime? DateCaseStudyPrepared { get; set; }
         public DateTime? DateClosed { get; set; }
         public string? ReintegrationType { get; set; }
         public string? ReintegrationStatus { get; set; }
+        public string? InitialRiskLevel { get; set; }
+        public string? CurrentRiskLevel { get; set; }
+        public string? NotesRestricted { get; set; }
     }
 
     public sealed class UpdateProcessRecordingRequest
