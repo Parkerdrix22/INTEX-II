@@ -1020,7 +1020,7 @@ export function ResidentCasePage() {
                     <article className="resident-case-panel">
                       <h3>Nutrition trend</h3>
                       <div style={{ width: '100%', height: 220 }}>
-                        <ResponsiveContainer debounce={1}>
+                        <ResponsiveContainer width="100%" height="100%" debounce={1}>
                           <LineChart data={healthTrendData}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="date" tick={{ fontSize: 11 }} />
@@ -1034,7 +1034,7 @@ export function ResidentCasePage() {
                     <article className="resident-case-panel">
                       <h3>Sleep trend</h3>
                       <div style={{ width: '100%', height: 220 }}>
-                        <ResponsiveContainer debounce={1}>
+                        <ResponsiveContainer width="100%" height="100%" debounce={1}>
                           <LineChart data={healthTrendData}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="date" tick={{ fontSize: 11 }} />
@@ -1048,7 +1048,7 @@ export function ResidentCasePage() {
                     <article className="resident-case-panel">
                       <h3>Energy trend</h3>
                       <div style={{ width: '100%', height: 220 }}>
-                        <ResponsiveContainer debounce={1}>
+                        <ResponsiveContainer width="100%" height="100%" debounce={1}>
                           <LineChart data={healthTrendData}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="date" tick={{ fontSize: 11 }} />
@@ -1062,7 +1062,7 @@ export function ResidentCasePage() {
                     <article className="resident-case-panel">
                       <h3>BMI trend</h3>
                       <div style={{ width: '100%', height: 220 }}>
-                        <ResponsiveContainer debounce={1}>
+                        <ResponsiveContainer width="100%" height="100%" debounce={1}>
                           <LineChart data={healthTrendData}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="date" tick={{ fontSize: 11 }} />

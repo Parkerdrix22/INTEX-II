@@ -421,7 +421,7 @@ export function ReportsAnalyticsPage() {
                 Monthly volume of services. Taller bars mean busier service months.
               </p>
               <div className="admin-chart-wrap">
-                <ResponsiveContainer width="100%" debounce={1} height="100%">
+                <ResponsiveContainer width="100%" debounce={1} height={300}>
                   <BarChart data={serviceTrend}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(56,95,130,0.15)" />
                     <XAxis dataKey="label" ticks={monthTicks} {...monthXAxis} />
@@ -441,7 +441,7 @@ export function ReportsAnalyticsPage() {
                 Which incident categories appear most often in records.
               </p>
               <div className="admin-chart-wrap">
-                <ResponsiveContainer width="100%" debounce={1} height="100%">
+                <ResponsiveContainer width="100%" debounce={1} height={300}>
                   <BarChart data={data.incidentTypeBreakdown}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(56,95,130,0.15)" />
                     <XAxis
@@ -488,7 +488,7 @@ export function ReportsAnalyticsPage() {
                 Count of plans by current stage (open, in progress, closed, etc.).
               </p>
               <div className="admin-chart-wrap">
-                <ResponsiveContainer width="100%" debounce={1} height="100%">
+                <ResponsiveContainer width="100%" debounce={1} height={300}>
                   <BarChart data={data.interventionPlanStatus}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(56,95,130,0.15)" />
                     <XAxis
@@ -510,7 +510,7 @@ export function ReportsAnalyticsPage() {
                 Latest per resident from education records — shows grade distribution when all are enrolled.
               </p>
               <div className="admin-chart-wrap">
-                <ResponsiveContainer width="100%" debounce={1} height="100%">
+                <ResponsiveContainer width="100%" debounce={1} height={300}>
                   <BarChart data={data.educationLevelBreakdown}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(56,95,130,0.15)" />
                     <XAxis
