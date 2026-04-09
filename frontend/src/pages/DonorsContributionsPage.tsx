@@ -426,8 +426,8 @@ export function DonorsContributionsPage() {
           <section className="donor-tab-panel">
             <h2>Contributions over time</h2>
             <p className="auth-lead">Monthly contribution totals from recorded donations.</p>
-            <div style={{ width: '100%', height: 320 }}>
-              <ResponsiveContainer width="100%" debounce={1} height="100%">
+            <div style={{ width: '100%' }}>
+              <ResponsiveContainer width="100%" debounce={1} height={300}>
                 <LineChart data={contributionsOverTime}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(56,95,130,0.15)" />
                   <XAxis dataKey="label" tick={{ fill: '#385f82', fontSize: 12 }} />

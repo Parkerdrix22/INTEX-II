@@ -207,7 +207,7 @@ export function AdminDashboardPage() {
             <article className="auth-card admin-chart-card">
               <h2>Residents by safehouse</h2>
               <div className="admin-chart-wrap">
-                <ResponsiveContainer width="100%" debounce={1} height="100%">
+                <ResponsiveContainer width="100%" debounce={1} height={300}>
                   <BarChart data={residentsBySafehouse}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(56,95,130,0.15)" />
                     <XAxis dataKey="name" tick={{ fill: '#385f82', fontSize: 12 }} />
@@ -222,7 +222,7 @@ export function AdminDashboardPage() {
             <article className="auth-card admin-chart-card">
               <h2>Donation trend (last 8 months)</h2>
               <div className="admin-chart-wrap">
-                <ResponsiveContainer width="100%" debounce={1} height="100%">
+                <ResponsiveContainer width="100%" debounce={1} height={300}>
                   <LineChart data={donationsByMonth}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(56,95,130,0.15)" />
                     <XAxis dataKey="label" tick={{ fill: '#385f82', fontSize: 12 }} />
@@ -243,7 +243,7 @@ export function AdminDashboardPage() {
             <article className="auth-card admin-chart-card admin-chart-card--wide">
               <h2>Allocation mix by area</h2>
               <div className="admin-chart-wrap">
-                <ResponsiveContainer width="100%" debounce={1} height="100%">
+                <ResponsiveContainer width="100%" debounce={1} height={300}>
                   <BarChart data={allocationMix}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(56,95,130,0.15)" />
                     <XAxis
