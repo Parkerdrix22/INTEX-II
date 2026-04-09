@@ -386,7 +386,7 @@ export function HomeVisitationPage() {
           </select>
         </div>
 
-        <div className="caseload-table-wrap">
+        <div className="caseload-table-wrap home-visitation-table-wrap">
           <table className="caseload-table">
             <thead>
               <tr>
