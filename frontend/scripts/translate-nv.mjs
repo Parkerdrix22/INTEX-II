@@ -110,8 +110,14 @@ async function translateBatch(entries) {
     "- Keep proper nouns (Kateri, Diné, Navajo, Lighthouse) in their original form.",
     "- Respond with ONLY a raw JSON object mapping each input key to its translation.",
     "  No markdown, no code fences, no prose.",
-    "- If you cannot translate a string with confidence, return the English source unchanged",
-    "  rather than inventing a phrase.",
+    "- You MUST produce a Diné bizaad translation for every string. DO NOT return",
+    "  English as the translation. Even if you're uncertain about idiomatic phrasing,",
+    "  produce your best word-by-word Diné translation — the site has a visible",
+    "  'machine-translated, pending native-speaker review' disclosure, so rough is",
+    "  acceptable, but English-in-English-out is NOT acceptable.",
+    "- For long prose strings (policies, paragraphs), translate sentence by sentence.",
+    "  Keep proper nouns and place names in their original form where Navajo has no",
+    "  equivalent, but translate the surrounding grammar and verbs.",
     "- These are user-interface strings (buttons, labels, headings). Keep translations concise.",
   ].join('\n');
 
@@ -128,7 +134,7 @@ async function translateBatch(entries) {
     body: JSON.stringify({
       model: MODEL,
       max_tokens: 4000,
-      temperature: 0.3,
+      temperature: 0.6,
       system: systemPrompt,
       messages: [
         { role: 'user', content: [{ type: 'text', text: userPrompt }] },
@@ -221,13 +227,29 @@ async function main() {
     const result = await translateBatch(batch);
     for (const leaf of batch) {
       const translated = result[leaf.path];
-      if (typeof translated === 'string' && translated.trim()) {
-        setLeaf(nv, leaf.path, translated);
-        meta[leaf.path] = { hash: sha1(leaf.value), model: MODEL, mt: true };
-      } else {
+      if (typeof translated !== 'string' || !translated.trim()) {
         console.warn(`    [warn] missing translation for ${leaf.path}, falling back to English`);
         setLeaf(nv, leaf.path, leaf.value);
         meta[leaf.path] = { hash: sha1(leaf.value), model: 'fallback-en', mt: false };
+        continue;
+      }
+
+      // Reject responses where Claude returned the English source unchanged
+      // on anything longer than a proper noun. The denylist already handles
+      // protected brand terms before we reach this path, so anything
+      // identical here is a Claude cop-out we should flag loudly.
+      const looksLikeFallback =
+        translated.trim() === leaf.value.trim() && leaf.value.trim().split(/\s+/).length > 2;
+      if (looksLikeFallback) {
+        console.warn(`    [warn] ✗ Claude returned English verbatim for ${leaf.path}`);
+        // Store English but do NOT write the hash to __meta — that way the
+        // next script run will retry this key. Don't corrupt the visible
+        // UI with [NV?] markers; keep English until a human edits it.
+        setLeaf(nv, leaf.path, leaf.value);
+        // Intentionally omit meta[leaf.path] so it re-attempts next run
+      } else {
+        setLeaf(nv, leaf.path, translated);
+        meta[leaf.path] = { hash: sha1(leaf.value), model: MODEL, mt: true };
       }
     }
   }
