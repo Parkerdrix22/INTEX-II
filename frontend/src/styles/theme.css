@@ -2009,7 +2009,7 @@ a.auth-nav-pill--solo-login:focus-visible {
 }
 
 .donor-table-wrap {
-  overflow-x: auto;
+  overflow-x: hidden; /* no horizontal scroll, columns drop via media queries */
 }
 
 .resident-case-page .donor-table-wrap {
@@ -2018,9 +2018,9 @@ a.auth-nav-pill--solo-login:focus-visible {
 
 .donor-table {
   width: 100%;
-  min-width: 42rem;
   border-collapse: collapse;
   font-size: 0.92rem;
+  table-layout: auto;
 }
 
 .resident-case-page .donor-table {
@@ -2031,9 +2031,11 @@ a.auth-nav-pill--solo-login:focus-visible {
 .donor-table th,
 .donor-table td {
   text-align: left;
-  padding: 0.55rem 0.65rem;
+  padding: 0.55rem 0.5rem;
   border-bottom: 1px solid rgba(170, 190, 208, 0.55);
   vertical-align: top;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .resident-case-page .donor-table th,
@@ -2173,7 +2175,7 @@ a.auth-nav-pill--solo-login:focus-visible {
 }
 
 .caseload-table-wrap {
-  overflow-x: auto;
+  overflow-x: hidden; /* no horizontal scroll — table responds via media queries instead */
   border: 1px solid rgba(170, 190, 208, 0.5);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.7);
@@ -2182,17 +2184,19 @@ a.auth-nav-pill--solo-login:focus-visible {
 
 .caseload-table {
   width: 100%;
-  min-width: 44rem;
   border-collapse: collapse;
   font-size: 0.92rem;
+  table-layout: auto;
 }
 
 .caseload-table th,
 .caseload-table td {
   text-align: left;
-  padding: 0.55rem 0.65rem;
+  padding: 0.55rem 0.5rem;
   border-bottom: 1px solid rgba(170, 190, 208, 0.55);
   vertical-align: top;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .caseload-table th {
@@ -2220,15 +2224,89 @@ a.auth-nav-pill--solo-login:focus-visible {
 }
 
 /* Narrative/observation preview cells in the standalone process-recording
-   and home-visitation list pages. Keeps long text from blowing up row
-   height — the full text lives on the resident detail page anyway. */
+   and home-visitation list pages. Wraps to two lines max with ellipsis so
+   the column flexes to fit the available viewport width. */
 .caseload-narrative-cell {
-  max-width: 24rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   color: rgba(30, 44, 58, 0.75);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Responsive column dropping — keeps the table fitting the viewport
+   without horizontal scroll. Drops less-essential columns first
+   (narrative preview → emotional state → social worker → flags) and
+   keeps the identifying columns (date, resident, type) at every width.
+   Applies to .caseload-table on the Process Recording, Home Visitation,
+   Caseload Inventory, and similar list pages.
+
+   Process Recording columns:
+     1=date, 2=resident, 3=type, 4=worker, 5=emotional, 6=flags, 7=narrative
+   Home Visitation columns:
+     1=date, 2=resident, 3=type, 4=worker, 5=cooperation, 6=outcome, 7=flags, 8=observations
+*/
+@media (max-width: 1100px) {
+  .caseload-table th:nth-child(7),
+  .caseload-table td:nth-child(7),
+  .caseload-table th:nth-child(8),
+  .caseload-table td:nth-child(8) {
+    display: none;
+  }
+}
+
+@media (max-width: 880px) {
+  .caseload-table th:nth-child(5),
+  .caseload-table td:nth-child(5),
+  .caseload-table th:nth-child(6),
+  .caseload-table td:nth-child(6) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .caseload-table th:nth-child(4),
+  .caseload-table td:nth-child(4) {
+    display: none;
+  }
+  .caseload-table {
+    font-size: 0.86rem;
+  }
+  .caseload-table th,
+  .caseload-table td {
+    padding: 0.5rem 0.4rem;
+  }
+}
+
+/* Same idea for the donor-table used on Donors & Contributions and a
+   few other staff pages. Drops the rightmost columns first, keeps the
+   donor name and the most identifying field at every width. */
+@media (max-width: 880px) {
+  .donor-table th:nth-child(5),
+  .donor-table td:nth-child(5),
+  .donor-table th:nth-child(6),
+  .donor-table td:nth-child(6) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .donor-table th:nth-child(4),
+  .donor-table td:nth-child(4) {
+    display: none;
+  }
+  .donor-table {
+    font-size: 0.86rem;
+  }
+  .donor-table th,
+  .donor-table td {
+    padding: 0.5rem 0.4rem;
+  }
 }
 
 /* Read-only detail card shown when a staff member clicks a row on the
