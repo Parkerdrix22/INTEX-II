@@ -15,6 +15,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import Pipeline as ImbPipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
@@ -389,7 +391,20 @@ def get_feature_columns(base: pd.DataFrame) -> tuple[list[str], list[str]]:
 # ---------------------------------------------------------------------------
 # Pipeline builders
 # ---------------------------------------------------------------------------
-def build_rf_pipeline(numeric_features: list[str], categorical_features: list[str]) -> Pipeline:
+def build_rf_pipeline(numeric_features: list[str], categorical_features: list[str]) -> ImbPipeline:
+    """
+    Build the Random Forest pipeline with SMOTE for minority-class oversampling.
+
+    SMOTE is applied INSIDE the imblearn Pipeline so scikit-learn's GridSearchCV
+    and cross_validate automatically apply it to training folds only — the test
+    fold is never touched. This is the canonical leakage-free way to use SMOTE
+    with k-fold CV (textbook Ch. 14 + imbalanced-learn docs).
+
+    k_neighbors=3 is set explicitly because Pipeline 1 has only ~6 positives;
+    the SMOTE default of k=5 would fail when the minority class is smaller
+    than 6 in some folds. k=3 guarantees SMOTE always has enough neighbors
+    to synthesize from, even in the smallest training fold.
+    """
     transformers = [
         (
             "num",
@@ -410,8 +425,13 @@ def build_rf_pipeline(numeric_features: list[str], categorical_features: list[st
             categorical_features,
         ))
     preprocessor = ColumnTransformer(transformers=transformers)
+    # Keep class_weight='balanced' alongside SMOTE — belt + suspenders.
     clf = RandomForestClassifier(class_weight="balanced", random_state=42)
-    return Pipeline([("preprocessor", preprocessor), ("model", clf)])
+    return ImbPipeline([
+        ("preprocessor", preprocessor),
+        ("smote", SMOTE(random_state=42, k_neighbors=3)),
+        ("model", clf),
+    ])
 
 
 def build_lr_pipeline(numeric_features: list[str], categorical_features: list[str]) -> Pipeline:
@@ -491,18 +511,29 @@ def train(engine, models_dir: Path) -> dict:
         refit=True,
     )
     rf_search.fit(X, y_binary)
-    best_rf = rf_search.best_estimator_
+    best_imb = rf_search.best_estimator_  # imblearn Pipeline (SMOTE inside)
     print(f"  Best RF params: {rf_search.best_params_}")
     print(f"  Best CV ROC-AUC: {rf_search.best_score_:.4f}")
 
-    # Cross-validate with multiple metrics on best model
+    # Cross-validate with multiple metrics on best model.
+    # NOTE: we pass the imblearn pipeline so SMOTE is applied per training fold.
     scoring = {
         "roc_auc": "roc_auc",
         "f1": make_scorer(f1_score, zero_division=0),
         "precision": make_scorer(precision_score, zero_division=0),
         "recall": make_scorer(recall_score, zero_division=0),
     }
-    cv_results = cross_validate(best_rf, X, y_binary, cv=cv, scoring=scoring, return_train_score=False)
+    cv_results = cross_validate(best_imb, X, y_binary, cv=cv, scoring=scoring, return_train_score=False)
+
+    # Extract the fitted preprocessor + RF into a plain sklearn Pipeline for
+    # ONNX export. SMOTE is training-time only — at inference, the pipeline
+    # is just preprocessor → model, which skl2onnx converts cleanly. Using
+    # the extracted sklearn Pipeline for export and verification avoids
+    # skl2onnx having to understand imblearn's Pipeline class.
+    best_rf = Pipeline([
+        ("preprocessor", best_imb.named_steps["preprocessor"]),
+        ("model", best_imb.named_steps["model"]),
+    ])
 
     rf_metrics = {
         "cv_roc_auc_mean": round(float(np.mean(cv_results["test_roc_auc"])), 4),

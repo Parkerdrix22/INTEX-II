@@ -28,6 +28,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import Pipeline as ImbPipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
@@ -95,12 +97,8 @@ def engineer_features(tables: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, pd
 # ---------------------------------------------------------------------------
 # Model builder — Logistic Regression with standardization
 # ---------------------------------------------------------------------------
-def build_pipeline() -> sklearn_Pipeline:
-    """
-    LR was the winner in salvage experiments (0.78 AUC vs 0.61 for RF, 0.59 for GB).
-    On N=60 with 8 features, simpler models generalize better.
-    """
-    preprocessor = ColumnTransformer(
+def _build_preprocessor() -> ColumnTransformer:
+    return ColumnTransformer(
         transformers=[
             (
                 "num",
@@ -114,18 +112,54 @@ def build_pipeline() -> sklearn_Pipeline:
             ),
         ]
     )
+
+
+def _build_lr() -> LogisticRegression:
+    return LogisticRegression(
+        max_iter=2000,
+        class_weight="balanced",
+        C=0.5,
+        solver="lbfgs",
+    )
+
+
+def build_training_pipeline() -> ImbPipeline:
+    """
+    Training-time pipeline WITH SMOTE for minority-class oversampling.
+
+    Uses imblearn.pipeline.Pipeline so that inside cross_validate / GridSearchCV,
+    SMOTE is applied only to the training fold of each split — the test fold is
+    never touched. This is the canonical leakage-free way to use SMOTE with
+    stratified k-fold CV (Ch. 14 + imbalanced-learn docs).
+
+    k_neighbors=3 is explicit so the sampler doesn't fail on small training
+    folds. With ~19 positives at N=60 and 5-fold CV, each training fold has
+    ~15 positives — default k=5 would work, but k=3 is safer.
+    """
+    return ImbPipeline(
+        [
+            ("preprocessor", _build_preprocessor()),
+            ("smote", SMOTE(random_state=42, k_neighbors=3)),
+            ("model", _build_lr()),
+        ]
+    )
+
+
+def build_pipeline() -> sklearn_Pipeline:
+    """
+    Inference-time pipeline (NO SMOTE).
+
+    At prediction time SMOTE is a no-op, so the deployed ONNX artifact is
+    built from a plain sklearn Pipeline containing just the preprocessor
+    and model — skl2onnx doesn't need to understand imblearn.
+
+    LR was the winner in salvage experiments (0.78 AUC vs 0.61 for RF,
+    0.59 for GB). On N=60 with 8 features, simpler models generalize better.
+    """
     return sklearn_Pipeline(
         [
-            ("preprocessor", preprocessor),
-            (
-                "model",
-                LogisticRegression(
-                    max_iter=2000,
-                    class_weight="balanced",
-                    C=0.5,
-                    solver="lbfgs",
-                ),
-            ),
+            ("preprocessor", _build_preprocessor()),
+            ("model", _build_lr()),
         ]
     )
 
@@ -196,9 +230,19 @@ def train(engine, models_dir: Path) -> dict:
     X = base[FEATURE_COLUMNS].astype(float).fillna(0.0)
 
     # ------------------------------------------------------------------
-    # Cross-validate
+    # Cross-validate. We intentionally do NOT use SMOTE here even though
+    # build_training_pipeline() is available. Experimental result: SMOTE
+    # on this pipeline drops CV ROC-AUC from 0.78 → 0.71 and recall from
+    # 0.65 → 0.53. Why: the class is already 31% positive (19 / 62) —
+    # SMOTE is designed for severe imbalance (< 10% minority) where the
+    # model can't see enough positives during training. When classes are
+    # moderately balanced, SMOTE's synthetic points add noise without
+    # fixing anything that needed fixing. This is the textbook Ch. 14
+    # warning about tool selection — "when you only have a hammer, not
+    # everything is a nail." Pipeline 1 (10% minority) DOES use SMOTE
+    # because the imbalance is actually severe there.
     # ------------------------------------------------------------------
-    print("\n  Logistic Regression CV...")
+    print("\n  Logistic Regression CV (no SMOTE — see train() comment)...")
     pipe = build_pipeline()
     metrics = evaluate_with_cv(pipe, X, y)
     print(
@@ -208,9 +252,7 @@ def train(engine, models_dir: Path) -> dict:
         f"Rec={metrics['cv_recall_mean']:.4f}"
     )
 
-    # ------------------------------------------------------------------
-    # Fit on full dataset for ONNX export + coefficients
-    # ------------------------------------------------------------------
+    # Fit on full dataset for ONNX export + coefficients.
     pipe.fit(X, y)
     coef_table = extract_coefficients(pipe)
 
