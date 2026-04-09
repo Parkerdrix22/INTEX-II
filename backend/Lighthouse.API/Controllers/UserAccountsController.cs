@@ -279,10 +279,20 @@ public class UserAccountsController(AppDbContext dbContext, UserManager<AppUser>
         var oldRole = user.Role;
         if (!string.Equals(oldRole, newRole, StringComparison.OrdinalIgnoreCase))
         {
-            var transition = await TryTransitionRoleAsync(user, oldRole, newRole);
-            if (transition is not null)
+            try
             {
-                return BadRequest(new { message = transition });
+                var transition = await TryTransitionRoleAsync(user, oldRole, newRole);
+                if (transition is not null)
+                {
+                    return BadRequest(new { message = transition });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = $"Role transition failed: {ex.Message}",
+                });
             }
         }
 
@@ -598,16 +608,30 @@ public class UserAccountsController(AppDbContext dbContext, UserManager<AppUser>
 
             if (!user.SupporterId.HasValue)
             {
-                var supporter = new Supporter
+                var normalizedEmail = user.Email?.Trim().ToLowerInvariant();
+                Supporter? supporter = null;
+                if (!string.IsNullOrWhiteSpace(normalizedEmail))
                 {
-                    SupporterType = "MonetaryDonor",
-                    DisplayName = $"{user.FirstName} {user.LastName}".Trim(),
-                    Email = user.Email?.Trim(),
-                    Status = "Active",
-                    CreatedAt = DateTime.UtcNow,
-                };
-                dbContext.Supporters.Add(supporter);
-                await dbContext.SaveChangesAsync();
+                    supporter = await dbContext.Supporters
+                        .FirstOrDefaultAsync(s =>
+                            s.Email != null &&
+                            s.Email.ToLower() == normalizedEmail);
+                }
+
+                if (supporter is null)
+                {
+                    supporter = new Supporter
+                    {
+                        SupporterType = "MonetaryDonor",
+                        DisplayName = $"{user.FirstName} {user.LastName}".Trim(),
+                        Email = user.Email?.Trim(),
+                        Status = "Active",
+                        CreatedAt = DateTime.UtcNow,
+                    };
+                    dbContext.Supporters.Add(supporter);
+                    await dbContext.SaveChangesAsync();
+                }
+
                 user.SupporterId = supporter.Id;
             }
 
