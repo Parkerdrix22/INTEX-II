@@ -30,7 +30,13 @@
     "language.en": "English",
     "language.nv": "Diné",
     "language.toggleLabel": "Language",
-    "language.mtDisclaimer": "Diné bizaad translations are machine-generated and pending native-speaker review."
+    "language.mtDisclaimer": "Diné bizaad translations are machine-generated and pending native-speaker review.",
+    "language": {
+      "en": "English",
+      "nv": "Diné",
+      "toggleLabel": "Language",
+      "mtDisclaimer": "Diné bizaad translations are machine-generated and pending native-speaker review."
+    }
   },
   "home": {
     "heroTitle": "Safety, healing, and a path forward for every girl we serve.",
