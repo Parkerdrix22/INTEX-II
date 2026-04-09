@@ -195,6 +195,31 @@ public static class AuthSeeder
         {
             grader.FirstName = "Admin";
             grader.LastName = "Grader";
+
+            // Grading exception: this specific seeded admin account also needs donor
+            // self-service visibility (my-impact + donation history). Keep the account
+            // role as Admin, but ensure it is linked to a supporter profile.
+            var graderEmail = "grader@gmail.com";
+            var linkedSupporter = await db.Supporters
+                .FirstOrDefaultAsync(s =>
+                    s.Email != null &&
+                    s.Email.ToLower() == graderEmail);
+
+            if (linkedSupporter is null)
+            {
+                linkedSupporter = new Supporter
+                {
+                    SupporterType = "MonetaryDonor",
+                    DisplayName = "Admin Grader",
+                    Email = graderEmail,
+                    Status = "Active",
+                    CreatedAt = DateTime.UtcNow,
+                };
+                db.Supporters.Add(linkedSupporter);
+                await db.SaveChangesAsync();
+            }
+
+            grader.SupporterId = linkedSupporter.Id;
             UserAccountIdentityHelper.EnsureIdentityStamps(grader);
             await userManager.UpdateAsync(grader);
         }
