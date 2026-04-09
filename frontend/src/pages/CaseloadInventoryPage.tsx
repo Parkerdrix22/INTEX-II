@@ -3,6 +3,50 @@ import { Link, useNavigate } from 'react-router-dom';
 import { caseloadApi, type CaseloadResident } from '../lib/api';
 import heroImage from '../background.jpg?format=webp&quality=82&w=1920';
 
+/** Matches lighthouse CSV + API validation in CaseloadController.CreateResident */
+const RESIDENT_CASE_STATUSES = ['Active', 'Closed', 'Transferred'] as const;
+const RESIDENT_SEX = ['F', 'M'] as const;
+const RESIDENT_CASE_CATEGORIES = ['Neglected', 'Surrendered', 'Foundling', 'Abandoned'] as const;
+const RESIDENT_REFERRAL_SOURCES = [
+  'NGO',
+  'Government Agency',
+  'Court Order',
+  'Self-Referral',
+  'Community',
+  'Police',
+] as const;
+const RESIDENT_REINTEGRATION_TYPES = [
+  'Foster Care',
+  'Family Reunification',
+  'None',
+  'Independent Living',
+  'Adoption (Domestic)',
+  'Adoption (Inter-Country)',
+] as const;
+const RESIDENT_REINTEGRATION_STATUSES = ['In Progress', 'Completed', 'On Hold', 'Not Started'] as const;
+const RESIDENT_RELIGIONS = [
+  'Unspecified',
+  'Roman Catholic',
+  'Seventh-day Adventist',
+  'Evangelical',
+  'Buddhism',
+  "Jehovah's Witness",
+  'Islam',
+  'Other',
+] as const;
+const RESIDENT_PLACE_PRESETS = [
+  'Manila',
+  'Quezon City',
+  'Davao City',
+  'Cebu City',
+  'Pasay City',
+  'Makati City',
+  'Iloilo City',
+  'Zamboanga City',
+  'Antipolo',
+  'Other',
+] as const;
+
 function safehouseLabel(row: CaseloadResident): string {
   if (row.safehouseName?.trim()) return row.safehouseName;
   if (!row.safehouseId) return 'Unassigned';
@@ -48,23 +92,41 @@ export function CaseloadInventoryPage() {
   const [showCreateResident, setShowCreateResident] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [creatingResident, setCreatingResident] = useState(false);
+  const [safehouseOptions, setSafehouseOptions] = useState<Array<{ id: number; name: string }>>([]);
   const [createResidentForm, setCreateResidentForm] = useState({
     caseControlNo: '',
     internalCode: '',
     caseStatus: 'Active',
     safehouseId: '',
-    sex: '',
+    sex: 'F',
     dateOfBirth: '',
-    placeOfBirth: '',
-    religion: '',
+    placePreset: '',
+    placeOther: '',
+    religion: 'Unspecified',
     caseCategory: '',
     assignedSocialWorker: '',
     referralSource: '',
     dateAdmitted: '',
     dateClosed: '',
-    reintegrationType: '',
-    reintegrationStatus: '',
+    reintegrationType: 'None',
+    reintegrationStatus: 'In Progress',
   });
+
+  useEffect(() => {
+    if (!showCreateResident) return;
+    let cancelled = false;
+    void caseloadApi
+      .safehouses()
+      .then((list) => {
+        if (!cancelled) setSafehouseOptions(list);
+      })
+      .catch(() => {
+        if (!cancelled) setSafehouseOptions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [showCreateResident]);
 
   useEffect(() => {
     const load = async () => {
@@ -361,27 +423,41 @@ export function CaseloadInventoryPage() {
               onSubmit={async (event) => {
                 event.preventDefault();
                 setCreateError(null);
+                const f = createResidentForm;
+                const placeOfBirth =
+                  f.placePreset === 'Other' ? f.placeOther.trim() : f.placePreset;
+                const needsClosedDate =
+                  f.caseStatus === 'Closed' || f.caseStatus === 'Transferred';
+                if (!f.safehouseId.trim()) {
+                  setCreateError('Select a safehouse.');
+                  return;
+                }
+                if (!placeOfBirth) {
+                  setCreateError('Choose place of birth (or enter a city if you selected Other).');
+                  return;
+                }
+                if (needsClosedDate && !f.dateClosed) {
+                  setCreateError('Date closed is required for Closed or Transferred cases.');
+                  return;
+                }
                 setCreatingResident(true);
                 try {
                   const created = await caseloadApi.createResident({
-                    caseControlNo: createResidentForm.caseControlNo,
-                    internalCode: createResidentForm.internalCode,
-                    caseStatus: createResidentForm.caseStatus,
-                    safehouseId:
-                      createResidentForm.safehouseId.trim() === '' || Number.isNaN(Number(createResidentForm.safehouseId))
-                        ? null
-                        : Number(createResidentForm.safehouseId),
-                    sex: createResidentForm.sex || undefined,
-                    dateOfBirth: createResidentForm.dateOfBirth || undefined,
-                    placeOfBirth: createResidentForm.placeOfBirth || undefined,
-                    religion: createResidentForm.religion || undefined,
-                    caseCategory: createResidentForm.caseCategory || undefined,
-                    assignedSocialWorker: createResidentForm.assignedSocialWorker || undefined,
-                    referralSource: createResidentForm.referralSource || undefined,
-                    dateAdmitted: createResidentForm.dateAdmitted || undefined,
-                    dateClosed: createResidentForm.dateClosed || undefined,
-                    reintegrationType: createResidentForm.reintegrationType || undefined,
-                    reintegrationStatus: createResidentForm.reintegrationStatus || undefined,
+                    caseControlNo: f.caseControlNo.trim(),
+                    internalCode: f.internalCode.trim(),
+                    caseStatus: f.caseStatus,
+                    safehouseId: Number(f.safehouseId),
+                    sex: f.sex,
+                    dateOfBirth: f.dateOfBirth,
+                    placeOfBirth,
+                    religion: f.religion,
+                    caseCategory: f.caseCategory,
+                    assignedSocialWorker: f.assignedSocialWorker.trim() || undefined,
+                    referralSource: f.referralSource,
+                    dateAdmitted: f.dateAdmitted,
+                    dateClosed: needsClosedDate ? f.dateClosed : undefined,
+                    reintegrationType: f.reintegrationType,
+                    reintegrationStatus: f.reintegrationStatus,
                   });
                   const data = await caseloadApi.residents();
                   setRows(data);
@@ -392,17 +468,18 @@ export function CaseloadInventoryPage() {
                     internalCode: '',
                     caseStatus: 'Active',
                     safehouseId: '',
-                    sex: '',
+                    sex: 'F',
                     dateOfBirth: '',
-                    placeOfBirth: '',
-                    religion: '',
+                    placePreset: '',
+                    placeOther: '',
+                    religion: 'Unspecified',
                     caseCategory: '',
                     assignedSocialWorker: '',
                     referralSource: '',
                     dateAdmitted: '',
                     dateClosed: '',
-                    reintegrationType: '',
-                    reintegrationStatus: '',
+                    reintegrationType: 'None',
+                    reintegrationStatus: 'In Progress',
                   });
                 } catch (err) {
                   setCreateError(err instanceof Error ? err.message : 'Failed to create resident.');
@@ -411,21 +488,208 @@ export function CaseloadInventoryPage() {
                 }
               }}
             >
-              <label>Resident code (e.g., LS-0010)<input required value={createResidentForm.internalCode} onChange={(event) => setCreateResidentForm((current) => ({ ...current, internalCode: event.target.value }))} /></label>
-              <label>Case control no<input required value={createResidentForm.caseControlNo} onChange={(event) => setCreateResidentForm((current) => ({ ...current, caseControlNo: event.target.value }))} /></label>
-              <label>Case status<input required value={createResidentForm.caseStatus} onChange={(event) => setCreateResidentForm((current) => ({ ...current, caseStatus: event.target.value }))} /></label>
-              <label>Safehouse ID<input value={createResidentForm.safehouseId} onChange={(event) => setCreateResidentForm((current) => ({ ...current, safehouseId: event.target.value }))} /></label>
-              <label>Assigned social worker<input value={createResidentForm.assignedSocialWorker} onChange={(event) => setCreateResidentForm((current) => ({ ...current, assignedSocialWorker: event.target.value }))} /></label>
-              <label>Sex<input value={createResidentForm.sex} onChange={(event) => setCreateResidentForm((current) => ({ ...current, sex: event.target.value }))} /></label>
-              <label>Date of birth<input type="date" value={createResidentForm.dateOfBirth} onChange={(event) => setCreateResidentForm((current) => ({ ...current, dateOfBirth: event.target.value }))} /></label>
-              <label>Place of birth<input value={createResidentForm.placeOfBirth} onChange={(event) => setCreateResidentForm((current) => ({ ...current, placeOfBirth: event.target.value }))} /></label>
-              <label>Religion<input value={createResidentForm.religion} onChange={(event) => setCreateResidentForm((current) => ({ ...current, religion: event.target.value }))} /></label>
-              <label>Case category<input value={createResidentForm.caseCategory} onChange={(event) => setCreateResidentForm((current) => ({ ...current, caseCategory: event.target.value }))} /></label>
-              <label>Referral source<input value={createResidentForm.referralSource} onChange={(event) => setCreateResidentForm((current) => ({ ...current, referralSource: event.target.value }))} /></label>
-              <label>Date admitted<input type="date" value={createResidentForm.dateAdmitted} onChange={(event) => setCreateResidentForm((current) => ({ ...current, dateAdmitted: event.target.value }))} /></label>
-              <label>Date closed<input type="date" value={createResidentForm.dateClosed} onChange={(event) => setCreateResidentForm((current) => ({ ...current, dateClosed: event.target.value }))} /></label>
-              <label>Reintegration type<input value={createResidentForm.reintegrationType} onChange={(event) => setCreateResidentForm((current) => ({ ...current, reintegrationType: event.target.value }))} /></label>
-              <label>Reintegration status<input value={createResidentForm.reintegrationStatus} onChange={(event) => setCreateResidentForm((current) => ({ ...current, reintegrationStatus: event.target.value }))} /></label>
+              <p className="auth-lead" style={{ marginTop: 0 }}>
+                Use the same values as your intake CSV (case status, referral source, reintegration fields). Dates are sent in UTC on the
+                server so PostgreSQL accepts them.
+              </p>
+              <label>
+                Resident code (e.g. LS-0061)
+                <input
+                  required
+                  placeholder="LS-0061"
+                  value={createResidentForm.internalCode}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, internalCode: event.target.value }))}
+                />
+              </label>
+              <label>
+                Case control number
+                <input
+                  required
+                  placeholder="C1234"
+                  value={createResidentForm.caseControlNo}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, caseControlNo: event.target.value }))}
+                />
+              </label>
+              <label>
+                Case status
+                <select
+                  required
+                  value={createResidentForm.caseStatus}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, caseStatus: event.target.value }))}
+                >
+                  <option value="" disabled>
+                    Select…
+                  </option>
+                  {RESIDENT_CASE_STATUSES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Safehouse
+                <select
+                  required
+                  value={createResidentForm.safehouseId}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, safehouseId: event.target.value }))}
+                >
+                  <option value="">{safehouseOptions.length ? 'Select…' : 'Loading safehouses…'}</option>
+                  {safehouseOptions.map((sh) => (
+                    <option key={sh.id} value={String(sh.id)}>
+                      {sh.name} (#{sh.id})
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Assigned social worker (optional)
+                <input
+                  placeholder="SW-15"
+                  value={createResidentForm.assignedSocialWorker}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, assignedSocialWorker: event.target.value }))}
+                />
+              </label>
+              <label>
+                Sex
+                <select
+                  required
+                  value={createResidentForm.sex}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, sex: event.target.value }))}
+                >
+                  {RESIDENT_SEX.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Date of birth
+                <input
+                  required
+                  type="date"
+                  value={createResidentForm.dateOfBirth}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, dateOfBirth: event.target.value }))}
+                />
+              </label>
+              <label>
+                Place of birth
+                <select
+                  required
+                  value={createResidentForm.placePreset}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, placePreset: event.target.value }))}
+                >
+                  <option value="">Select…</option>
+                  {RESIDENT_PLACE_PRESETS.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {createResidentForm.placePreset === 'Other' && (
+                <label>
+                  City / place (custom)
+                  <input
+                    required
+                    value={createResidentForm.placeOther}
+                    onChange={(event) => setCreateResidentForm((c) => ({ ...c, placeOther: event.target.value }))}
+                  />
+                </label>
+              )}
+              <label>
+                Religion
+                <select
+                  required
+                  value={createResidentForm.religion}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, religion: event.target.value }))}
+                >
+                  {RESIDENT_RELIGIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Case category
+                <select
+                  required
+                  value={createResidentForm.caseCategory}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, caseCategory: event.target.value }))}
+                >
+                  <option value="">Select…</option>
+                  {RESIDENT_CASE_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Referral source
+                <select
+                  required
+                  value={createResidentForm.referralSource}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, referralSource: event.target.value }))}
+                >
+                  <option value="">Select…</option>
+                  {RESIDENT_REFERRAL_SOURCES.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Date of admission
+                <input
+                  required
+                  type="date"
+                  value={createResidentForm.dateAdmitted}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, dateAdmitted: event.target.value }))}
+                />
+              </label>
+              {(createResidentForm.caseStatus === 'Closed' || createResidentForm.caseStatus === 'Transferred') && (
+                <label>
+                  Date closed
+                  <input
+                    required
+                    type="date"
+                    value={createResidentForm.dateClosed}
+                    onChange={(event) => setCreateResidentForm((c) => ({ ...c, dateClosed: event.target.value }))}
+                  />
+                </label>
+              )}
+              <label>
+                Reintegration type
+                <select
+                  required
+                  value={createResidentForm.reintegrationType}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, reintegrationType: event.target.value }))}
+                >
+                  {RESIDENT_REINTEGRATION_TYPES.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Reintegration status
+                <select
+                  required
+                  value={createResidentForm.reintegrationStatus}
+                  onChange={(event) => setCreateResidentForm((c) => ({ ...c, reintegrationStatus: event.target.value }))}
+                >
+                  {RESIDENT_REINTEGRATION_STATUSES.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+              </label>
               {createError && <p className="error-text">{createError}</p>}
               <div className="resident-modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowCreateResident(false)}>Cancel</button>

@@ -15,13 +15,17 @@ export function ImpactDashboardPage() {
   const { t } = useLanguage();
   const [impactStats, setImpactStats] = useState({
     activeResidents: 0,
-    counselingSessionsFunded: 430,
-    schoolReintegrationRate: 88,
+    inclusiveCarePct: 0,
+    riskReducedPct: 0,
+    riskComparedCount: 0,
+    riskReducedCount: 0,
+    riskUnchangedCount: 0,
+    riskIncreasedCount: 0,
   });
   const [animatedImpactStats, setAnimatedImpactStats] = useState({
     activeResidents: 0,
-    counselingSessionsFunded: 0,
-    schoolReintegrationRate: 0,
+    inclusiveCarePct: 0,
+    riskReducedPct: 0,
   });
   const animatedImpactStatsRef = useRef(animatedImpactStats);
   const [healthImpact, setHealthImpact] = useState<{
@@ -36,8 +40,12 @@ export function ImpactDashboardPage() {
         const data = await publicApi.impactStats();
         setImpactStats({
           activeResidents: data.activeResidents,
-          counselingSessionsFunded: data.counselingSessionsFunded,
-          schoolReintegrationRate: data.schoolReintegrationRate,
+          inclusiveCarePct: data.inclusiveCarePct,
+          riskReducedPct: data.riskReducedPct,
+          riskComparedCount: data.riskComparedCount,
+          riskReducedCount: data.riskReducedCount,
+          riskUnchangedCount: data.riskUnchangedCount,
+          riskIncreasedCount: data.riskIncreasedCount,
         });
       } catch {
         // Keep fallback values when API is unavailable.
@@ -60,11 +68,9 @@ export function ImpactDashboardPage() {
       const progress = Math.min(1, (now - start) / durationMs);
       setAnimatedImpactStats({
         activeResidents: Math.round(initial.activeResidents + (impactStats.activeResidents - initial.activeResidents) * progress),
-        counselingSessionsFunded: Math.round(
-          initial.counselingSessionsFunded + (impactStats.counselingSessionsFunded - initial.counselingSessionsFunded) * progress,
-        ),
-        schoolReintegrationRate:
-          initial.schoolReintegrationRate + (impactStats.schoolReintegrationRate - initial.schoolReintegrationRate) * progress,
+        inclusiveCarePct:
+          initial.inclusiveCarePct + (impactStats.inclusiveCarePct - initial.inclusiveCarePct) * progress,
+        riskReducedPct: initial.riskReducedPct + (impactStats.riskReducedPct - initial.riskReducedPct) * progress,
       });
       if (progress < 1) rafId = requestAnimationFrame(tick);
     };
@@ -124,12 +130,21 @@ export function ImpactDashboardPage() {
           <p className="metric-value">{animatedImpactStats.activeResidents}+</p>
         </article>
         <article className="stat-card scroll-reveal-skip">
-          <p className="metric-label">{t('impact.kpi.counselingSessions')}</p>
-          <p className="metric-value">{animatedImpactStats.counselingSessionsFunded}+</p>
+          <p className="metric-label">{t('impact.kpi.inclusiveCare')}</p>
+          <p className="metric-value">{animatedImpactStats.inclusiveCarePct.toFixed(1)}%</p>
+          <p className="metric-footnote">{t('impact.kpi.inclusiveCareFootnote')}</p>
         </article>
         <article className="stat-card scroll-reveal-skip">
-          <p className="metric-label">{t('impact.kpi.reintegrationRate')}</p>
-          <p className="metric-value">{animatedImpactStats.schoolReintegrationRate.toFixed(1)}%</p>
+          <p className="metric-label">{t('impact.kpi.riskReduced')}</p>
+          <p className="metric-value">{animatedImpactStats.riskReducedPct.toFixed(1)}%</p>
+          <p className="metric-footnote">
+            {t('impact.kpi.riskFootnote', {
+              compared: impactStats.riskComparedCount,
+              reduced: impactStats.riskReducedCount,
+              same: impactStats.riskUnchangedCount,
+              increased: impactStats.riskIncreasedCount,
+            })}
+          </p>
         </article>
       </div>
 

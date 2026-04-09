@@ -253,8 +253,14 @@ export type HomeStats = {
 
 export type ImpactStats = {
   activeResidents: number;
-  counselingSessionsFunded: number;
-  schoolReintegrationRate: number;
+  /** Share of residents with special needs and/or documented disability (PWD). */
+  inclusiveCarePct: number;
+  /** Share of residents (with comparable risk) whose current risk tier is lower than initial. */
+  riskReducedPct: number;
+  riskComparedCount: number;
+  riskReducedCount: number;
+  riskUnchangedCount: number;
+  riskIncreasedCount: number;
 };
 
 export type HealthImpact = {
@@ -582,6 +588,7 @@ export const donorVolunteerApi = {
 };
 
 export const caseloadApi = {
+  safehouses: () => apiFetch<Array<{ id: number; name: string }>>('/api/caseload/safehouses', { method: 'GET' }),
   residents: () => apiFetch<CaseloadResident[]>('/api/caseload/residents', { method: 'GET' }),
   createResident: (payload: {
     caseControlNo: string;

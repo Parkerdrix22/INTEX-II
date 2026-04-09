@@ -1786,8 +1786,10 @@
     },
     "kpi": {
       "activeResidents": "Ałhidadiidzą́ Diné",
-      "counselingSessions": "Counseling Sessions Baa Nitsáhákees",
-      "reintegrationRate": "Ólta' Góyaa Rate"
+      "inclusiveCare": "Inclusive care",
+      "inclusiveCareFootnote": "Residents documented special needs or disability (PWD), share of all residents in records.",
+      "riskReduced": "Moved to a lower risk tier",
+      "riskFootnote": "Among {compared} residents with initial and current risk: {reduced} improved, {same} unchanged, {increased} moved to a higher tier."
     },
     "health": {
       "heading": "Diné Bííghaʼ Dóó Ałhidadiidzą́",

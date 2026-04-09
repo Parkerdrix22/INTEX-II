@@ -1,6 +1,6 @@
-/** Organization-wide highlights shown on Donor + Impact pages */
+/** Organization-wide highlights (static copy; Impact page uses live /api/public/impact-stats) */
 export const orgImpactStats = [
   { id: 'girls', label: 'Girls Supported This Year', value: '76' },
-  { id: 'counseling', label: 'Counseling Sessions Funded', value: '430+' },
-  { id: 'school', label: 'School Reintegration Rate', value: '88%' },
+  { id: 'inclusive', label: 'Inclusive care (special needs / PWD)', value: '—' },
+  { id: 'risk', label: 'Moved to a lower risk tier', value: '—' },
 ] as const;

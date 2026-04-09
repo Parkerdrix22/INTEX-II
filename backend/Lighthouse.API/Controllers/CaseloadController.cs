@@ -10,6 +10,45 @@ namespace Lighthouse.API.Controllers;
 [Authorize(Roles = "Admin,Staff")]
 public class CaseloadController(AppDbContext dbContext) : ControllerBase
 {
+    private static readonly HashSet<string> AllowedCaseStatuses = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Active", "Closed", "Transferred",
+    };
+
+    private static readonly HashSet<string> AllowedSexes = new(StringComparer.OrdinalIgnoreCase) { "F", "M" };
+
+    private static readonly HashSet<string> AllowedCaseCategories = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Neglected", "Surrendered", "Foundling", "Abandoned",
+    };
+
+    private static readonly HashSet<string> AllowedReferralSources = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "NGO", "Government Agency", "Court Order", "Self-Referral", "Community", "Police",
+    };
+
+    private static readonly HashSet<string> AllowedReintegrationTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Foster Care", "Family Reunification", "None", "Independent Living",
+        "Adoption (Domestic)", "Adoption (Inter-Country)",
+    };
+
+    private static readonly HashSet<string> AllowedReintegrationStatuses = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "In Progress", "Completed", "On Hold", "Not Started",
+    };
+
+    [HttpGet("safehouses")]
+    public async Task<IActionResult> GetSafehousesForCaseload()
+    {
+        var rows = await dbContext.Safehouses
+            .AsNoTracking()
+            .OrderBy(s => s.Id)
+            .Select(s => new { id = s.Id, name = s.Name })
+            .ToListAsync();
+        return Ok(rows);
+    }
+
     [HttpGet("residents")]
     public async Task<IActionResult> GetResidents()
     {
@@ -150,6 +189,38 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
             return BadRequest(new { message = "Resident code is required." });
         if (string.IsNullOrWhiteSpace(request.CaseStatus))
             return BadRequest(new { message = "Case status is required." });
+        if (request.SafehouseId is null or < 1)
+            return BadRequest(new { message = "Select a safehouse." });
+        if (request.DateOfBirth is null)
+            return BadRequest(new { message = "Date of birth is required." });
+        if (request.DateAdmitted is null)
+            return BadRequest(new { message = "Date of admission is required." });
+        if (string.IsNullOrWhiteSpace(request.Sex) || !AllowedSexes.Contains(request.Sex.Trim()))
+            return BadRequest(new { message = "Sex must be F or M." });
+        if (string.IsNullOrWhiteSpace(request.PlaceOfBirth))
+            return BadRequest(new { message = "Place of birth is required." });
+        if (string.IsNullOrWhiteSpace(request.Religion))
+            return BadRequest(new { message = "Religion is required." });
+        if (string.IsNullOrWhiteSpace(request.CaseCategory) || !AllowedCaseCategories.Contains(request.CaseCategory.Trim()))
+            return BadRequest(new { message = "Choose a valid case category." });
+        if (string.IsNullOrWhiteSpace(request.ReferralSource) || !AllowedReferralSources.Contains(request.ReferralSource.Trim()))
+            return BadRequest(new { message = "Choose a valid referral source." });
+        if (string.IsNullOrWhiteSpace(request.ReintegrationType) || !AllowedReintegrationTypes.Contains(request.ReintegrationType.Trim()))
+            return BadRequest(new { message = "Choose a valid reintegration type." });
+        if (string.IsNullOrWhiteSpace(request.ReintegrationStatus) || !AllowedReintegrationStatuses.Contains(request.ReintegrationStatus.Trim()))
+            return BadRequest(new { message = "Choose a valid reintegration status." });
+        if (!AllowedCaseStatuses.Contains(request.CaseStatus.Trim()))
+            return BadRequest(new { message = "Choose a valid case status (Active, Closed, or Transferred)." });
+
+        var statusNorm = request.CaseStatus.Trim();
+        var closedNorm = statusNorm.Equals("Closed", StringComparison.OrdinalIgnoreCase)
+            || statusNorm.Equals("Transferred", StringComparison.OrdinalIgnoreCase);
+        if (closedNorm && request.DateClosed is null)
+            return BadRequest(new { message = "Date closed is required for Closed or Transferred cases." });
+
+        var dateOfBirth = NormalizeToUtc(request.DateOfBirth.Value);
+        var dateAdmitted = NormalizeToUtc(request.DateAdmitted.Value);
+        var dateClosed = request.DateClosed.HasValue ? NormalizeToUtc(request.DateClosed.Value) : (DateTime?)null;
 
         try
         {
@@ -183,17 +254,17 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
                 request.InternalCode.Trim(),
                 request.SafehouseId,
                 request.CaseStatus.Trim(),
-                request.Sex,
-                request.DateOfBirth,
-                request.PlaceOfBirth,
-                request.Religion,
-                request.CaseCategory,
-                request.AssignedSocialWorker,
-                request.ReferralSource,
-                request.DateAdmitted,
-                request.DateClosed,
-                request.ReintegrationType,
-                request.ReintegrationStatus,
+                request.Sex.Trim(),
+                dateOfBirth,
+                request.PlaceOfBirth.Trim(),
+                request.Religion.Trim(),
+                request.CaseCategory.Trim(),
+                string.IsNullOrWhiteSpace(request.AssignedSocialWorker) ? null : request.AssignedSocialWorker.Trim(),
+                request.ReferralSource.Trim(),
+                dateAdmitted,
+                dateClosed,
+                request.ReintegrationType.Trim(),
+                request.ReintegrationStatus.Trim(),
                 DateTime.UtcNow);
 
             return Ok(new { message = "Resident created.", residentId = newId });
@@ -205,9 +276,11 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
                 CaseControlNo = request.CaseControlNo.Trim(),
                 CaseStatus = request.CaseStatus.Trim(),
                 SafehouseId = request.SafehouseId,
-                AssignedSocialWorker = request.AssignedSocialWorker,
-                DateAdmitted = request.DateAdmitted,
-                DateClosed = request.DateClosed,
+                AssignedSocialWorker = string.IsNullOrWhiteSpace(request.AssignedSocialWorker)
+                    ? null
+                    : request.AssignedSocialWorker.Trim(),
+                DateAdmitted = dateAdmitted,
+                DateClosed = dateClosed,
             };
             dbContext.Residents.Add(resident);
             await dbContext.SaveChangesAsync();
@@ -219,6 +292,10 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateResidentDetail(int residentId, [FromBody] UpdateResidentDetailRequest request)
     {
+        var dob = request.DateOfBirth.HasValue ? NormalizeToUtc(request.DateOfBirth.Value) : (DateTime?)null;
+        var admitted = request.DateAdmitted.HasValue ? NormalizeToUtc(request.DateAdmitted.Value) : (DateTime?)null;
+        var closed = request.DateClosed.HasValue ? NormalizeToUtc(request.DateClosed.Value) : (DateTime?)null;
+
         try
         {
             var affected = await dbContext.Database.ExecuteSqlRawAsync(
@@ -242,14 +319,14 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
                 request.CaseStatus,
                 request.SafehouseId,
                 request.Sex,
-                request.DateOfBirth,
+                dob,
                 request.PlaceOfBirth,
                 request.Religion,
                 request.CaseCategory,
                 request.AssignedSocialWorker,
                 request.ReferralSource,
-                request.DateAdmitted,
-                request.DateClosed,
+                admitted,
+                closed,
                 request.ReintegrationType,
                 request.ReintegrationStatus,
                 residentId);
@@ -264,8 +341,8 @@ public class CaseloadController(AppDbContext dbContext) : ControllerBase
             resident.CaseStatus = request.CaseStatus ?? resident.CaseStatus;
             resident.SafehouseId = request.SafehouseId;
             resident.AssignedSocialWorker = request.AssignedSocialWorker;
-            resident.DateAdmitted = request.DateAdmitted;
-            resident.DateClosed = request.DateClosed;
+            resident.DateAdmitted = admitted;
+            resident.DateClosed = closed;
             await dbContext.SaveChangesAsync();
             return Ok(new { message = "Resident profile updated." });
         }
