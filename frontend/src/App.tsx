@@ -345,7 +345,7 @@ function App() {
           </Routes>
           )}
         </main>
-        {lang === 'en' && <ChatWidget />}
+        {lang === 'en' && isAuthenticated && <ChatWidget />}
       </div>
       <NonBlockingErrorBoundary>
         <CookieConsentBanner />
