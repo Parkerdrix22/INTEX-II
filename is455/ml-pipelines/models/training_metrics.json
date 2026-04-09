@@ -1,7 +1,7 @@
 {
   "pipeline_01_resident_risk": {
     "status": "success",
-    "trained_at": "2026-04-09T16:51:26.188781+00:00",
+    "trained_at": "2026-04-09T16:55:48.316140+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.8742,
       "cv_roc_auc_std": 0.1365,
@@ -24,7 +24,7 @@
   },
   "pipeline_02_donor_churn": {
     "status": "success",
-    "trained_at": "2026-04-08T16:41:51.682935+00:00",
+    "trained_at": "2026-04-09T16:58:16.345710+00:00",
     "metrics": {
       "roc_auc_mean": 0.68,
       "roc_auc_std": 0.186,
@@ -55,26 +55,26 @@
   },
   "pipeline_05_impact_attribution": {
     "status": "success",
-    "trained_at": "2026-04-08T04:31:39.347528+00:00",
+    "trained_at": "2026-04-09T17:26:17.575921+00:00",
     "metrics": {
-      "ols_health_r2": 0.5082,
+      "ols_health_r2": 0.5083,
       "ols_health_adj_r2": 0.4814,
-      "ols_health_f_stat": 18.9212,
+      "ols_health_f_stat": 18.9224,
       "ols_health_f_pvalue": 0.0,
-      "ols_health_aic": -164.05,
-      "ols_health_bic": -114.64,
+      "ols_health_aic": -164.06,
+      "ols_health_bic": -114.65,
       "ols_health_n_obs": 252,
-      "ols_edu_r2": 0.151,
-      "ols_edu_adj_r2": 0.1046,
-      "ols_edu_f_stat": 3.2564,
-      "ols_edu_f_pvalue": 0.000146,
-      "ols_edu_aic": 2174.52,
-      "ols_edu_bic": 2223.94,
+      "ols_edu_r2": 0.1512,
+      "ols_edu_adj_r2": 0.1048,
+      "ols_edu_f_stat": 3.2614,
+      "ols_edu_f_pvalue": 0.000143,
+      "ols_edu_aic": 2174.47,
+      "ols_edu_bic": 2223.88,
       "ols_edu_n_obs": 252,
       "lr_train_r2": 0.0978,
-      "lr_test_r2": -0.4727,
+      "lr_test_r2": -0.4726,
       "lr_test_rmse": 0.3627,
-      "lr_test_mae": 0.2743,
+      "lr_test_mae": 0.2742,
       "lr_n_train": 201,
       "lr_n_test": 51,
       "onnx_verified": true,
@@ -103,7 +103,7 @@
   },
   "pipeline_06_case_resolution": {
     "status": "success",
-    "trained_at": "2026-04-09T16:40:40.830893+00:00",
+    "trained_at": "2026-04-09T17:27:10.311578+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.712,
       "cv_roc_auc_std": 0.167,
