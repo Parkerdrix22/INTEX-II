@@ -61,6 +61,10 @@ public class DonorChurnController : ControllerBase
         "country_Canada", "country_Philippines", "country_Singapore", "country_USA"
     ];
 
+    // Snapshot date used for ML feature computation. The model was trained
+    // with this date as "today" — DO NOT change it without retraining the
+    // ONNX artifact, or the feature distribution will shift and predictions
+    // will silently drift.
     private static readonly DateTime ReferenceDate = new(2026, 3, 1);
 
     [HttpGet("dashboard")]
@@ -179,9 +183,14 @@ public class DonorChurnController : ControllerBase
                 var totalDonated = supporterDonations?.Sum(d => d.EstimatedValue) ?? 0;
                 var donationCount = supporterDonations?.Count ?? 0;
                 var isRecurring = supporterDonations?.Any(d => d.IsRecurring) ?? false;
+                // Human-facing "days since last donation" uses real calendar time,
+                // NOT the ML snapshot date — otherwise a gift given today still
+                // shows as ~39 days old because the training snapshot is 2026-03-01.
+                // A brand-new donation clamps to 0 instead of going negative.
+                var today = DateTime.UtcNow.Date;
                 var daysSinceLastDonation = lastDonationDate.HasValue
-                    ? (int)(ReferenceDate - lastDonationDate.Value).TotalDays
-                    : (int)(ReferenceDate - s.CreatedAt).TotalDays;
+                    ? Math.Max(0, (int)(today - lastDonationDate.Value.Date).TotalDays)
+                    : Math.Max(0, (int)(today - s.CreatedAt.Date).TotalDays);
 
                 results.Add(new DonorChurnResult
                 {
