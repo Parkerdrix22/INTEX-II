@@ -816,3 +816,31 @@
   font-weight: 700;
   color: var(--accent);
 }
+
+/* ── Dark mode ───────────────────────────────────────────────── */
+
+:root[data-theme='dark'] .attribution-card,
+:root[data-theme='dark'] .attribution-kpi {
+  background: rgba(16, 26, 38, 0.88);
+  border-color: rgba(130, 155, 178, 0.42);
+}
+
+:root[data-theme='dark'] .attribution-tabs {
+  background: rgba(24, 36, 50, 0.88);
+  border-color: rgba(130, 155, 178, 0.42);
+}
+
+:root[data-theme='dark'] .field-select {
+  background: rgba(24, 36, 50, 0.92);
+  color: var(--text);
+  border-color: rgba(130, 155, 178, 0.46);
+}
+
+:root[data-theme='dark'] .toggle-card {
+  background: rgba(24, 36, 50, 0.75);
+  border-color: rgba(130, 155, 178, 0.42);
+}
+
+:root[data-theme='dark'] .toggle-card:hover {
+  background: rgba(24, 36, 50, 0.9);
+}

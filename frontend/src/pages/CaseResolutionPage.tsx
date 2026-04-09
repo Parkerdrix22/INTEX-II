@@ -728,7 +728,7 @@ function ResidentDetail({
         <div className="cres-detail-chart">
           <h4 className="cres-detail-chart-title">Feature contributions</h4>
           {contributionData.length > 0 ? (
-            <ResponsiveContainer width="100%" debounce={1} height={220}>
+            <ResponsiveContainer width="100%" debounce={1} height={Math.max(220, contributionData.length * 32)}>
               <BarChart
                 data={contributionData}
                 layout="vertical"
@@ -755,12 +755,6 @@ function ResidentDetail({
                       return [num.toFixed(3), 'Contribution'];
                     }) as never
                   }
-                  contentStyle={{
-                    background: 'rgba(255,253,247,0.96)',
-                    border: '1px solid rgba(170,190,208,0.4)',
-                    borderRadius: 12,
-                    fontSize: 12,
-                  }}
                 />
                 <Bar dataKey="contribution" radius={[4, 4, 4, 4]}>
                   {contributionData.map((entry, i) => (
