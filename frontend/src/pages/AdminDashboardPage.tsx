@@ -183,7 +183,10 @@ export function AdminDashboardPage() {
         </div>
       </header>
 
-      <section className="admin-dashboard-summary-grid" aria-label="Admin summary metrics">
+      <section
+        className="admin-dashboard-summary-grid admin-dashboard-summary-grid--three"
+        aria-label="Admin summary metrics"
+      >
         <article className="stat-card">
           <p className="metric-label">Active residents</p>
           <p className="metric-value">{animatedSummary.activeResidents}+</p>
