@@ -8,7 +8,6 @@ export type MobileHeaderNavProps = {
   isAuthenticated: boolean;
   isStaffLike: boolean;
   isDonor: boolean;
-  isResident: boolean;
   consentChoice: 'all' | 'necessary' | null;
   themePreference: ThemePreference;
   toggleThemePreference: () => void;
@@ -24,7 +23,6 @@ export function MobileHeaderNav({
   isAuthenticated,
   isStaffLike,
   isDonor,
-  isResident,
   consentChoice,
   themePreference,
   toggleThemePreference,
@@ -79,11 +77,6 @@ export function MobileHeaderNav({
         {(isDonor || isStaffLike) && (
           <Link className="mobile-nav__link" to="/donor-dashboard" onClick={closeMobileNav}>
             {t('nav.donorPortal')}
-          </Link>
-        )}
-        {isAuthenticated && isResident && !isStaffLike && (
-          <Link className="mobile-nav__link" to="/resident-dashboard" onClick={closeMobileNav}>
-            {t('nav.residentDashboard')}
           </Link>
         )}
         {isAuthenticated && (

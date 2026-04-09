@@ -20,7 +20,6 @@ import { ImpactDashboardPage } from './pages/ImpactDashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ProcessRecordingPage } from './pages/ProcessRecordingPage';
-import { ResidentDashboardPage } from './pages/ResidentDashboardPage';
 import { ResidentCasePage } from './pages/ResidentCasePage';
 import { ResidentRiskPage } from './pages/ResidentRiskPage';
 import { PostPlannerPage } from './pages/PostPlannerPage';
@@ -68,7 +67,6 @@ function App() {
     (!twoFactorEnabled && requiresTwoFactorSetup);
   const isStaffLike = roles.includes('Admin') || roles.includes('Staff');
   const isDonor = roles.includes('Donor');
-  const isResident = roles.includes('Resident');
   const showStaffSidebar = isAuthenticated && isStaffLike;
   const [staffSidebarOpen, setStaffSidebarOpen] = useState(false);
   const { themePreference, toggleThemePreference, consentChoice } = useCookieConsent();
@@ -119,11 +117,6 @@ function App() {
                 {t('nav.donorPortal')}
               </Link>
             )}
-            {isAuthenticated && isResident && !isStaffLike && (
-              <Link className="nav-link" to="/resident-dashboard">
-                {t('nav.residentDashboard')}
-              </Link>
-            )}
             {!isAuthenticated && (
               <div className="auth-nav-pill" role="group" aria-label="Authentication">
                 <Link className="auth-nav-pill__link" to="/signup">
@@ -163,7 +156,6 @@ function App() {
             isAuthenticated={isAuthenticated}
             isStaffLike={isStaffLike}
             isDonor={isDonor}
-            isResident={isResident}
             consentChoice={consentChoice}
             themePreference={themePreference}
             toggleThemePreference={toggleThemePreference}
@@ -266,14 +258,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Donor', 'Admin', 'Staff']}>
                 <DonorDashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/resident-dashboard"
-            element={
-              <ProtectedRoute allowedRoles={['Resident']}>
-                <ResidentDashboardPage />
               </ProtectedRoute>
             }
           />
