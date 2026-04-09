@@ -4387,6 +4387,57 @@ input[type='reset']:disabled {
   color: var(--primary-2);
 }
 
+/* Dark mode overrides for chat widget */
+:root[data-theme='dark'] .chat-widget__panel {
+  background: rgba(21, 31, 43, 0.97);
+  border-color: rgba(130, 155, 178, 0.4);
+}
+
+:root[data-theme='dark'] .chat-widget__header {
+  background: rgba(127, 179, 224, 0.1);
+  border-bottom-color: rgba(130, 155, 178, 0.4);
+}
+
+:root[data-theme='dark'] .chat-widget__messages {
+  background: rgba(15, 23, 33, 0.6);
+}
+
+:root[data-theme='dark'] .chat-widget__bubble--assistant {
+  background: rgba(30, 44, 60, 0.95);
+  border-color: rgba(130, 155, 178, 0.4);
+  color: #e6edf3;
+}
+
+:root[data-theme='dark'] .chat-widget__bubble--user {
+  background: rgba(127, 179, 224, 0.2);
+  border-color: rgba(127, 179, 224, 0.45);
+  color: #e6edf3;
+}
+
+:root[data-theme='dark'] .chat-widget__composer {
+  background: rgba(21, 31, 43, 0.97);
+  border-top-color: rgba(130, 155, 178, 0.4);
+}
+
+:root[data-theme='dark'] .chat-widget__input {
+  background: rgba(15, 23, 33, 0.85);
+  color: #e6edf3;
+  border-color: rgba(130, 155, 178, 0.45);
+}
+
+:root[data-theme='dark'] .chat-widget__input::placeholder {
+  color: #b2c1cc;
+}
+
+:root[data-theme='dark'] .chat-widget__close {
+  background: rgba(127, 179, 224, 0.15);
+  color: #e6edf3;
+}
+
+:root[data-theme='dark'] .chat-widget__close:hover {
+  background: rgba(127, 179, 224, 0.25);
+}
+
 .safehouse-tour-page {
   width: min(1440px, 100%);
   margin: 0 auto;
