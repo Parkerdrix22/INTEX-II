@@ -4592,7 +4592,7 @@ input[type='reset']:disabled {
 
 .chat-widget__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.85rem 0.9rem 0.75rem;
@@ -4613,6 +4613,9 @@ input[type='reset']:disabled {
 }
 
 .chat-widget__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 2rem;
   height: 2rem;
   padding: 0;
@@ -4622,7 +4625,6 @@ input[type='reset']:disabled {
   color: var(--text);
   font-size: 1.4rem;
   line-height: 1;
-  cursor: pointer;
   cursor: pointer;
 }
 
