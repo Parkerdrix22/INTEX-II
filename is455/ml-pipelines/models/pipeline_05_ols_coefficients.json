@@ -1,21 +1,21 @@
 {
-  "trained_at_utc": "2026-04-08T04:31:39.346044+00:00",
+  "trained_at_utc": "2026-04-09T04:27:54.530605+00:00",
   "model": "OLS (statsmodels) with safehouse fixed effects",
   "interpretation": "Each coefficient is the estimated change in the outcome (avg health score or avg education progress) per unit increase in the predictor, holding other predictors constant. Donation amounts are in USD lagged by one month.",
   "health": {
     "target": "avg_health_score",
     "n_obs": 252,
-    "r_squared": 0.5082,
+    "r_squared": 0.5083,
     "adj_r_squared": 0.4814,
-    "f_statistic": 18.9212,
+    "f_statistic": 18.9224,
     "f_pvalue": 0.0,
     "coefficients": [
       {
         "variable": "donation_to_health_lag1",
-        "coef": -1.5e-05,
+        "coef": -1.4e-05,
         "std_err": 3.1e-05,
-        "t_stat": -0.4648,
-        "p_value": 0.6425,
+        "t_stat": -0.464,
+        "p_value": 0.6431,
         "ci_lower": -7.6e-05,
         "ci_upper": 4.7e-05
       },
@@ -23,26 +23,26 @@
         "variable": "donation_to_education_lag1",
         "coef": 1.7e-05,
         "std_err": 3e-05,
-        "t_stat": 0.544,
-        "p_value": 0.587,
+        "t_stat": 0.5499,
+        "p_value": 0.5829,
         "ci_lower": -4.3e-05,
-        "ci_upper": 7.6e-05
+        "ci_upper": 7.7e-05
       },
       {
         "variable": "donation_to_counseling_lag1",
-        "coef": -0.0,
+        "coef": 0.0,
         "std_err": 0.0,
-        "t_stat": -32.2256,
+        "t_stat": 25.9608,
         "p_value": 0.0,
-        "ci_lower": -0.0,
-        "ci_upper": -0.0
+        "ci_lower": 0.0,
+        "ci_upper": 0.0
       },
       {
         "variable": "donation_to_operations_lag1",
         "coef": 9e-06,
         "std_err": 2.8e-05,
-        "t_stat": 0.3321,
-        "p_value": 0.7401,
+        "t_stat": 0.3324,
+        "p_value": 0.7399,
         "ci_lower": -4.6e-05,
         "ci_upper": 6.5e-05
       },
@@ -50,8 +50,8 @@
         "variable": "donation_total_lag1",
         "coef": -4e-06,
         "std_err": 1.7e-05,
-        "t_stat": -0.2562,
-        "p_value": 0.798,
+        "t_stat": -0.2579,
+        "p_value": 0.7967,
         "ci_lower": -3.9e-05,
         "ci_upper": 3e-05
       },
@@ -59,110 +59,110 @@
         "variable": "active_residents_lag1",
         "coef": 0.142029,
         "std_err": 0.004866,
-        "t_stat": 29.1889,
+        "t_stat": 29.1895,
         "p_value": 0.0,
-        "ci_lower": 0.132443,
-        "ci_upper": 0.151614
+        "ci_lower": 0.132444,
+        "ci_upper": 0.151615
       },
       {
         "variable": "capacity_utilization_lag1",
-        "coef": 0.178229,
+        "coef": 0.178236,
         "std_err": 0.009439,
-        "t_stat": 18.8829,
+        "t_stat": 18.8833,
         "p_value": 0.0,
-        "ci_lower": 0.159635,
-        "ci_upper": 0.196823
+        "ci_lower": 0.159642,
+        "ci_upper": 0.196831
       },
       {
         "variable": "month_of_year",
-        "coef": 0.003194,
-        "std_err": 0.00327,
-        "t_stat": 0.9768,
-        "p_value": 0.3297,
-        "ci_lower": -0.003248,
-        "ci_upper": 0.009637
+        "coef": 0.003189,
+        "std_err": 0.003271,
+        "t_stat": 0.9749,
+        "p_value": 0.3306,
+        "ci_lower": -0.003254,
+        "ci_upper": 0.009632
       }
     ]
   },
   "education": {
     "target": "avg_education_progress",
     "n_obs": 252,
-    "r_squared": 0.151,
-    "adj_r_squared": 0.1046,
-    "f_statistic": 3.2564,
-    "f_pvalue": 0.000146,
+    "r_squared": 0.1512,
+    "adj_r_squared": 0.1048,
+    "f_statistic": 3.2614,
+    "f_pvalue": 0.000143,
     "coefficients": [
       {
         "variable": "donation_to_health_lag1",
-        "coef": 0.00389,
+        "coef": 0.003883,
         "std_err": 0.003234,
-        "t_stat": 1.2029,
-        "p_value": 0.2302,
-        "ci_lower": -0.002481,
-        "ci_upper": 0.010262
+        "t_stat": 1.2007,
+        "p_value": 0.2311,
+        "ci_lower": -0.002488,
+        "ci_upper": 0.010254
       },
       {
         "variable": "donation_to_education_lag1",
-        "coef": -0.005896,
-        "std_err": 0.003144,
-        "t_stat": -1.875,
-        "p_value": 0.062,
-        "ci_lower": -0.01209,
-        "ci_upper": 0.000299
+        "coef": -0.00593,
+        "std_err": 0.003146,
+        "t_stat": -1.8851,
+        "p_value": 0.0606,
+        "ci_lower": -0.012128,
+        "ci_upper": 0.000267
       },
       {
         "variable": "donation_to_counseling_lag1",
-        "coef": -0.0,
+        "coef": 0.0,
         "std_err": 0.0,
-        "t_stat": -7.8178,
+        "t_stat": 6.223,
         "p_value": 0.0,
-        "ci_lower": -0.0,
-        "ci_upper": -0.0
+        "ci_lower": 0.0,
+        "ci_upper": 0.0
       },
       {
         "variable": "donation_to_operations_lag1",
-        "coef": -0.001476,
-        "std_err": 0.002905,
-        "t_stat": -0.5081,
-        "p_value": 0.6118,
-        "ci_lower": -0.007198,
-        "ci_upper": 0.004246
+        "coef": -0.001474,
+        "std_err": 0.002904,
+        "t_stat": -0.5076,
+        "p_value": 0.6122,
+        "ci_lower": -0.007196,
+        "ci_upper": 0.004247
       },
       {
         "variable": "donation_total_lag1",
-        "coef": 0.000243,
+        "coef": 0.000251,
         "std_err": 0.001803,
-        "t_stat": 0.1348,
-        "p_value": 0.8929,
-        "ci_lower": -0.003308,
-        "ci_upper": 0.003794
+        "t_stat": 0.1394,
+        "p_value": 0.8893,
+        "ci_lower": -0.0033,
+        "ci_upper": 0.003803
       },
       {
         "variable": "active_residents_lag1",
-        "coef": 2.61857,
-        "std_err": 0.503846,
-        "t_stat": 5.1972,
+        "coef": 2.618206,
+        "std_err": 0.503788,
+        "t_stat": 5.197,
         "p_value": 0.0,
-        "ci_lower": 1.626003,
-        "ci_upper": 3.611137
+        "ci_lower": 1.625752,
+        "ci_upper": 3.610659
       },
       {
         "variable": "capacity_utilization_lag1",
-        "coef": 5.919526,
-        "std_err": 0.977347,
-        "t_stat": 6.0567,
+        "coef": 5.917016,
+        "std_err": 0.97727,
+        "t_stat": 6.0546,
         "p_value": 0.0,
-        "ci_lower": 3.994171,
-        "ci_upper": 7.844881
+        "ci_lower": 3.991813,
+        "ci_upper": 7.84222
       },
       {
         "variable": "month_of_year",
-        "coef": 0.595249,
-        "std_err": 0.338633,
-        "t_stat": 1.7578,
-        "p_value": 0.0801,
-        "ci_lower": -0.071851,
-        "ci_upper": 1.26235
+        "coef": 0.59651,
+        "std_err": 0.338634,
+        "t_stat": 1.7615,
+        "p_value": 0.0794,
+        "ci_lower": -0.070593,
+        "ci_upper": 1.263613
       }
     ]
   }
