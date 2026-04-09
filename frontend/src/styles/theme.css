@@ -4146,17 +4146,38 @@ input.resident-profile-input--readonly {
   padding-right: 2.4rem !important;
 }
 
+/* Hide Edge/IE built-in password reveal so we only show our custom icon button */
+.password-input-wrapper input::-ms-reveal,
+.password-input-wrapper input::-ms-clear {
+  display: none;
+}
+
 .password-toggle {
   position: absolute;
-  right: 0.6rem;
+  right: 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
-  font-size: 0.78rem;
-  font-weight: 600;
   color: var(--accent);
-  letter-spacing: 0.03em;
+  border-radius: 6px;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  color: #1f3a52;
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.password-toggle__icon {
+  display: block;
+  flex-shrink: 0;
 }
 
 .checkbox-label {
