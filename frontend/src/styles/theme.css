@@ -4004,6 +4004,19 @@ input.resident-profile-input--readonly {
   color: #d6e7f7;
 }
 
+:root[data-theme='dark'] .allocation-plan-card {
+  background: rgba(16, 26, 38, 0.88);
+  border-color: rgba(130, 155, 178, 0.42);
+}
+
+:root[data-theme='dark'] .allocation-plan-card__list li {
+  background: rgba(24, 36, 50, 0.75);
+}
+
+:root[data-theme='dark'] .allocation-plan-card__list li.allocation-plan-card__reserve {
+  background: rgba(56, 95, 130, 0.18);
+}
+
 :root[data-theme='dark'] .caseload-pagination__meta,
 :root[data-theme='dark'] .caseload-pagination__controls {
   color: var(--text);
