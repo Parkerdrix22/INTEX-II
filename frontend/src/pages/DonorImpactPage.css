@@ -350,8 +350,6 @@
   flex-direction: column;
   align-items: flex-end;
   text-align: right;
-  border-left: 1px solid var(--border);
-  padding-left: 2rem;
   min-width: 0; /* allow the flex item to shrink if needed */
 }
 
