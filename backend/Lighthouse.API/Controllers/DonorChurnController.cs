@@ -200,7 +200,7 @@ public class DonorChurnController : ControllerBase
                     AcquisitionChannel = s.AcquisitionChannel,
                     Status = s.Status,
                     ChurnProbability = Math.Round(churnProb, 4),
-                    ChurnRisk = churnProb >= 0.6f ? "High" : churnProb >= 0.3f ? "Medium" : "Low",
+                    ChurnRisk = churnProb >= 0.45f ? "High" : churnProb >= 0.25f ? "Medium" : "Low",
                     LastDonationDate = lastDonationDate?.ToString("yyyy-MM-dd"),
                     TotalDonated = Math.Round(totalDonated, 2),
                     DonationCount = donationCount,
