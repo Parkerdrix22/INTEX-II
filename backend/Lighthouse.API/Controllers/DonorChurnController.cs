@@ -227,7 +227,7 @@ public class DonorChurnController : ControllerBase
             .SqlQueryRaw<int>("SELECT COUNT(*)::int AS \"Value\" FROM lighthouse.supporters")
             .FirstAsync();
 
-        double r2 = 0;
+        double rocAuc = 0;
         string? trainedAt = null;
         double? churnRate = null;
 
@@ -244,8 +244,8 @@ public class DonorChurnController : ControllerBase
                 {
                     if (p2.TryGetProperty("metrics", out var metrics))
                     {
-                        if (metrics.TryGetProperty("r2", out var r2Val))
-                            r2 = r2Val.GetDouble();
+                        if (metrics.TryGetProperty("roc_auc_mean", out var aucVal))
+                            rocAuc = aucVal.GetDouble();
                         if (metrics.TryGetProperty("churn_rate", out var crVal))
                             churnRate = crVal.GetDouble();
                     }
@@ -263,7 +263,7 @@ public class DonorChurnController : ControllerBase
         return Ok(new
         {
             supporterCount,
-            r2 = Math.Round(r2, 4),
+            r2 = Math.Round(rocAuc, 4),
             trainedAt,
             modelName = "Random Forest Classifier",
             churnRate,
