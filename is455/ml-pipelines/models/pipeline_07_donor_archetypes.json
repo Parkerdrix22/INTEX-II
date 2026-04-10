@@ -1,10 +1,10 @@
 {
-  "trained_at_utc": "2026-04-09T04:27:55.177627+00:00",
+  "trained_at_utc": "2026-04-10T04:41:39.098717+00:00",
   "snapshot_date": "2026-04-07T00:00:00",
-  "n_donors": 67,
+  "n_donors": 69,
   "n_clusters": 4,
-  "silhouette": 0.3977,
-  "inertia": 165.36,
+  "silhouette": 0.3857,
+  "inertia": 166.41,
   "feature_order": [
     "frequency",
     "log_monetary_total",
@@ -15,54 +15,54 @@
   ],
   "scaler": {
     "mean": [
-      6.985075,
-      8.098639,
-      6.401524,
-      192.731343,
-      873.61194,
-      0.268657
+      6.971014,
+      8.001376,
+      6.329561,
+      187.057971,
+      848.318841,
+      0.26087
     ],
     "scale": [
-      4.982035,
-      1.14847,
-      0.812968,
-      190.718405,
-      362.696533,
-      0.443261
+      5.144213,
+      1.325633,
+      0.937087,
+      190.781147,
+      386.221551,
+      0.439109
     ]
   },
   "centroids": [
     [
-      -0.340343,
-      -0.079614,
-      0.024883,
-      0.234461,
-      0.309215,
-      -0.606092
+      -0.771938,
+      0.202924,
+      1.117189,
+      -0.614882,
+      -1.745291,
+      -0.594089
     ],
     [
-      1.106962,
-      0.674254,
-      0.075437,
-      -0.206868,
-      0.514661,
-      1.649916
+      -0.309598,
+      0.01664,
+      0.089947,
+      0.261068,
+      0.39511,
+      -0.594089
     ],
     [
-      -0.833342,
-      0.451568,
-      1.639603,
-      -0.74664,
-      -1.963842,
-      -0.606092
+      -0.285955,
+      -2.345719,
+      -2.470979,
+      -0.25889,
+      -1.755863,
+      -0.594089
     ],
     [
-      -0.398447,
-      -2.36413,
-      -2.428209,
-      -0.14121,
-      -1.846204,
-      -0.606092
+      1.074797,
+      0.657515,
+      0.142239,
+      -0.177063,
+      0.548801,
+      1.683251
     ]
   ],
   "archetypes": {
@@ -72,18 +72,50 @@
       "tagline": "Frequent one-time donors \u2014 your largest segment",
       "color": "#5f8448",
       "strategy": "Upgrade pathway. These donors give regularly but not on a recurring schedule. Test a 'become a sustainer' ask \u2014 converting even 20% of this segment to monthly recurring would meaningfully stabilize cash flow.",
-      "size": 38,
+      "size": 8,
       "characteristics": {
-        "mean_frequency": 5.29,
-        "mean_monetary_total": 3741.65,
-        "mean_monetary_avg": 684.44,
-        "mean_recency_days": 237.0,
-        "mean_tenure_days": 986.0,
+        "mean_frequency": 3.0,
+        "mean_monetary_total": 5872.45,
+        "mean_monetary_avg": 2173.52,
+        "mean_recency_days": 70.0,
+        "mean_tenure_days": 174.0,
         "recurring_pct": 0.0
       }
     },
     "1": {
       "cluster_id": 1,
+      "label": "The Active Engaged",
+      "tagline": "Frequent one-time donors \u2014 your largest segment",
+      "color": "#5f8448",
+      "strategy": "Upgrade pathway. These donors give regularly but not on a recurring schedule. Test a 'become a sustainer' ask \u2014 converting even 20% of this segment to monthly recurring would meaningfully stabilize cash flow.",
+      "size": 37,
+      "characteristics": {
+        "mean_frequency": 5.38,
+        "mean_monetary_total": 3798.29,
+        "mean_monetary_avg": 680.69,
+        "mean_recency_days": 237.0,
+        "mean_tenure_days": 1001.0,
+        "recurring_pct": 0.0
+      }
+    },
+    "2": {
+      "cluster_id": 2,
+      "label": "The Micro Donors",
+      "tagline": "Small but consistent givers \u2014 grassroots support",
+      "color": "#7a5a8f",
+      "strategy": "Community messaging. These donors give modest amounts but show up reliably. Don't ask them to upgrade the gift size \u2014 instead, invite them into peer-to-peer fundraising, volunteer events, and social sharing. Their value to the org is reach and grassroots advocacy, not wallet size.",
+      "size": 6,
+      "characteristics": {
+        "mean_frequency": 5.5,
+        "mean_monetary_total": 491.35,
+        "mean_monetary_avg": 74.17,
+        "mean_recency_days": 138.0,
+        "mean_tenure_days": 170.0,
+        "recurring_pct": 0.0
+      }
+    },
+    "3": {
+      "cluster_id": 3,
       "label": "The Loyal Sustainers",
       "tagline": "Recurring monthly donors \u2014 the org's bread and butter",
       "color": "#385f82",
@@ -96,38 +128,6 @@
         "mean_recency_days": 153.0,
         "mean_tenure_days": 1060.0,
         "recurring_pct": 1.0
-      }
-    },
-    "2": {
-      "cluster_id": 2,
-      "label": "The Active Engaged",
-      "tagline": "Frequent one-time donors \u2014 your largest segment",
-      "color": "#5f8448",
-      "strategy": "Upgrade pathway. These donors give regularly but not on a recurring schedule. Test a 'become a sustainer' ask \u2014 converting even 20% of this segment to monthly recurring would meaningfully stabilize cash flow.",
-      "size": 6,
-      "characteristics": {
-        "mean_frequency": 2.83,
-        "mean_monetary_total": 7353.59,
-        "mean_monetary_avg": 2839.74,
-        "mean_recency_days": 50.0,
-        "mean_tenure_days": 161.0,
-        "recurring_pct": 0.0
-      }
-    },
-    "3": {
-      "cluster_id": 3,
-      "label": "The Micro Donors",
-      "tagline": "Small but consistent givers \u2014 grassroots support",
-      "color": "#7a5a8f",
-      "strategy": "Community messaging. These donors give modest amounts but show up reliably. Don't ask them to upgrade the gift size \u2014 instead, invite them into peer-to-peer fundraising, volunteer events, and social sharing. Their value to the org is reach and grassroots advocacy, not wallet size.",
-      "size": 5,
-      "characteristics": {
-        "mean_frequency": 5.0,
-        "mean_monetary_total": 580.02,
-        "mean_monetary_avg": 94.02,
-        "mean_recency_days": 166.0,
-        "mean_tenure_days": 204.0,
-        "recurring_pct": 0.0
       }
     }
   },
