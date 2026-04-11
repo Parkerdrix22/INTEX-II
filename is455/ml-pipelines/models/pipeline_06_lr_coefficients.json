@@ -1,5 +1,5 @@
 {
-  "trained_at_utc": "2026-04-10T04:41:38.303242+00:00",
+  "trained_at_utc": "2026-04-11T04:14:32.076786+00:00",
   "model": "LogisticRegression on standardized features",
   "interpretation": "Positive coefficients push the model toward 'case will be resolved'. Negative coefficients push it toward 'case still open'. Coefficients are in standardized feature space (each feature mean-centered and scaled to unit variance), so magnitudes are comparable across features.",
   "n_features": 8,
@@ -16,59 +16,59 @@
   "coefficients": [
     {
       "feature": "has_safety_plan",
-      "coef": 0.8659,
-      "abs_coef": 0.8659,
+      "coef": 1.0505,
+      "abs_coef": 1.0505,
       "direction": "positive",
       "interpretation": "increases case-resolution probability"
-    },
-    {
-      "feature": "length_of_stay_days",
-      "coef": -0.8542,
-      "abs_coef": 0.8542,
-      "direction": "negative",
-      "interpretation": "decreases case-resolution probability"
-    },
-    {
-      "feature": "session_count",
-      "coef": -0.6951,
-      "abs_coef": 0.6951,
-      "direction": "negative",
-      "interpretation": "decreases case-resolution probability"
-    },
-    {
-      "feature": "achieved_rate",
-      "coef": -0.4262,
-      "abs_coef": 0.4262,
-      "direction": "negative",
-      "interpretation": "decreases case-resolution probability"
     },
     {
       "feature": "case_cat_Surrendered",
-      "coef": 0.1919,
-      "abs_coef": 0.1919,
+      "coef": 0.6385,
+      "abs_coef": 0.6385,
       "direction": "positive",
       "interpretation": "increases case-resolution probability"
     },
     {
-      "feature": "case_cat_Neglected",
-      "coef": 0.0823,
-      "abs_coef": 0.0823,
-      "direction": "positive",
-      "interpretation": "increases case-resolution probability"
+      "feature": "session_count",
+      "coef": -0.5875,
+      "abs_coef": 0.5875,
+      "direction": "negative",
+      "interpretation": "decreases case-resolution probability"
     },
     {
-      "feature": "case_cat_Foundling",
-      "coef": -0.0482,
-      "abs_coef": 0.0482,
+      "feature": "length_of_stay_days",
+      "coef": -0.4955,
+      "abs_coef": 0.4955,
       "direction": "negative",
       "interpretation": "decreases case-resolution probability"
     },
     {
       "feature": "case_cat_Abandoned",
-      "coef": -0.0328,
-      "abs_coef": 0.0328,
+      "coef": 0.4383,
+      "abs_coef": 0.4383,
+      "direction": "positive",
+      "interpretation": "increases case-resolution probability"
+    },
+    {
+      "feature": "achieved_rate",
+      "coef": -0.3791,
+      "abs_coef": 0.3791,
       "direction": "negative",
       "interpretation": "decreases case-resolution probability"
+    },
+    {
+      "feature": "case_cat_Foundling",
+      "coef": 0.3672,
+      "abs_coef": 0.3672,
+      "direction": "positive",
+      "interpretation": "increases case-resolution probability"
+    },
+    {
+      "feature": "case_cat_Neglected",
+      "coef": 0.313,
+      "abs_coef": 0.313,
+      "direction": "positive",
+      "interpretation": "increases case-resolution probability"
     }
   ]
 }
