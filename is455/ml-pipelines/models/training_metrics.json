@@ -1,7 +1,7 @@
 {
   "pipeline_01_resident_risk": {
     "status": "success",
-    "trained_at": "2026-04-11T04:14:06.902027+00:00",
+    "trained_at": "2026-04-12T04:41:50.410347+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.9357,
       "cv_roc_auc_std": 0.0474,
@@ -24,7 +24,7 @@
   },
   "pipeline_02_donor_churn": {
     "status": "success",
-    "trained_at": "2026-04-11T04:14:19.405667+00:00",
+    "trained_at": "2026-04-12T04:42:02.958475+00:00",
     "metrics": {
       "roc_auc_mean": 0.68,
       "roc_auc_std": 0.186,
@@ -42,7 +42,7 @@
   },
   "pipeline_03_social_media": {
     "status": "success",
-    "trained_at": "2026-04-11T04:14:30.875244+00:00",
+    "trained_at": "2026-04-12T04:42:15.452402+00:00",
     "metrics": {
       "r2": 0.7576,
       "rmse": 0.028496,
@@ -55,7 +55,7 @@
   },
   "pipeline_05_impact_attribution": {
     "status": "success",
-    "trained_at": "2026-04-11T04:14:31.687747+00:00",
+    "trained_at": "2026-04-12T04:42:17.525124+00:00",
     "metrics": {
       "ols_health_r2": 0.5083,
       "ols_health_adj_r2": 0.4814,
@@ -85,7 +85,7 @@
   },
   "pipeline_06_reintegration_readiness": {
     "status": "success",
-    "trained_at": "2026-04-11T04:14:32.079625+00:00",
+    "trained_at": "2026-04-12T04:42:20.285231+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.7734,
       "cv_roc_auc_std": 0.1267,
@@ -103,7 +103,7 @@
   },
   "pipeline_06_case_resolution": {
     "status": "success",
-    "trained_at": "2026-04-11T04:14:32.077380+00:00",
+    "trained_at": "2026-04-12T04:42:20.282872+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.7734,
       "cv_roc_auc_std": 0.1267,
@@ -121,23 +121,23 @@
   },
   "pipeline_07_donor_archetypes": {
     "status": "success",
-    "trained_at": "2026-04-11T04:14:32.228799+00:00",
+    "trained_at": "2026-04-12T04:42:21.008229+00:00",
     "metrics": {
       "n_donors": 70,
       "n_clusters": 4,
-      "silhouette": 0.3892,
-      "inertia": 168.81,
+      "silhouette": 0.389,
+      "inertia": 169.55,
       "cluster_sizes": [
-        8,
-        18,
         7,
-        37
+        37,
+        8,
+        18
       ],
       "archetype_labels": [
-        "The Active Engaged",
-        "The Loyal Sustainers",
         "The Micro Donors",
-        "The Active Engaged"
+        "The Active Engaged",
+        "The Active Engaged",
+        "The Loyal Sustainers"
       ]
     }
   }
