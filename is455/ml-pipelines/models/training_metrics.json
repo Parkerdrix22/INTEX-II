@@ -1,7 +1,7 @@
 {
   "pipeline_01_resident_risk": {
     "status": "success",
-    "trained_at": "2026-04-25T04:30:45.352397+00:00",
+    "trained_at": "2026-04-26T04:54:20.176161+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.9405,
       "cv_roc_auc_std": 0.0398,
@@ -24,7 +24,7 @@
   },
   "pipeline_02_donor_churn": {
     "status": "success",
-    "trained_at": "2026-04-25T04:30:57.031613+00:00",
+    "trained_at": "2026-04-26T04:54:32.719789+00:00",
     "metrics": {
       "roc_auc_mean": 0.68,
       "roc_auc_std": 0.186,
@@ -42,7 +42,7 @@
   },
   "pipeline_03_social_media": {
     "status": "success",
-    "trained_at": "2026-04-25T04:31:08.971469+00:00",
+    "trained_at": "2026-04-26T04:54:44.312480+00:00",
     "metrics": {
       "r2": 0.7576,
       "rmse": 0.028496,
@@ -55,7 +55,7 @@
   },
   "pipeline_05_impact_attribution": {
     "status": "success",
-    "trained_at": "2026-04-25T04:31:10.210068+00:00",
+    "trained_at": "2026-04-26T04:54:45.109701+00:00",
     "metrics": {
       "ols_health_r2": 0.5083,
       "ols_health_adj_r2": 0.4814,
@@ -85,7 +85,7 @@
   },
   "pipeline_06_reintegration_readiness": {
     "status": "success",
-    "trained_at": "2026-04-25T04:31:11.454244+00:00",
+    "trained_at": "2026-04-26T04:54:45.561303+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.7734,
       "cv_roc_auc_std": 0.1267,
@@ -103,7 +103,7 @@
   },
   "pipeline_06_case_resolution": {
     "status": "success",
-    "trained_at": "2026-04-25T04:31:11.452025+00:00",
+    "trained_at": "2026-04-26T04:54:45.559203+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.7734,
       "cv_roc_auc_std": 0.1267,
@@ -121,7 +121,7 @@
   },
   "pipeline_07_donor_archetypes": {
     "status": "success",
-    "trained_at": "2026-04-25T04:31:11.790432+00:00",
+    "trained_at": "2026-04-26T04:54:45.713173+00:00",
     "metrics": {
       "n_donors": 70,
       "n_clusters": 4,
