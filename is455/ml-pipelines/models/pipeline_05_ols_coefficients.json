@@ -1,5 +1,5 @@
 {
-  "trained_at_utc": "2026-04-27T05:18:15.748520+00:00",
+  "trained_at_utc": "2026-04-28T05:25:02.999516+00:00",
   "model": "OLS (statsmodels) with safehouse fixed effects",
   "interpretation": "Each coefficient is the estimated change in the outcome (avg health score or avg education progress) per unit increase in the predictor, holding other predictors constant. Donation amounts are in USD lagged by one month.",
   "health": {
