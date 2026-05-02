@@ -1,5 +1,5 @@
 {
-  "trained_at_utc": "2026-05-01T05:37:01.580179+00:00",
+  "trained_at_utc": "2026-05-02T04:54:39.702225+00:00",
   "model": "OLS (statsmodels) with safehouse fixed effects",
   "interpretation": "Each coefficient is the estimated change in the outcome (avg health score or avg education progress) per unit increase in the predictor, holding other predictors constant. Donation amounts are in USD lagged by one month.",
   "health": {
@@ -32,8 +32,8 @@
         "variable": "donation_to_counseling_lag1",
         "coef": 0.0,
         "std_err": 0.0,
-        "t_stat": 25.9608,
-        "p_value": 0.0,
+        "t_stat": 2.4136,
+        "p_value": 0.0166,
         "ci_lower": 0.0,
         "ci_upper": 0.0
       },
@@ -114,9 +114,9 @@
         "variable": "donation_to_counseling_lag1",
         "coef": 0.0,
         "std_err": 0.0,
-        "t_stat": 6.223,
-        "p_value": 0.0,
-        "ci_lower": 0.0,
+        "t_stat": 0.243,
+        "p_value": 0.8082,
+        "ci_lower": -0.0,
         "ci_upper": 0.0
       },
       {
