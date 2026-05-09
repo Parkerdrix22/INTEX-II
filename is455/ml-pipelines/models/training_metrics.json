@@ -1,7 +1,7 @@
 {
   "pipeline_01_resident_risk": {
     "status": "success",
-    "trained_at": "2026-05-08T04:49:25.474942+00:00",
+    "trained_at": "2026-05-09T05:16:22.790369+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.9405,
       "cv_roc_auc_std": 0.0398,
@@ -19,12 +19,12 @@
       "cv_f1_weighted_mean": 0.4771,
       "cv_f1_weighted_std": 0.0403,
       "best_lr_C": 0.01,
-      "onnx_verified": true
+      "onnx_verified": false
     }
   },
   "pipeline_02_donor_churn": {
     "status": "success",
-    "trained_at": "2026-05-08T04:49:38.006185+00:00",
+    "trained_at": "2026-05-09T05:16:36.037713+00:00",
     "metrics": {
       "roc_auc_mean": 0.68,
       "roc_auc_std": 0.186,
@@ -37,12 +37,12 @@
       "churn_rate": 0.1356,
       "lr_cv_auc": 0.5736,
       "rf_cv_auc": 0.68,
-      "onnx_verified": true
+      "onnx_verified": false
     }
   },
   "pipeline_03_social_media": {
     "status": "success",
-    "trained_at": "2026-05-08T04:49:49.648996+00:00",
+    "trained_at": "2026-05-09T05:16:48.256608+00:00",
     "metrics": {
       "r2": 0.7576,
       "rmse": 0.028496,
@@ -55,7 +55,7 @@
   },
   "pipeline_05_impact_attribution": {
     "status": "success",
-    "trained_at": "2026-05-08T04:49:50.472609+00:00",
+    "trained_at": "2026-05-09T05:16:50.011845+00:00",
     "metrics": {
       "ols_health_r2": 0.5083,
       "ols_health_adj_r2": 0.4814,
@@ -85,7 +85,7 @@
   },
   "pipeline_06_reintegration_readiness": {
     "status": "success",
-    "trained_at": "2026-05-08T04:49:50.904358+00:00",
+    "trained_at": "2026-05-09T05:16:52.121978+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.7734,
       "cv_roc_auc_std": 0.1267,
@@ -103,7 +103,7 @@
   },
   "pipeline_06_case_resolution": {
     "status": "success",
-    "trained_at": "2026-05-08T04:49:50.902131+00:00",
+    "trained_at": "2026-05-09T05:16:52.120010+00:00",
     "metrics": {
       "cv_roc_auc_mean": 0.7734,
       "cv_roc_auc_std": 0.1267,
@@ -121,7 +121,7 @@
   },
   "pipeline_07_donor_archetypes": {
     "status": "success",
-    "trained_at": "2026-05-08T04:49:51.063639+00:00",
+    "trained_at": "2026-05-09T05:16:52.693267+00:00",
     "metrics": {
       "n_donors": 70,
       "n_clusters": 4,
