@@ -1,5 +1,5 @@
 {
-  "trained_at_utc": "2026-05-23T05:34:49.950859+00:00",
+  "trained_at_utc": "2026-05-24T05:55:40.199544+00:00",
   "model": "LogisticRegression on standardized features",
   "interpretation": "Positive coefficients push the model toward 'case will be resolved'. Negative coefficients push it toward 'case still open'. Coefficients are in standardized feature space (each feature mean-centered and scaled to unit variance), so magnitudes are comparable across features.",
   "n_features": 8,
